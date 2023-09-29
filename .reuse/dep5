@@ -1,5 +1,5 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: <YOUR-REPO-NAME>
+Upstream-Name: @cap-js/opentelemetry-instrumentation
 Upstream-Contact: <YOUR-CONTACT (MAIL ADDRESS ETC.)>
 Source: <https://github.com/cap-js-community/YOUR-REPO-NAME>
 Disclaimer: The code in this project may include calls to APIs ("API Calls") of

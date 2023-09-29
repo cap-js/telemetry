@@ -1,7 +1,5 @@
 # cap-js Repository Template
 
-Default templates for cap-js open source repositories, including LICENSE, .reuse/dep5, Code of Conduct, etc... All repositories on github.com/cap-js will be created based on this template.
-
 ## To-Do
 
 In case you are the maintainer of a new cap-js open source project, these are the steps to do with the template files:
@@ -10,19 +8,102 @@ In case you are the maintainer of a new cap-js open source project, these are th
 - Enter the correct metadata for the REUSE tool. See our [wiki page](https://wiki.wdf.sap.corp/wiki/display/ospodocs/Using+the+Reuse+Tool+of+FSFE+for+Copyright+and+License+Information) for details how to do it. You can find an initial .reuse/dep5 file to build on. Please replace the parts inside the single angle quotation marks < > by the specific information for your repository and be sure to run the REUSE tool to validate that the metadata is correct.
 - Adjust the contribution guidelines (e.g. add coding style guidelines, pull request checklists, different license if needed etc.)
 - Add information about your project to this README (name, description, requirements etc). Especially take care for the <your-project> placeholders - those ones need to be replaced with your project name. See the sections below the horizontal line and [our guidelines on our wiki page](https://wiki.wdf.sap.corp/wiki/display/ospodocs/Guidelines+for+README.md+file) what is required and recommended.
-- Remove all content in this README above and including the horizontal line ;)
+- Remove all content in this README above and including the horizontal line ;
 
-***
-
-# Our new open source project
+# @cap-js/opentelemetry-instrumentation
 
 ## About this project
 
-*Insert a short description of your project here...*
+Adding OpenTelemetry instrumentation to your CAP Node.js application and auto-wiring for Dynatrace and Cloud Logging Service on SAP Business Technology Platform.
 
 ## Requirements and Setup
 
-*Insert a short description what is required to get your project running...*
+Add `@cap-js/opentelemetry-instrumentation` to your dependencies.
+
+## Configuration options
+
+### Instrumentation range
+- Set the log level for the cds logger `app` to `trace`, to trace individual CAP handler
+- With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
+- Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing. 
+- Use `const { instrumentations } = require('@cap-js/opentelemetry-instrumentation')` to adjust the instrumentations which are used by this plugin. By default HTTP, Express and HDB instrumentations are used
+- By default the middlewares of express are not traced. You can override this, by overriding `cds.env.trace.ignoreExpressLayer`. Allowed values are 'router', 'middleware' or 'request_handler'. For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
+
+### Exporter
+Locally the default exporter is a custom console exporter.
+With the following setting you get the normal console exporter output from OTEL in the form of larger json objects:
+```
+"trace": {
+  "format": "json"
+}
+```
+You can also manually specify the exporter:
+```
+"trace": {
+  "export": "jaeger" | "http" | "grpc" | "proto"
+}
+```
+With `cds.env.trace.ignorePaths` you can specify an array of endpoints which shall be excluded. By default it is `/health`
+
+### Details
+
+- In production the BatchSpanProcessor, locally SimpleSpanProcessor is used.
+- For Jaeger locally run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest` and open `localhost:16686` to see the traces.
+- Due to the tracing initial requests might be slower, locally all requests are slower due to the sync writing to the console.
+- In CF Environments `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID` are used to determine the appropriate Resource Attributes
+
+
+### Environment variables
+- OTEL_SDK_DISABLED | Disables all tracing
+- OTEL_RESOURCE_ATTRIBUTES | Specify additional resource attributes. Per specification the "user defined" attributes, e.g. what CAP defines, has higher priority
+- OTEL_SERVICE_NAME | Allows to override the name identified CAP. CAP will use the package.json name and version
+- OTEL_LOG_LEVEL | Override the log level for OTEL, by default log level of cds logger `trace` is used
+- OTEL_TRACES_EXPORTER | Override the exporter type
+- OTEL_PROPAGATORS | Override propagator. Default is W3CTraceContextPropagator
+- OTEL_TRACES_SAMPLER | Default is ParentBasedSampler with Root AlwaysOn
+- OTEL_TRACES_SAMPLER_ARG | For TraceId ratio
+
+[Batch Span processor config](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#batch-span-processor):
+- OTEL_BSP_SCHEDULE_DELAY | Override default OTEL value
+- OTEL_BSP_EXPORT_TIMEOUT | Override default OTEL value
+- OTEL_BSP_MAX_QUEUE_SIZE | Override default OTEL value
+- OTEL_BSP_MAX_EXPORT_BATCH_SIZE | Override default OTEL value
+
+Should all work, as no explizit configuration is provided by this package:
+- OTEL_EXPORTER_OTLP_ENDPOINT
+- OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+- OTEL_EXPORTER_OTLP_TRACES_TIMEOUT
+- OTEL_EXPORTER_OTLP_TIMEOUT
+- DEFAULT_EXPORT_MAX_ATTEMPTS
+- DEFAULT_EXPORT_INITIAL_BACKOFF
+- DEFAULT_EXPORT_MAX_BACKOFF
+- DEFAULT_EXPORT_BACKOFF_MULTIPLIER
+
+## Troubleshooting
+
+### Plugin does not load
+If upon server startup you do not see the message `[cds] - loaded plugin: { impl: '@cap-js/opentelemetry-instrumentation/cds-plugin' }`, please add  
+```
+"plugins": [
+    "./node_modules/@cap-js/opentelemetry-instrumentation/cds-plugin"
+]
+```
+to your cds configuration, like:
+
+```
+cds : {
+  ...,
+  "plugins": [
+    "./node_modules/@cap-js/opentelemetry-instrumentation/cds-plugin"
+  ],
+  ...
+}
+```
+This ensures that the plugin is loaded.
+
+## Testing repo locally
+After cloning the repo only run `npm install --omit=dev --omit=peer` init to avoid issues with the `cds` dependency.
+
 
 ## Support, Feedback, Contributing
 

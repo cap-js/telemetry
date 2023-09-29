@@ -1,0 +1,67 @@
+{
+  "name": "@cap-js/opentelemetry-instrumentation",
+  "version": "0.0.1",
+  "description": "CDS Plugin to include openTelemetry traces in the app",
+  "main": "cds-plugin.js",
+  "scripts": {
+    "test": "npx jest"
+  },
+  "keywords": [
+    "cds",
+    "CAP"
+  ],
+  "author": "SAP",
+  "dependencies": {
+    "@opentelemetry/api": "^1.4.1",
+    "@opentelemetry/context-async-hooks": "^1.14.0",
+    "@opentelemetry/core": "^1.11.0",
+    "@opentelemetry/exporter-jaeger": "^1.10.1",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.40.0",
+    "@opentelemetry/exporter-metrics-otlp-http": "^0.40.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.40.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.36.1",
+    "@opentelemetry/exporter-trace-otlp-http": "^0.36.1",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.40.0",
+    "@opentelemetry/instrumentation": "^0.36.1",
+    "@opentelemetry/instrumentation-express": "^0.32.1",
+    "@opentelemetry/instrumentation-http": "^0.36.1",
+    "@opentelemetry/propagator-jaeger": "^1.11.0",
+    "@opentelemetry/resources": "^1.10.1",
+    "@opentelemetry/sdk-metrics": "^1.14.0",
+    "@opentelemetry/sdk-node": "^0.36.1",
+    "@opentelemetry/sdk-trace-base": "^1.10.1",
+    "@opentelemetry/sdk-trace-node": "^1.10.1",
+    "@opentelemetry/semantic-conventions": "^1.10.1",
+    "@sap-cloud-sdk/http-client": "^3.2.0",
+    "@sap/opentelemetry-instrumentation-hdb": "^0.1.0",
+    "@sap/xsenv": "^3.4.0",
+    "express": "^4",
+    "func-loc": "^0.1.16",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^1.1.0",
+    "@sap/cds": "*",
+    "chai": "^4.3.8",
+    "chai-as-promised": "^7.1.1",
+    "chai-subset": "^1.6.0",
+    "eslint": "^8.45.0",
+    "hdb": "^0.19.5",
+    "jest": "^29.5.0",
+    "sqlite": "*"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/*.test.js"
+    ],
+    "collectCoverage": true
+  },
+  "cds": {
+    "trace": {
+      "ignoreExpressLayer": [
+        "middleware"
+      ]
+    }
+  }
+}
