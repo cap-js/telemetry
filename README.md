@@ -2,7 +2,7 @@
 
 ## About this project
 
-`@cap-js/opentelemetry-instrumentation` is a CDS plugin providing providing automatic OpenTelemetry instrumentation.
+`@cap-js/opentelemetry-instrumentation` is a CDS plugin providing providing [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
 
 Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs).
 
