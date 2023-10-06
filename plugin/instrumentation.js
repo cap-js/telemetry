@@ -133,7 +133,7 @@ function _instrument_cds_services() {
 //srv.emit, cds.spawn, cds.log - check srv.on in case of async
 
 function _instrument_odata() {
-  if (!LOG._info) return 
+  if (!LOG._info) return
   try {
     require.resolve('@sap/cds/libx/_runtime/cds-services/adapter/odata-v4/okra/odata-server/core/Service')
   } catch {

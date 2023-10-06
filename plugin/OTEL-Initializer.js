@@ -3,12 +3,12 @@ const cds = require('@sap/cds'),
 const LOG = cds.log('otel')
 const fs = require('fs')
 const { registerInstrumentations } = require('@opentelemetry/instrumentation')
-const { SemanticAttributes, SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions');
-const { Resource } = require('@opentelemetry/resources');
-const { NodeTracerProvider } = require("@opentelemetry/sdk-trace-node");
-const { B3Propagator, B3InjectEncoding } = require("@opentelemetry/propagator-b3");
-const { JaegerPropagator } = require("@opentelemetry/propagator-jaeger");
-const { CompositePropagator, W3CTraceContextPropagator, W3CBaggagePropagator } = require( '@opentelemetry/core');
+const { SemanticAttributes, SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions')
+const { Resource } = require('@opentelemetry/resources')
+const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node')
+const { B3Propagator, B3InjectEncoding } = require('@opentelemetry/propagator-b3')
+const { JaegerPropagator } = require('@opentelemetry/propagator-jaeger')
+const { CompositePropagator, W3CTraceContextPropagator, W3CBaggagePropagator } = require('@opentelemetry/core')
 const {
   BatchSpanProcessor,
   ConsoleSpanExporter,
@@ -39,8 +39,7 @@ const { OTLPMetricExporter: OTLPMetricExporterProto } = require('@opentelemetry/
 const { CDSConsoleExporter } = require('./CDSConsoleExporter')
 const { CDSConsoleMetricsExporter } = require('../metrics/CDSConsoleMetricsExporter')
 diag.setLogger(new DiagConsoleLogger(), getLogLevel())
-const { instrumentations } = require('../index');
-
+const { instrumentations } = require('../index')
 
 module.exports = class OTELInitializer {
   /**
@@ -60,8 +59,7 @@ module.exports = class OTELInitializer {
       resource
     })
     const exporters = this.getExporters()
-    if (process.env.NODE_ENV !== 'production' || !isDynatraceEnabled())
-      this.setSpanProcessor(provider, exporters.trace)
+    if (process.env.NODE_ENV !== 'production' || !isDynatraceEnabled()) this.setSpanProcessor(provider, exporters.trace)
     provider.register({
       propagator: this.setPropagator()
     })
@@ -72,21 +70,31 @@ module.exports = class OTELInitializer {
     if (!cds.env.tracer) cds.env.tracer = trace.getTracer(cds.env.trace.name, cds.env.trace.version)
     addInstrumentation()
 
-
     // get the Dynatrace metadata for entity-awareness
     let dtmetadata = new Resource({})
-    for (let name of ['dt_metadata_e617c525669e072eebe3d0f08212e8f2.json', '/var/lib/dynatrace/enrichment/dt_metadata.json']) {
-        try {
-            dtmetadata = dtmetadata.merge(
-                new Resource(JSON.parse(fs.readFileSync(name.startsWith("/var") ?
-                    name : fs.readFileSync(name).toString('utf-8').trim()).toString('utf-8'))));
-            break
-        } catch { /** */}
+    for (let name of [
+      'dt_metadata_e617c525669e072eebe3d0f08212e8f2.json',
+      '/var/lib/dynatrace/enrichment/dt_metadata.json'
+    ]) {
+      try {
+        dtmetadata = dtmetadata.merge(
+          new Resource(
+            JSON.parse(
+              fs
+                .readFileSync(name.startsWith('/var') ? name : fs.readFileSync(name).toString('utf-8').trim())
+                .toString('utf-8')
+            )
+          )
+        )
+        break
+      } catch {
+        /** */
+      }
     }
     //Add metrics
     const metricReader = new PeriodicExportingMetricReader({
       exporter: exporters.metrics,
-      exportIntervalMillis: 50000,
+      exportIntervalMillis: 50000
     })
     const meterProvider = new MeterProvider({
       resource: new Resource({}).merge(resource).merge(dtmetadata)

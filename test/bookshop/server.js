@@ -1,3 +1,3 @@
-const cds = require('@sap/cds');
+const cds = require('@sap/cds')
 require('../../cds-plugin')
-module.exports = cds.server;
+module.exports = cds.server
