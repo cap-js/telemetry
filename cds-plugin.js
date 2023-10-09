@@ -1,5 +1,5 @@
-const LOG = cds.log('cds')
-const OTELInitializer = require('./plugin/OTEL-Initializer')
-
-//Exporter must be registered before express app instantiation
-if (LOG._info && !process.env.OTEL_SDK_DISABLED) OTELInitializer.registerProvider()
+// Exporter must be registered before express app instantiation
+// REVISIT: why check log level (of default logger)?
+if (cds.log('cds')._info && !process.env.OTEL_SDK_DISABLED) {
+  require('./plugin/OTEL-Initializer').registerProvider()
+}
