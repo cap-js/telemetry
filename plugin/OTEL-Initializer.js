@@ -139,9 +139,9 @@ module.exports = class OTELInitializer {
 
       [SemanticResourceAttributes.PROCESS_PID]: process.pid,
       ['process.parent_pid']: process.ppid,
-      //[SemanticResourceAttributes.PROCESS_EXECUTABLE_NAME]: process.execArgv, // REVISIT: What is the executable name
+      // [SemanticResourceAttributes.PROCESS_EXECUTABLE_NAME]: process.execArgv, // REVISIT: What is the executable name
       [SemanticResourceAttributes.PROCESS_EXECUTABLE_PATH]: process.execPath,
-      //[SemanticResourceAttributes.PROCESS_OWNER]: process.owner, // REVISIT: What should be the owner
+      // [SemanticResourceAttributes.PROCESS_OWNER]: process.owner, // REVISIT: What should be the owner
       'sap.visibility.level': process.env.NODE_ENV !== 'production' ? 'confidential' : 'internal'
       // TODO: More attributes
     }
