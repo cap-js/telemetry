@@ -1,5 +1,6 @@
-const pooling = require('./pooling-metric')
+const dbPool = require('./db-pool')
 
+// REVISIT: why named function?
 module.exports = function instrumentMetrics() {
-  pooling()
+  dbPool()
 }
