@@ -1,16 +1,22 @@
 {
   "name": "@cap-js/opentelemetry-instrumentation",
   "version": "0.0.1",
-  "description": "CDS Plugin to include openTelemetry traces in the app",
+  "description": "CDS plugin providing automatic OpenTelemetry instrumentation.",
+  "repository": "cap-js/opentelemetry-instrumentation",
+  "author": "SAP SE (https://www.sap.com)",
+  "homepage": "https://cap.cloud.sap/",
+  "license": "SEE LICENSE IN LICENSE",
   "main": "cds-plugin.js",
-  "scripts": {
-    "test": "npx jest"
-  },
-  "keywords": [
-    "cds",
-    "CAP"
+  "files": [
+    "metrics",
+    "plugin",
+    "index.js",
+    "CHANGELOG.md"
   ],
-  "author": "SAP",
+  "scripts": {
+    "lint": "npx eslint .",
+    "test": "npx jest --silent"
+  },
   "dependencies": {
     "@opentelemetry/api": "^1.4.1",
     "@opentelemetry/context-async-hooks": "^1.14.0",
@@ -39,16 +45,17 @@
     "func-loc": "^0.1.16",
     "path": "^0.12.7"
   },
+  "peerDependencies": {
+    "@sap/cds": "^7"
+  },
   "devDependencies": {
     "@cap-js/sqlite": "^1.1.0",
-    "@sap/cds": "*",
     "chai": "^4.3.8",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
     "eslint": "^8.45.0",
     "hdb": "^0.19.5",
-    "jest": "^29.5.0",
-    "sqlite": "*"
+    "jest": "^29.5.0"
   },
   "jest": {
     "testEnvironment": "node",
