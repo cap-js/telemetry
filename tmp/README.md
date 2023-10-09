@@ -11,6 +11,7 @@ Add `@cap-js/opentelemetry-instrumentation` to your dependencies.
 ## Configuration options
 
 ### Instrumentation range
+
 - Set the log level for the cds logger `app` to `trace`, to trace individual CAP handler
 - With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
 - Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing. 
@@ -18,6 +19,7 @@ Add `@cap-js/opentelemetry-instrumentation` to your dependencies.
 - By default the middlewares of express are not traced. You can override this, by overriding `cds.env.trace.ignoreExpressLayer`. Allowed values are 'router', 'middleware' or 'request_handler'. For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
 
 ### Exporter
+
 Locally the default exporter is a custom console exporter.
 With the following setting you get the normal console exporter output from OTEL in the form of larger json objects:
 ```
@@ -40,8 +42,8 @@ With `cds.env.trace.ignorePaths` you can specify an array of endpoints which sha
 - Due to the tracing initial requests might be slower, locally all requests are slower due to the sync writing to the console.
 - In CF Environments `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID` are used to determine the appropriate Resource Attributes
 
-
 ### Environment variables
+
 - OTEL_SDK_DISABLED | Disables all tracing
 - OTEL_RESOURCE_ATTRIBUTES | Specify additional resource attributes. Per specification the "user defined" attributes, e.g. what CAP defines, has higher priority
 - OTEL_SERVICE_NAME | Allows to override the name identified CAP. CAP will use the package.json name and version
@@ -70,6 +72,7 @@ Should all work, as no explizit configuration is provided by this package:
 ## Troubleshooting
 
 ### Plugin does not load
+
 If upon server startup you do not see the message `[cds] - loaded plugin: { impl: '@cap-js/opentelemetry-instrumentation/cds-plugin' }`, please add  
 ```
 "plugins": [
@@ -77,7 +80,6 @@ If upon server startup you do not see the message `[cds] - loaded plugin: { impl
 ]
 ```
 to your cds configuration, like:
-
 ```
 cds : {
   ...,
@@ -90,8 +92,8 @@ cds : {
 This ensures that the plugin is loaded.
 
 ## Testing repo locally
-After cloning the repo only run `npm install --omit=dev --omit=peer` init to avoid issues with the `cds` dependency.
 
+After cloning the repo only run `npm install --omit=dev --omit=peer` init to avoid issues with the `cds` dependency.
 
 ## Support, Feedback, Contributing
 

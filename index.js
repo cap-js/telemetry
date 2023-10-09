@@ -9,8 +9,8 @@ if (!cds.env.trace) cds.env.trace = {}
 
 module.exports = {
   instrumentations: [
-    new HttpInstrumentation({ ignoreIncomingPaths: cds.env.trace.ignorePaths }),
-    new ExpressInstrumentation({ ignoreLayersType: cds.env.trace.ignoreExpressLayer }),
+    new HttpInstrumentation({ ignoreIncomingPaths: cds.env.trace.ignorePaths }), //> REVISIT: why not use config name of third party?
+    new ExpressInstrumentation({ ignoreLayersType: cds.env.trace.ignoreExpressLayer }), //> REVISIT: why not use config name of third party?
     new HdbInstrumentation()
   ]
 }

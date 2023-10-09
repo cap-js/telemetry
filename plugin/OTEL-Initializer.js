@@ -114,7 +114,7 @@ module.exports = class OTELInitializer {
   }
 
   static setNameAndVersion() {
-    // Determine app name and version via via package.json
+    // REVISIT: Determine app name and version via via package.json
     cds.env.trace.name = 'CAP Application'
     cds.env.trace.version = 1.0
     if (fs.existsSync(cds.env._home + '/package.json')) {
