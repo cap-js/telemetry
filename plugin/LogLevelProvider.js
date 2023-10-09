@@ -1,5 +1,6 @@
 const cds = require('@sap/cds')
-const LOG = cds.log('trace')
+const LOG = cds.log('otel:traces')
+
 const { DiagLogLevel } = require('@opentelemetry/api')
 
 /**

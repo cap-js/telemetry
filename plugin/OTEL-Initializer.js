@@ -257,6 +257,7 @@ module.exports = class OTELInitializer {
           cds.env.metrics.exportOptions = {}
           const getDynatraceSRV = () => {
             try {
+              // REVISIT: don't use xsenv for this easy lookup
               const services = xsenv.readServices()
               for (const srv in services) {
                 if (srv.match('dynatrace')) return services[srv]

@@ -4,6 +4,7 @@ const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-expre
 const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http')
 const { HdbInstrumentation } = require('@sap/opentelemetry-instrumentation-hdb')
 
+// REVISIT: should not be necessary
 if (!cds.env.trace) cds.env.trace = {}
 
 module.exports = {

@@ -1,5 +1,6 @@
 const cds = require('@sap/cds')
-const LOG = cds.log('trace')
+const LOG = cds.log('otel:traces')
+
 const { locate } = require('func-loc')
 const { SemanticAttributes } = require('@opentelemetry/semantic-conventions')
 const {

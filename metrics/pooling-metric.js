@@ -1,5 +1,5 @@
 const cds = require('@sap/cds')
-const LOG = cds.log('pooling') //> REVISIT: module name
+const LOG = cds.log('otel:metrics')
 
 const { metrics, ValueType } = require('@opentelemetry/api')
 
