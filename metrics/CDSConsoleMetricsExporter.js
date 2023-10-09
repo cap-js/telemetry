@@ -1,11 +1,11 @@
-const core = require('@opentelemetry/core')
+const { ExportResultCode } = require('@opentelemetry/core')
 const { ConsoleMetricExporter } = require('@opentelemetry/sdk-metrics')
 
 class CDSConsoleMetricsExporter extends ConsoleMetricExporter {
   export(metrics, resultCallback) {
     if (this._shutdown) {
       // If the exporter is shutting down, by spec, we need to return FAILED as export result
-      setImmediate(resultCallback, { code: core.ExportResultCode.FAILED })
+      setImmediate(resultCallback, { code: ExportResultCode.FAILED })
       return
     }
     return CDSConsoleMetricsExporter._sendMetrics(metrics, resultCallback)
@@ -17,7 +17,8 @@ class CDSConsoleMetricsExporter extends ConsoleMetricExporter {
         console.dir(`OTEL Metric ${metric.descriptor.name} | Data Points:`, metric.dataPoints)
       }
     }
-    done({ code: core.ExportResultCode.SUCCESS })
+    done({ code: ExportResultCode.SUCCESS })
   }
 }
+
 exports.CDSConsoleMetricsExporter = CDSConsoleMetricsExporter

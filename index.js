@@ -1,7 +1,9 @@
 const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express')
 const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http')
 const { HdbInstrumentation } = require('@sap/opentelemetry-instrumentation-hdb')
+
 if (!cds.env.trace) cds.env.trace = {}
+
 module.exports = {
   instrumentations: [
     new HttpInstrumentation({ ignoreIncomingPaths: cds.env.trace.ignorePaths }),
