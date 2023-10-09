@@ -28,7 +28,7 @@ module.exports = async function trace(name, func, targetObj, args, options = {})
   const source = fileSourceDetails.source
   const buildNamespace = source => {
     const parts = source.split('/')
-    if (parts.some(part => part === 'cds')) return source //cds module not processed
+    if (parts.some(part => part === 'cds')) return source // cds module not processed
     const isInSrv = parts.some(part => part === 'srv')
     let namespace = '',
       srvPassed = false
@@ -43,25 +43,25 @@ module.exports = async function trace(name, func, targetObj, args, options = {})
   attributeMap.set(SemanticAttributes.CODE_NAMESPACE, buildNamespace(source))
   attributeMap.set(SemanticAttributes.CODE_FILEPATH, fileSourceDetails.path)
   attributeMap.set(SemanticAttributes.CODE_LINENO, fileSourceDetails.line)
-  attributeMap.set('code.column', fileSourceDetails.column) //REVISIT: SemanticAttributes.CODE_COLUMN did not yet exists when programming
+  attributeMap.set('code.column', fileSourceDetails.column) // REVISIT: SemanticAttributes.CODE_COLUMN did not yet exists when programming
 
   if (cds.context?.http?.headers) attributeMap.set('http.correlation-id', cds.context.http.headers['x-correlation-id'])
-  if (cds.context?.tenant) attributeMap.set('sap.tenancy.tenant_id', cds.context.tenant) //https://github.tools.sap/CPA/telemetry-semantic-conventions/blob/main/specification/sap-extensions/resource/tenancy.md#sap-tenancy-related-otel-attributes
+  if (cds.context?.tenant) attributeMap.set('sap.tenancy.tenant_id', cds.context.tenant) // https://github.tools.sap/CPA/telemetry-semantic-conventions/blob/main/specification/sap-extensions/resource/tenancy.md#sap-tenancy-related-otel-attributes
 
   if (targetObj.dbc) {
-    //DB specific attributes
-    attributeMap.set(SemanticAttributes.DB_SYSTEM, cds.db.options.kind) //hanadb, postgresql, sqlite
+    // DB specific attributes
+    attributeMap.set(SemanticAttributes.DB_SYSTEM, cds.db.options.kind) // hanadb, postgresql, sqlite
     attributeMap.set(SemanticAttributes.DB_NAME, cds.db.vcap?.name || cds.db.name)
     attributeMap.set(SemanticAttributes.DB_USER, cds.db.options.credentials.user)
-    //attributeMap.set(SemanticAttributes.DB_CONNECTION_STRING, cds.db.options) //TODO: clarify what the value should be
+    // attributeMap.set(SemanticAttributes.DB_CONNECTION_STRING, cds.db.options) // TODO: clarify what the value should be
     attributeMap.set(SemanticAttributes.NET_PEER_NAME, cds.env.requires.db.credentials.host)
     attributeMap.set(SemanticAttributes.NET_PEER_PORT, cds.env.requires.db.credentials.port)
-    //attributeMap.set(SemanticAttributes.NET_TRANSPORT, cds.db.options) //TODO: clarify what value
+    // attributeMap.set(SemanticAttributes.NET_TRANSPORT, cds.db.options) // TODO: clarify what value
     attributeMap.set(SemanticAttributes.DB_SQL_TABLE, targetObj.context?.entity || name?.path)
     attributeMap.set(SemanticAttributes.DB_OPERATION, name?.event)
   }
   if (targetObj.constructor.name === 'cds' || name?.phase === 'emit') {
-    //cds for cds.spawn - emit for srv.emit
+    // cds for cds.spawn - emit for srv.emit
     attributeMap.set('sap.cds.async', true)
   }
 
@@ -109,7 +109,7 @@ module.exports = async function trace(name, func, targetObj, args, options = {})
 
   function getResult() {
     return otelContextAPI.with(
-      //otelTrace.setSpan(ctx, span),
+      // otelTrace.setSpan(ctx, span),
       cds.context._otelctx.setValue(cds.context._otelKey, span),
       fnToExecute()
     )
@@ -172,9 +172,9 @@ function getDBTarget(targetObj) {
 
 function getSpanName({ phase, event }, func, attributeMap, targetObj) {
   if (targetObj.dbc) {
-    //DB name -- Guidelines: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
+    // DB name -- Guidelines: https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/semantic_conventions/database.md
     //<db.operation> <db.name>.<db.sql.table> or <db.operation> <db.name> or db.name
-    //db.name = targetObj.dbc.filename, db.operation = event, db.operation = targetObj.context.query - INSERT.into, SELECT.from, DELETE.from, UPDATE.entity
+    // db.name = targetObj.dbc.filename, db.operation = event, db.operation = targetObj.context.query - INSERT.into, SELECT.from, DELETE.from, UPDATE.entity
     return (
       `${event ? event + ' ' : ''} ` +
       `${targetObj.dbc.filename || (targetObj.dbc.name in { hdb: 1, 'hana-client': 1 } ? `HANA_Cloud` : 'db')}` +
@@ -194,10 +194,10 @@ function updateAttributeMap(attributeMap, arg) {
 }
 
 function determineKind(targetObj, phase, isAsyncConsumer, options) {
-  //DB Calls & Remote calls are client calls
+  // DB Calls & Remote calls are client calls
   if (targetObj.dbc || targetObj.constructor.name === 'RemoteService' || options.outbound) return SpanKind.CLIENT
   if (targetObj.constructor.name === 'cds' || phase === 'emit')
-    //cds.spawn or srv.emit
+    // cds.spawn or srv.emit
     return SpanKind.PRODUCER
   if (isAsyncConsumer) return SpanKind.CONSUMER
   return SpanKind.INTERNAL

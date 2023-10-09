@@ -72,7 +72,7 @@ function _outbound_http() {
 function _instrument_cds_services() {
   const { emit } = Service.prototype
 
-  //Specific wrapping favoured to have more flexibility when unwrapping
+  // Specific wrapping favoured to have more flexibility when unwrapping
   /* Service.prototype.handle = wrap(handle, {wrapper: function (req) {
     return trace(handle, this, req.phase, req.event, arguments);
   }}) */
@@ -98,9 +98,9 @@ function _instrument_cds_services() {
   })
 
   cds.on('serving', service => {
-    //Do trace event handler either when
-    //Logging is enabled for all and it is not explicitly  disabled for this service
-    //Or tracing is explicitly enabled and the general setting is not silent
+    // Do trace event handler either when
+    // Logging is enabled for all and it is not explicitly  disabled for this service
+    // Or tracing is explicitly enabled and the general setting is not silent
     if (
       (APPLOG._trace && service.definition['@cds.tracing'] !== false) ||
       (service.definition['@cds.tracing'] && APPLOG.level !== 0)
@@ -108,16 +108,16 @@ function _instrument_cds_services() {
       for (const each of ['_error', '_initial', 'on', 'before', 'after'])
         service._handlers[each].forEach(wrapEventHandler)
 
-    //If tracing is explicitly disabled for this service
-    //Or if tracing in general is disabled for services and not explicitly enabled for this one
-    //Remove tracing
+    // If tracing is explicitly disabled for this service
+    // Or if tracing in general is disabled for services and not explicitly enabled for this one
+    // Remove tracing
     if ((!LOG._info && service.definition['@cds.tracing'] !== true) || service.definition['@cds.tracing'] === false) {
       service.emit = service.emit.__original
       service.handle = service.handle.__original
     }
   })
 
-  //Revisit: Does it also work with cds.context.spawn?
+  // REVISIT: Does it also work with cds.context.spawn?
   const { spawn: oriSpawn } = cds
   cds.spawn = wrap(oriSpawn, {
     wrapper: function () {
@@ -130,7 +130,7 @@ function _instrument_cds_services() {
   })
 }
 
-//srv.emit, cds.spawn, cds.log - check srv.on in case of async
+// srv.emit, cds.spawn, cds.log - check srv.on in case of async
 
 function _instrument_odata() {
   if (!LOG._info) return
@@ -139,13 +139,13 @@ function _instrument_odata() {
   } catch {
     return
   }
-  //Register cds.context has to be set as it is lost in $batch process
+  // Register cds.context has to be set as it is lost in $batch process
   const OKRAService = require('@sap/cds/libx/_runtime/cds-services/adapter/odata-v4/okra/odata-server/core/Service')
   const { process: innerProcess } = OKRAService.prototype
   OKRAService.prototype.process = function (request) {
     if (!request._ctx && cds.context) request._ctx = cds.context
     if (!cds.context) cds.context = request?._batchContext?._incomingODataRequest?._inRequest?._ctx
-    return trace(`${request.method} ${request.url}`, innerProcess, this, arguments, { loggerName: LOG.label }) //REVISIT: Name is a bit shitty
+    return trace(`${request.method} ${request.url}`, innerProcess, this, arguments, { loggerName: LOG.label }) // REVISIT: Name is a bit shitty
   }
 }
 
@@ -172,7 +172,7 @@ function _instrument_sqlite() {
     sqlite[each] = function (q, ..._) {
       if (!(q in skip)) {
         const span = api.trace.getActiveSpan()
-        if (span) span.setAttribute(SemanticAttributes.DB_STATEMENT, q) //REVISIT: When statement is in cds.spawn - error:"Can not execute the operation on ended span" shows up
+        if (span) span.setAttribute(SemanticAttributes.DB_STATEMENT, q) // REVISIT: When statement is in cds.spawn - error:"Can not execute the operation on ended span" shows up
       }
       return _super.call(this, q, ..._)
     }

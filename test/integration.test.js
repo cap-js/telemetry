@@ -11,7 +11,7 @@ describe('Integration tests cds with open telemetry', () => {
   test('GET request is traced', async () => {
     const { status } = await GET('/admin/Genres', admin)
     expect(status).to.equal(200)
-    //expect console to have trace logs
+    // expect console to have trace logs
   })
 
   test.skip('cds.spawn is traced', async () => {})
@@ -19,7 +19,7 @@ describe('Integration tests cds with open telemetry', () => {
   test('srv.emit is traced', async () => {
     const { status } = await POST('/browse/submitOrder', { book: 1, quantity: 1 }, admin)
     expect(status).to.equal(200)
-    //Wait and afterwards check if trace of emit is part of exporter
+    // Wait and afterwards check if trace of emit is part of exporter
   })
 
   test('$batch is traced', async () => {

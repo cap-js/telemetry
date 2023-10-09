@@ -54,7 +54,7 @@ class CDSConsoleExporter /* implements SpanExporter */ {
       ? hrTimeToMilliseconds(span.startTime) - hrTimeToMilliseconds(parentStartTime)
       : 0
     const endPoint = `${startPoint + hrTimeToMilliseconds(span.duration)}`
-    //cds default required for express spans
+    // cds default required for express spans
     let result = `[${span.attributes['sap.cds.logger'] || 'cds'}] - ${
       hasParent ? '>   ' : '    '
     }${`${startPoint}`.padStart(4, ' ')}ms -> ${endPoint.padStart(4, ' ')}ms = ${`${hrTimeToMilliseconds(
@@ -85,7 +85,7 @@ class CDSConsoleExporter /* implements SpanExporter */ {
    */
   _sendSpans(spans, done) {
     if (cds.server.url)
-      //Ensures that db init calls during startup are not traced in console
+      // Ensures that db init calls during startup are not traced in console
       for (const span of spans) {
         if (!span.parentSpanId) {
           console.dir(this._exportInfoString(span, false), { depth: 3, breakLength: 111 })

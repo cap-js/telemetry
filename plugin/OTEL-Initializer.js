@@ -1,7 +1,12 @@
-const cds = require('@sap/cds'),
-  xsenv = require('@sap/xsenv')
+const cds = require('@sap/cds')
 const LOG = cds.log('otel')
+
 const fs = require('fs')
+const xsenv = require('@sap/xsenv')
+
+/*
+ * OpenTelemetry Stuff
+ */
 const { registerInstrumentations } = require('@opentelemetry/instrumentation')
 const { SemanticAttributes, SemanticResourceAttributes } = require('@opentelemetry/semantic-conventions')
 const { Resource } = require('@opentelemetry/resources')
@@ -20,26 +25,28 @@ const {
   TraceIdRatioBasedSampler
 } = require('@opentelemetry/sdk-trace-base')
 const { SpanKind, trace, metrics, diag, DiagConsoleLogger } = require('@opentelemetry/api')
-const { getLogLevel } = require('./LogLevelProvider')
 const {
   MeterProvider,
   PeriodicExportingMetricReader,
   ConsoleMetricExporter,
   AggregationTemporality
 } = require('@opentelemetry/sdk-metrics')
-const registerMetrics = require('../metrics')
-const { addInstrumentation } = require('./instrumentation')
-const { JaegerExporter } = require('@opentelemetry/exporter-jaeger')
+const { JaegerExporter } = require('@opentelemetry/exporter-jaeger') // REVISIT: stuff like this should not be a direct dependency!!!
 const { OTLPTraceExporter: OTLPTraceExporterGrpc } = require('@opentelemetry/exporter-trace-otlp-grpc')
 const { OTLPTraceExporter: OTLPTraceExporterHttp } = require('@opentelemetry/exporter-trace-otlp-http')
 const { OTLPTraceExporter: OTLPTraceExporterProto } = require('@opentelemetry/exporter-trace-otlp-proto')
 const { OTLPMetricExporter: OTLPMetricExporterGrpc } = require('@opentelemetry/exporter-metrics-otlp-grpc')
 const { OTLPMetricExporter: OTLPMetricExporterHttp } = require('@opentelemetry/exporter-metrics-otlp-http')
 const { OTLPMetricExporter: OTLPMetricExporterProto } = require('@opentelemetry/exporter-metrics-otlp-proto')
-const { CDSConsoleExporter } = require('./CDSConsoleExporter')
-const { CDSConsoleMetricsExporter } = require('../metrics/CDSConsoleMetricsExporter')
-diag.setLogger(new DiagConsoleLogger(), getLogLevel())
+
 const { instrumentations } = require('../index')
+const registerMetrics = require('../metrics')
+const { CDSConsoleMetricsExporter } = require('../metrics/CDSConsoleMetricsExporter')
+const { addInstrumentation } = require('./instrumentation')
+const { getLogLevel } = require('./LogLevelProvider')
+const { CDSConsoleExporter } = require('./CDSConsoleExporter')
+
+diag.setLogger(new DiagConsoleLogger(), getLogLevel())
 
 module.exports = class OTELInitializer {
   /**
@@ -48,8 +55,10 @@ module.exports = class OTELInitializer {
    * @returns
    */
   static registerProvider() {
-    if (!cds.env.trace) cds.env.trace = {} //Ensures that later code does not break
-    if (!cds.env.metrics) cds.env.metrics = {} //Ensures that later code does not break
+    // REVISIT: merge in common cds.env.requires.otel, which should be defined through package.json
+    if (!cds.env.trace) cds.env.trace = {} // Ensures that later code does not break
+    if (!cds.env.metrics) cds.env.metrics = {} // Ensures that later code does not break
+
     cds.env.trace.ignorePaths = Array.isArray(cds.env.trace.ignorePaths) ? cds.env.trace.ignorePaths : ['/health']
 
     this.setNameAndVersion()
@@ -91,7 +100,7 @@ module.exports = class OTELInitializer {
         /** */
       }
     }
-    //Add metrics
+    // Add metrics
     const metricReader = new PeriodicExportingMetricReader({
       exporter: exporters.metrics,
       exportIntervalMillis: 50000
@@ -105,7 +114,7 @@ module.exports = class OTELInitializer {
   }
 
   static setNameAndVersion() {
-    //Determine app name and version via via package.json
+    // Determine app name and version via via package.json
     cds.env.trace.name = 'CAP Application'
     cds.env.trace.version = 1.0
     if (fs.existsSync(cds.env._home + '/package.json')) {
@@ -116,12 +125,12 @@ module.exports = class OTELInitializer {
   }
 
   static getResource() {
-    //Think about adding more from:
+    // Think about adding more from:
     // https://github.tools.sap/CPA/telemetry-semantic-conventions/blob/main/specification/sap-extensions/resource/service.md
     let resourceAttributes = {
       [SemanticResourceAttributes.SERVICE_NAME]: process.env.OTEL_SERVICE_NAME
         ? process.env.OTEL_SERVICE_NAME
-        : cds.env.trace.name, //Set service name to CDS Service
+        : cds.env.trace.name, // Set service name to CDS Service
       [SemanticResourceAttributes.SERVICE_NAMESPACE]: cds.env.trace.name,
       [SemanticResourceAttributes.SERVICE_VERSION]: cds.env.trace.version,
 
@@ -130,11 +139,11 @@ module.exports = class OTELInitializer {
 
       [SemanticResourceAttributes.PROCESS_PID]: process.pid,
       ['process.parent_pid']: process.ppid,
-      //[SemanticResourceAttributes.PROCESS_EXECUTABLE_NAME]: process.execArgv, //REVISIT: What is the executable name
+      //[SemanticResourceAttributes.PROCESS_EXECUTABLE_NAME]: process.execArgv, // REVISIT: What is the executable name
       [SemanticResourceAttributes.PROCESS_EXECUTABLE_PATH]: process.execPath,
-      //[SemanticResourceAttributes.PROCESS_OWNER]: process.owner, //REVISIT: What should be the owner
+      //[SemanticResourceAttributes.PROCESS_OWNER]: process.owner, // REVISIT: What should be the owner
       'sap.visibility.level': process.env.NODE_ENV !== 'production' ? 'confidential' : 'internal'
-      //TODO: More attributes
+      // TODO: More attributes
     }
     if (process.env.CF_INSTANCE_GUID)
       resourceAttributes[SemanticResourceAttributes.SERVICE_INSTANCE_ID] = process.env.CF_INSTANCE_GUID
@@ -210,15 +219,15 @@ module.exports = class OTELInitializer {
     })
   }
 
-  //TODO: If dynatrace service is bound and contains API details, use those
-  //Adjust function to return object with exporters
-  //Write metric parts to cds.env.metrics
+  // TODO: If dynatrace service is bound and contains API details, use those
+  // Adjust function to return object with exporters
+  // Write metric parts to cds.env.metrics
   /**
    *  @returns Exporter
    */
   static getExporters() {
     const result = { trace: null, metrics: null }
-    //cds.env.trace.exporter allows to customize SpanExporter if needed
+    // cds.env.trace.exporter allows to customize SpanExporter if needed
     if (!cds.env.trace.exporter) {
       try {
         if (!cds.env.trace.exportOptions) cds.env.trace.exportOptions = {}
@@ -227,10 +236,10 @@ module.exports = class OTELInitializer {
         } else if (cds.env.trace.export === 'grpc') {
           cds.env.trace.exporter = new OTLPTraceExporterGrpc(cds.env.trace.exportOptions)
         } else if (cds.env.trace.export === 'proto' || isDynatraceEnabled()) {
-          //Ensure that HTTP proto is used in dynatrace case
+          // Ensure that HTTP proto is used in dynatrace case
           cds.env.trace.exporter = new OTLPTraceExporterProto(cds.env.trace.exportOptions)
         } else if (cds.env.trace.export === 'http' || process.env.NODE_ENV === 'production') {
-          //Ensure that HTTP is used by default in production
+          // Ensure that HTTP is used by default in production
           cds.env.trace.exporter = new OTLPTraceExporterHttp(cds.env.trace.exportOptions)
         } else {
           if (cds.env.trace.format === 'json')
@@ -280,11 +289,11 @@ module.exports = class OTELInitializer {
           LOG.debug('OTLP Metric grpc exporter is being used')
           cds.env.metrics.exporter = new OTLPMetricExporterGrpc(cds.env.metrics.exportOptions)
         } else if (cds.env.metrics.export === 'proto' || isDynatraceEnabled()) {
-          //Ensure that HTTP proto is used in dynatrace case
+          // Ensure that HTTP proto is used in dynatrace case
           LOG.debug('OTLP Metric proto exporter is being used')
           cds.env.metrics.exporter = new OTLPMetricExporterProto(cds.env.metrics.exportOptions)
         } else if (cds.env.metrics.export === 'http' || process.env.NODE_ENV === 'production') {
-          //Ensure that HTTP is used by default in production
+          // Ensure that HTTP is used by default in production
           LOG.debug('OTLP Metric http exporter is being used')
           cds.env.metrics.exporter = new OTLPMetricExporterHttp(cds.env.metrics.exportOptions)
         } else {
@@ -351,9 +360,9 @@ function addCFAttributes() {
   result['sap.cf.space_name'] = vcapApplication.space_name
   result['sap.cf.org_id'] = vcapApplication.organization_id
   result['sap.cf.org_name'] = vcapApplication.organization_name
-  //result["sap.cf.source_type"] = vcapApplication -- for logs
+  // result["sap.cf.source_type"] = vcapApplication -- for logs
   result['sap.cf.process.id'] = vcapApplication.process_id
-  result['sap.cf.process.instance_id'] = vcapApplication.process_id //REVISIT: Not sure
+  result['sap.cf.process.instance_id'] = vcapApplication.process_id // REVISIT: Not sure
   result['sap.cf.process.type'] = vcapApplication.process_type
   return result
 }
