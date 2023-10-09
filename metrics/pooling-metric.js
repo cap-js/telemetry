@@ -1,15 +1,19 @@
-const cds = require('@sap/cds'),
-  LOG = cds.log('pooling')
+const cds = require('@sap/cds')
+const LOG = cds.log('pooling') //> REVISIT module name
+
 const { metrics, ValueType } = require('@opentelemetry/api')
 
 module.exports = () => {
   const pools = new Map()
+
   cds.on('served', async () => {
     const db = await cds.connect.to('db')
-    db.after('BEGIN', async function (res, req) {
-      LOG.debug('Add pool to weakmap for tenant', req.tenant)
-      LOG.debug('Pool is set', !!this.dbc._pool)
-      if (this.dbc._pool) pools.set(req.tenant, this.dbc._pool)
+    db.after('BEGIN', async function (_, req) {
+      if (!this.dbc._pool) return
+      if (!pools.has(req.tenant)) {
+        LOG._debug && LOG.debug('Adding pool to map for tenant', req.tenant)
+        pools.set(req.tenant, this.dbc._pool)
+      }
     })
 
     const meter = metrics.getMeter(`${cds.env.trace.name}-meter`)
@@ -47,7 +51,7 @@ module.exports = () => {
     borrowedPool.addCallback(result => {
       pools.forEach((pool, tenant) => {
         if (!pool) {
-          LOG.warn('Pool not defined for tenant', tenant)
+          LOG._warn && LOG.warn('Pool not defined for tenant', tenant)
           return
         }
         result.observe(pool.borrowed, { 'sap.tenancy.tenant_id': tenant })
@@ -56,7 +60,7 @@ module.exports = () => {
     pendingPool.addCallback(result => {
       pools.forEach((pool, tenant) => {
         if (!pool) {
-          LOG.warn('Pool not defined for tenant', tenant)
+          LOG._warn && LOG.warn('Pool not defined for tenant', tenant)
           return
         }
         result.observe(pool.pending, { 'sap.tenancy.tenant_id': tenant })
@@ -65,7 +69,7 @@ module.exports = () => {
     sizePool.addCallback(result => {
       pools.forEach((pool, tenant) => {
         if (!pool) {
-          LOG.warn('Pool not defined for tenant', tenant)
+          LOG._warn && LOG.warn('Pool not defined for tenant', tenant)
           return
         }
         result.observe(pool.size, { 'sap.tenancy.tenant_id': tenant })
@@ -74,7 +78,7 @@ module.exports = () => {
     availablePool.addCallback(result => {
       pools.forEach((pool, tenant) => {
         if (!pool) {
-          LOG.warn('Pool not defined for tenant', tenant)
+          LOG._warn && LOG.warn('Pool not defined for tenant', tenant)
           return
         }
         result.observe(pool.available, { 'sap.tenancy.tenant_id': tenant })
@@ -83,7 +87,7 @@ module.exports = () => {
     maxPool.addCallback(result => {
       pools.forEach((pool, tenant) => {
         if (!pool) {
-          LOG.warn('Pool not defined for tenant', tenant)
+          LOG._warn && LOG.warn('Pool not defined for tenant', tenant)
           return
         }
         result.observe(pool.max, { 'sap.tenancy.tenant_id': tenant })
@@ -92,7 +96,7 @@ module.exports = () => {
     minPool.addCallback(result => {
       pools.forEach((pool, tenant) => {
         if (!pool) {
-          LOG.warn('Pool not defined for tenant', tenant)
+          LOG._warn && LOG.warn('Pool not defined for tenant', tenant)
           return
         }
         result.observe(pool.min, { 'sap.tenancy.tenant_id': tenant })
