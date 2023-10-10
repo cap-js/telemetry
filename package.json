@@ -1,7 +1,7 @@
 {
   "name": "@cap-js/opentelemetry-instrumentation",
   "version": "0.0.1",
-  "description": "CDS Plugin to include openTelemetry traces in the app",
+  "description": "CDS plugin providing automatic OpenTelemetry instrumentation.",
   "main": "cds-plugin.js",
   "scripts": {
     "test": "npx jest"
