@@ -8,8 +8,8 @@
   "license": "SEE LICENSE IN LICENSE",
   "main": "cds-plugin.js",
   "files": [
-    "metrics",
-    "plugin",
+    "lib",
+    "cds-plugin.js",
     "index.js",
     "CHANGELOG.md"
   ],
@@ -68,7 +68,9 @@
     "trace": {
       "ignoreExpressLayer": [
         "middleware"
-      ]
-    }
+      ],
+      "ignorePaths" : ["/health"]
+    },
+    "metrics" : {}
   }
 }
