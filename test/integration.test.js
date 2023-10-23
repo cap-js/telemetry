@@ -2,7 +2,7 @@ const cds = require('@sap/cds')
 const bookshop = require('path').resolve(__dirname, './bookshop')
 
 describe('Integration tests cds with open telemetry', () => {
-  const { expect, GET, POST } = cds.test(bookshop)
+  const { expect, GET, POST } = cds.test().in(bookshop)
   const admin = {
     auth: {
       username: 'alice'
