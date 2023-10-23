@@ -5,6 +5,7 @@ const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http')
 
 module.exports = {
   instrumentations: [
+    // TODO: should be something like "new HttpInstrumentation({ ...cds.env.requires.otel.options.http })", i.e., 1:1 passthrough
     new HttpInstrumentation({ ignoreIncomingPaths: cds.env.requires.otel.trace.ignorePaths }), //> REVISIT: why not use config name of third party?
     new ExpressInstrumentation({ ignoreLayersType: cds.env.requires.otel.trace.ignoreExpressLayer }) //> REVISIT: why not use config name of third party?
   ]
