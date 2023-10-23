@@ -36,7 +36,7 @@ TODO: Which modules must be installed per feature?
 - With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
 - Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing. 
 - Use `const { instrumentations } = require('@cap-js/opentelemetry-instrumentation')` to adjust the instrumentations which are used by this plugin. By default HTTP, Express and HDB instrumentations are used
-- By default the middlewares of express are not traced. You can override this, by overriding `cds.env.trace.ignoreExpressLayer`. Allowed values are 'router', 'middleware' or 'request_handler'. For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
+- By default the middlewares of express are not traced. You can override this, by overriding `cds.env.requires.otel.trace.ignoreExpressLayer`. Allowed values are 'router', 'middleware' or 'request_handler'. For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
 - Muting the log level for 'otel' will disable the plugin
 
 ### Exporter
@@ -54,7 +54,7 @@ You can also manually specify the exporter:
   "export": "jaeger" | "http" | "grpc" | "proto"
 }
 ```
-With `cds.env.trace.ignorePaths` you can specify an array of endpoints which shall be excluded. By default it is `/health`
+With `cds.env.requires.otel.trace.ignorePaths` you can specify an array of endpoints which shall be excluded. By default it is `/health`
 
 ### Details
 
