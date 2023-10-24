@@ -7,7 +7,6 @@ class CatalogService extends cds.ApplicationService {
 
     // Reduce stock of ordered books if available stock suffices
     this.on('submitOrder', async req => {
-      console.log(req)
       const { book, quantity } = req.data
       if (quantity < 1) return req.reject(400, `quantity has to be 1 or more`)
       let b = await SELECT`stock`.from(Books, book)
