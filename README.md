@@ -16,21 +16,90 @@ See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstar
 
 Add `@cap-js/opentelemetry-instrumentation` to your dependencies.
 
-TODO: Which modules must be installed per feature?
+TODO:
+- Prerequisites?
+- Which modules must be installed per feature?
 
-## Configuration options - TODO
 
-### Instrumentation range
+
+## Configuration Options
+
+### Instrumentations
+
+TODO: add more info
+
+Configure via `cds.requires.telemetry.instrumentations = { name: { module, class, config? } }`
+
+Default:
+```
+{
+  "http": {
+    "module": "@opentelemetry/instrumentation-http",
+    "class": "HttpInstrumentation",
+    "config": {
+      "ignoreIncomingPaths": [
+        "/health"
+      ]
+    }
+  },
+  "express": {
+    "module": "@opentelemetry/instrumentation-express",
+    "class": "ExpressInstrumentation",
+    "config": {
+      "ignoreLayersType": [
+        "middleware"
+      ]
+    }
+  }
+}
+```
+
+#### Http
+
+Via `cds.env.requires.telemetry.instrumentations.http.ignoreIncomingPaths`, you can specify an array of endpoints which shall be excluded.
+
+#### Express
+
+By default the middlewares of express are not traced.
+You can override this via `cds.env.requires.telemetry.instrumentations.express.ignoreLayersType`.
+Allowed values are `router`, `middleware`, and `request_handler`.
+For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
+
+### Sampler
+
+TODO: add more info
+
+Configure via `cds.requires.telemetry.trace.sampler = { kind, root?, ratio? }`
+
+Default:
+```
+{
+  "kind": "ParentBasedSampler",
+  "root": "AlwaysOnSampler"
+}
+```
+
+### Propagators
+
+TODO: add more info
+
+Configure via  `cds.requires.telemetry.trace.propagators = [<name> | { module, class, config? }]`
+
+Default:
+```
+["W3CTraceContextPropagator"]
+```
+
+
+### Instrumentation range - TODO
 
 - Set the log level for the cds logger `app` to `trace`, to trace individual CAP handler
 - With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
-- Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing. 
-- Use `const { instrumentations } = require('@cap-js/opentelemetry-instrumentation')` to adjust the instrumentations which are used by this plugin. By default HTTP, Express and HDB instrumentations are used
-    - -> no hdb as not published
-    - -> all done via cds config
-- By default the middlewares of express are not traced. You can override this, by overriding `cds.env.requires.telemetry.instrumentations.express.ignoreLayersType`. Allowed values are 'router', 'middleware' or 'request_handler'. For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
+- Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing.
 
-### Exporter
+
+
+### Exporter - TODO
 
 Locally the default exporter is a custom console exporter.
 With the following setting you get the normal console exporter output from OTEL in the form of larger json objects:
@@ -45,14 +114,17 @@ You can also manually specify the exporter:
   "export": "jaeger" | "http" | "grpc" | "proto"
 }
 ```
-With `cds.env.requires.telemetry.instrumentations.http.ignoreIncomingPaths` you can specify an array of endpoints which shall be excluded. By default it is `/health`
 
-### Details
+
+
+### Details - TODO
 
 - In production the BatchSpanProcessor, locally SimpleSpanProcessor is used.
 - For Jaeger locally run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest` and open `localhost:16686` to see the traces.
 - Due to the tracing initial requests might be slower, locally all requests are slower due to the sync writing to the console.
 - In CF Environments `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID` are used to determine the appropriate Resource Attributes
+
+
 
 ### Environment variables
 
@@ -61,7 +133,6 @@ With `cds.env.requires.telemetry.instrumentations.http.ignoreIncomingPaths` you 
 - OTEL_SERVICE_NAME | Allows to override the name identified CAP. CAP will use the package.json name and version
 - OTEL_LOG_LEVEL | Override the log level for OTEL, by default log level of cds logger `trace` is used
 - OTEL_TRACES_EXPORTER | Override the exporter type
-- OTEL_PROPAGATORS | Override propagator. Default is W3CTraceContextPropagator
 
 [Batch Span processor config](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#batch-span-processor):
 - OTEL_BSP_SCHEDULE_DELAY | Override default OTEL value
@@ -79,10 +150,7 @@ Should all work, as no explizit configuration is provided by this package:
 - DEFAULT_EXPORT_MAX_BACKOFF
 - DEFAULT_EXPORT_BACKOFF_MULTIPLIER
 
-### Configuration Options
 
-- cds.env.requires.telemetry.trace.sampler = { kind, root?, ratio? }
-    - defaults: kind: ParentBasedSampler, root: AlwaysOnSampler
 
 ## Troubleshooting - TODO
 
