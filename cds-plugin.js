@@ -1,1 +1,1 @@
-if (!process.env.OTEL_SDK_DISABLED) require('./lib').instrumentApplication()
+if (!process.env.NO_TELEMETRY) require('./lib').instrumentApplication()

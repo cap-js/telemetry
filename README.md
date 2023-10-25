@@ -56,14 +56,12 @@ With `cds.env.requires.telemetry.instrumentations.http.ignoreIncomingPaths` you 
 
 ### Environment variables
 
-- OTEL_SDK_DISABLED | Disables all tracing
+- NO_TELEMETRY | Disables all tracing
 - OTEL_RESOURCE_ATTRIBUTES | Specify additional resource attributes. Per specification the "user defined" attributes, e.g. what CAP defines, has higher priority
 - OTEL_SERVICE_NAME | Allows to override the name identified CAP. CAP will use the package.json name and version
 - OTEL_LOG_LEVEL | Override the log level for OTEL, by default log level of cds logger `trace` is used
 - OTEL_TRACES_EXPORTER | Override the exporter type
 - OTEL_PROPAGATORS | Override propagator. Default is W3CTraceContextPropagator
-- OTEL_TRACES_SAMPLER | Default is ParentBasedSampler with Root AlwaysOn
-- OTEL_TRACES_SAMPLER_ARG | For TraceId ratio
 
 [Batch Span processor config](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#batch-span-processor):
 - OTEL_BSP_SCHEDULE_DELAY | Override default OTEL value
@@ -80,6 +78,11 @@ Should all work, as no explizit configuration is provided by this package:
 - DEFAULT_EXPORT_INITIAL_BACKOFF
 - DEFAULT_EXPORT_MAX_BACKOFF
 - DEFAULT_EXPORT_BACKOFF_MULTIPLIER
+
+### Configuration Options
+
+- cds.env.requires.telemetry.trace.sampler = { kind, root?, ratio? }
+    - defaults: kind: ParentBasedSampler, root: AlwaysOnSampler
 
 ## Troubleshooting - TODO
 
