@@ -62,7 +62,7 @@
       "telemetry": {
         "instrumentations": {
           "http": {
-            "package": "@opentelemetry/instrumentation-http",
+            "module": "@opentelemetry/instrumentation-http",
             "class": "HttpInstrumentation",
             "config": {
               "ignoreIncomingPaths": [
@@ -71,7 +71,7 @@
             }
           },
           "express": {
-            "package": "@opentelemetry/instrumentation-express",
+            "module": "@opentelemetry/instrumentation-express",
             "class": "ExpressInstrumentation",
             "config": {
               "ignoreLayersType": [
@@ -84,7 +84,10 @@
           "sampler": {
             "kind": "ParentBasedSampler",
             "root": "AlwaysOnSampler"
-          }
+          },
+          "propagators": [
+            "W3CTraceContextPropagator"
+          ]
         }
       }
     }
