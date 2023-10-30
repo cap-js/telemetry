@@ -69,7 +69,7 @@ For more information see [ExpressInstrumentation](https://www.npmjs.com/package/
 
 TODO: add more info
 
-Configure via `cds.requires.telemetry.trace.sampler = { kind, root?, ratio? }`
+Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio? }`
 
 Default:
 ```
@@ -83,7 +83,7 @@ Default:
 
 TODO: add more info
 
-Configure via  `cds.requires.telemetry.trace.propagators = [<name> | { module, class, config? }]`
+Configure via  `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
 
 Default:
 ```
