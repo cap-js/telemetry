@@ -83,7 +83,7 @@ Default:
 
 TODO: add more info
 
-Configure via  `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
+Configure via `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
 
 Default:
 ```
@@ -99,21 +99,93 @@ Default:
 
 
 
-### Exporter - TODO
+### Exporters
 
-Locally the default exporter is a custom console exporter.
-With the following setting you get the normal console exporter output from OTEL in the form of larger json objects:
+TODO: add more info
+
+Configure via:
+- `cds.requires.telemetry.tracing.exporter = { module, class, config? }`
+- `cds.requires.telemetry.metrics.exporter = { module, class, config? }`
+
+Default:
 ```
-"trace": {
-  "format": "json"
+{
+  "tracing": {
+    "module": "@cap-js/opentelemetry-instrumentation",
+    "class": "ConsoleSpanExporter"
+  },
+  "metrics": {
+    "module": "@cap-js/opentelemetry-instrumentation",
+    "class": "ConsoleMetricExporter"
+  }
 }
 ```
-You can also manually specify the exporter:
-```
-"trace": {
-  "export": "jaeger" | "http" | "grpc" | "proto"
-}
-```
+
+#### Some Alternative Exporters
+
+1. For JSON output to the console, use:
+    ```
+    {
+      "tracing": {
+        "module": "@opentelemetry/sdk-trace-base",
+        "class": "ConsoleSpanExporter"
+      },
+      "metrics": {
+        "module": "@opentelemetry/sdk-metrics",
+        "class": "ConsoleMetricExporter"
+      }
+    }
+    ```
+1. For Jaeger (on Kyma or locally via Docker image), use:
+    ```
+    {
+      "tracing": {
+        "module": "@opentelemetry/exporter-jaeger",
+        "class": "JaegerExporter"
+      },
+      "metrics": { ??? }
+    }
+    ```
+1. For gRPC (CLS???), use:
+    ```
+    {
+      "tracing": {
+        "module": "@opentelemetry/exporter-trace-otlp-grpc",
+        "class": "OTLPTraceExporter"
+      },
+      
+      "metrics": {
+        "module": "@opentelemetry/exporter-metrics-otlp-grpc",
+        "class": "OTLPMetricExporter"
+      }
+    }
+    ```
+1. For Proto (Dynatrace), use:
+    ```
+    {
+      "tracing": {
+        "module": "@opentelemetry/exporter-trace-otlp-proto",
+        "class": "OTLPTraceExporter"
+      },
+      "metrics": {
+        "module": "@opentelemetry/exporter-metrics-otlp-proto",
+        "class": "OTLPMetricExporter"
+      }
+    }
+    ```
+1. For HTTP (???), use:
+    ```
+    {
+      "tracing": {
+        "module": "@opentelemetry/exporter-trace-otlp-http",
+        "class": "OTLPTraceExporter"
+      },
+      "metrics": {
+        "module": "@opentelemetry/exporter-metrics-otlp-http",
+        "class": "OTLPMetricExporter"
+      }
+    }
+    ```
 
 
 
