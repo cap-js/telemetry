@@ -81,7 +81,7 @@
             }
           }
         },
-        "trace": {
+        "tracing": {
           "sampler": {
             "kind": "ParentBasedSampler",
             "root": "AlwaysOnSampler"
