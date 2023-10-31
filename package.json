@@ -97,6 +97,9 @@
           "exporter": {
             "module": "@cap-js/opentelemetry-instrumentation",
             "class": "ConsoleMetricExporter"
+          },
+          "config": {
+            "exportIntervalMillis": 30000
           }
         }
       }
