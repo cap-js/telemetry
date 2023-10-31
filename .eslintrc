@@ -20,7 +20,7 @@
     "cds": true
   },
   "rules": {
-    "no-console": 1,
+    "no-console": "off",
     "require-atomic-updates": "off"
   }
 }
