@@ -20,6 +20,11 @@ TODO:
 - Prerequisites?
 - Which modules must be installed per feature?
 
+### Run Jaeger locally
+
+- Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
+- Open `localhost:16686` to see the traces
+
 
 
 ## Configuration Options
@@ -89,13 +94,6 @@ Default:
 ```
 ["W3CTraceContextPropagator"]
 ```
-
-
-### Instrumentation range - TODO
-
-- Set the log level for the cds logger `app` to `trace`, to trace individual CAP handler
-- With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
-- Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing.
 
 
 
@@ -189,62 +187,24 @@ Default:
 
 
 
-### Details - TODO
-
-- In production the BatchSpanProcessor, locally SimpleSpanProcessor is used.
-- For Jaeger locally run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest` and open `localhost:16686` to see the traces.
-- Due to the tracing initial requests might be slower, locally all requests are slower due to the sync writing to the console.
-- In CF Environments `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID` are used to determine the appropriate Resource Attributes
-
-
-
 ### Environment variables
 
-- NO_TELEMETRY | Disables all tracing
-- OTEL_RESOURCE_ATTRIBUTES | Specify additional resource attributes. Per specification the "user defined" attributes, e.g. what CAP defines, has higher priority
-- OTEL_SERVICE_NAME | Allows to override the name identified CAP. CAP will use the package.json name and version
-- OTEL_LOG_LEVEL | Override the log level for OTEL, by default log level of cds logger `trace` is used
-- OTEL_TRACES_EXPORTER | Override the exporter type
+- `NO_TELEMETRY`: Disables the plugin
+- `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `otel` is used
+- `OTEL_SERVICE_NAME`: If not specified, the name is determined from package.json (defaulting to "CAP Application")
+- `OTEL_SERVICE_VERSION`: If not specified, the version is determined from package.json (defaulting to "1.0.0")
 
-[Batch Span processor config](https://opentelemetry.io/docs/reference/specification/sdk-environment-variables/#batch-span-processor):
-- OTEL_BSP_SCHEDULE_DELAY | Override default OTEL value
-- OTEL_BSP_EXPORT_TIMEOUT | Override default OTEL value
-- OTEL_BSP_MAX_QUEUE_SIZE | Override default OTEL value
-- OTEL_BSP_MAX_EXPORT_BATCH_SIZE | Override default OTEL value
+For the complete list of environment variables supported by OpenTelemetry, see [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables).
 
-Should all work, as no explizit configuration is provided by this package:
-- OTEL_EXPORTER_OTLP_ENDPOINT
-- OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
-- OTEL_EXPORTER_OTLP_TRACES_TIMEOUT
-- OTEL_EXPORTER_OTLP_TIMEOUT
-- DEFAULT_EXPORT_MAX_ATTEMPTS
-- DEFAULT_EXPORT_INITIAL_BACKOFF
-- DEFAULT_EXPORT_MAX_BACKOFF
-- DEFAULT_EXPORT_BACKOFF_MULTIPLIER
+Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID`, if present, are used to determine some [Attributes](https://opentelemetry.io/docs/specs/otel/common/#attribute).
 
 
 
-## Troubleshooting - TODO
+### Instrumentation range - TODO
 
-### Plugin does not load
-
-If upon server startup you do not see the message `[cds] - loaded plugin: { impl: '@cap-js/opentelemetry-instrumentation/cds-plugin' }`, please add  
-```
-"plugins": [
-  "./node_modules/@cap-js/opentelemetry-instrumentation/cds-plugin"
-]
-```
-to your cds configuration, like:
-```
-cds : {
-  ...,
-  "plugins": [
-    "./node_modules/@cap-js/opentelemetry-instrumentation/cds-plugin"
-  ],
-  ...
-}
-```
-This ensures that the plugin is loaded.
+- Set the log level for the cds logger `app` to `trace`, to trace individual CAP handler
+- With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
+- Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing.
 
 
 
