@@ -25,8 +25,7 @@
     "@opentelemetry/sdk-node": "^0.36.1",
     "@opentelemetry/sdk-trace-base": "^1.10.1",
     "@opentelemetry/sdk-trace-node": "^1.17.1",
-    "@opentelemetry/semantic-conventions": "^1.10.1",
-    "func-loc": "^0.1.16"
+    "@opentelemetry/semantic-conventions": "^1.10.1"
   },
   "devDependencies": {
     "@cap-js/opentelemetry-instrumentation": "file:.",
