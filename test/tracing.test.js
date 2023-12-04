@@ -13,7 +13,7 @@ describe('Integration tests cds with open telemetry', () => {
     const { status } = await GET('/odata/v4/admin/Books', admin)
     expect(status).to.equal(200)
     // primitive check that console has trace logs
-    expect(log.output).to.match(/\[otel\] - \s+\d+\.\d+ ms/)
+    expect(log.output).to.match(/\[telemetry\] - \s+\d+\.\d+ ms/)
   })
 
   // --- HERE ---
