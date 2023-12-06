@@ -60,7 +60,8 @@
         "metrics": {}
       },
       "telemetry": {
-        "instrumentations": {
+        "instrumentations": {},
+        "_instrumentations": {
           "http": {
             "module": "@opentelemetry/instrumentation-http",
             "class": "HttpInstrumentation",
