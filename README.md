@@ -137,9 +137,13 @@ Default:
 1. For Jaeger (on Kyma or locally via Docker image), use:
     ```
     {
-      "tracing": {
+      "_tracing": {
         "module": "@opentelemetry/exporter-jaeger",
         "class": "JaegerExporter"
+      },
+      "tracing": {
+        "module": "@opentelemetry/exporter-trace-otlp-proto",
+        "class": "OTLPTraceExporter"
       },
       "metrics": { ??? }
     }

@@ -5,9 +5,7 @@ const log = cds.test.log()
 describe('Integration tests cds with open telemetry', () => {
   const admin = { auth: { username: 'alice' } }
 
-  beforeEach(() => {
-    log.clear()
-  })
+  beforeEach(log.clear)
 
   test('GET request is traced', async () => {
     const { status } = await GET('/odata/v4/admin/Books', admin)
