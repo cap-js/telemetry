@@ -83,19 +83,55 @@
           },
           "propagators": [
             "W3CTraceContextPropagator"
-          ],
-          "exporter": {
-            "module": "@cap-js/opentelemetry-instrumentation",
-            "class": "ConsoleSpanExporter"
-          }
+          ]
         },
         "metrics": {
-          "exporter": {
-            "module": "@cap-js/opentelemetry-instrumentation",
-            "class": "ConsoleMetricExporter"
-          },
           "config": {
             "exportIntervalMillis": 30000
+          }
+        },
+        "[development]": {
+          "kind": "telemetry-to-console"
+        },
+        "[production]": {
+          "kind": "telemetry-to-dynatrace"
+        }
+      },
+      "kinds": {
+        "telemetry-to-console": {
+          "tracing": {
+            "exporter": {
+              "module": "@cap-js/opentelemetry-instrumentation",
+              "class": "ConsoleSpanExporter"
+            }
+          },
+          "metrics": {
+            "exporter": {
+              "module": "@cap-js/opentelemetry-instrumentation",
+              "class": "ConsoleMetricExporter"
+            }
+          }
+        },
+        "telemetry-to-dynatrace": {
+          "tracing": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-trace-otlp-proto",
+              "class": "OTLPTraceExporter"
+            }
+          },
+          "metrics": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-metrics-otlp-proto",
+              "class": "OTLPMetricExporter"
+            }
+          }
+        },
+        "telemetry-to-jaeger": {
+          "tracing": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-trace-otlp-proto",
+              "class": "OTLPTraceExporter"
+            }
           }
         }
       }
