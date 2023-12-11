@@ -27,6 +27,77 @@ TODO:
 
 
 
+## Predefined Kinds
+
+There are three predfined kinds:
+
+### `telemetry-to-console`
+
+Prints traces and logs to the console.
+
+No additional dependencies needed.
+
+The default kind in both development and production.
+
+### `telemetry-to-dyntrace`
+
+Exports traces and metrics to Dynatrace.
+Hence, a Dynatrace instance is required and the app must be bound to a Dynatrace instance.
+
+Use via `cds.requires.telemetry.kind = 'telemetry-to-dyntrace'`.
+
+Required additional dependencies:
+- `@dynatrace/oneagent-sdk`
+- `@opentelemetry/exporter-metrics-otlp-proto`
+
+The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
+This can only be done via binding to a "managed service instance", i.e., not a user-provided instance.
+There are two config options: (1) `rest_apitoken` (to be deprecated) and (2) `metrics_apitoken` via `tokens`.
+Example (you only need one):
+```yaml
+requires:
+  - name: my-dynatrace-instance
+    parameters:
+      config:
+        # option 1
+        rest_apitoken:
+          scopes: ['metrics.ingest']
+        # option 2
+        tokens:
+          - name: metrics_apitoken
+            scopes:
+              - metrics.ingest
+```
+
+### `telemetry-to-jaeger`
+
+Exports traces to Jaeger. Jaeger does not support metrics!
+
+Use via `cds.requires.telemetry.kind = 'telemetry-to-jaeger'`.
+
+Required additional dependencies:
+- `@opentelemetry/exporter-trace-otlp-proto`
+
+Provide custom credentials like so:
+```jsonc
+{
+  "cds": {
+    "requires": {
+      "telemetry": {
+        "kind": "telemetry-to-jaeger",
+        "tracing": {
+          "config": {
+            // add credentials here as decribed in https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+
+
 ## Configuration Options
 
 ### Instrumentations

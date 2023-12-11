@@ -90,12 +90,13 @@
             "exportIntervalMillis": 30000
           }
         },
-        "[development]": {
+        "_[development]": {
           "kind": "telemetry-to-console"
         },
-        "[production]": {
+        "_[production]": {
           "kind": "telemetry-to-dynatrace"
-        }
+        },
+        "kind": "telemetry-to-console"
       },
       "kinds": {
         "telemetry-to-console": {
