@@ -114,6 +114,12 @@
           }
         },
         "telemetry-to-dynatrace": {
+          "tracing": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-trace-otlp-proto",
+              "class": "OTLPTraceExporter"
+            }
+          },
           "metrics": {
             "exporter": {
               "module": "@opentelemetry/exporter-metrics-otlp-proto",

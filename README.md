@@ -48,6 +48,7 @@ Use via `cds.requires.telemetry.kind = 'telemetry-to-dyntrace'`.
 
 Required additional dependencies:
 - `@dynatrace/oneagent-sdk`
+- `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
