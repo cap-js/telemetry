@@ -87,7 +87,7 @@
         },
         "metrics": {
           "config": {
-            "exportIntervalMillis": 30000
+            "exportIntervalMillis": 60000
           }
         },
         "_[development]": {
