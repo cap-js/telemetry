@@ -77,14 +77,15 @@
           }
         },
         "tracing": {
-          "hrtime": true,
           "sampler": {
             "kind": "ParentBasedSampler",
             "root": "AlwaysOnSampler"
           },
           "propagators": [
             "W3CTraceContextPropagator"
-          ]
+          ],
+          "hrtime": true,
+          "tx": false
         },
         "metrics": {
           "config": {
