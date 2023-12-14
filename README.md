@@ -1,10 +1,14 @@
 # Welcome to @cap-js/opentelemetry-instrumentation
 
+
+
 ## About this project
 
 `@cap-js/opentelemetry-instrumentation` is a CDS plugin providing [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
 
 Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [opentelemetry.io](https://opentelemetry.io/docs).
+
+
 
 ## Requirements
 
@@ -12,18 +16,15 @@ See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstar
 
 
 
-## Setup - TODO
+## Setup
 
 Add `@cap-js/opentelemetry-instrumentation` to your dependencies.
 
-TODO:
-- Prerequisites?
-- Which modules must be installed per feature?
+See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself.
 
-### Run Jaeger locally
+Disable the plugin by setting environment variable `NO_TELEMETRY` to something truthy.
 
-- Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
-- Open `localhost:16686` to see the traces
+Annotate services with `@cds.tracing: false` to disable all tracing for that service.
 
 
 
@@ -97,15 +98,17 @@ Provide custom credentials like so:
 }
 ```
 
+Run Jaeger locally:
+- Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
+- Open `localhost:16686` to see the traces
 
 
-## Configuration Options
+
+## Detailed Configuration Options
 
 ### Instrumentations
 
-TODO: add more info
-
-Configure via `cds.requires.telemetry.instrumentations = { name: { module, class, config? } }`
+Configure via `cds.requires.telemetry.instrumentations = { <name>: { module, class, config? } }`
 
 Default:
 ```
@@ -122,35 +125,7 @@ Default:
 }
 ```
 
-TODO: no longer default:
-```
-{
-  "express": {
-    "module": "@opentelemetry/instrumentation-express",
-    "class": "ExpressInstrumentation",
-    "config": {
-      "ignoreLayersType": [
-        "middleware"
-      ]
-    }
-  }
-}
-```
-
-#### Http
-
-Via `cds.env.requires.telemetry.instrumentations.http.ignoreIncomingPaths`, you can specify an array of endpoints which shall be excluded.
-
-#### Express
-
-By default the middlewares of express are not traced.
-You can override this via `cds.env.requires.telemetry.instrumentations.express.ignoreLayersType`.
-Allowed values are `router`, `middleware`, and `request_handler`.
-For more information see [ExpressInstrumentation](https://www.npmjs.com/package/@opentelemetry/instrumentation-express)
-
 ### Sampler
-
-TODO: add more info
 
 Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio? }`
 
@@ -164,8 +139,6 @@ Default:
 
 ### Propagators
 
-TODO: add more info
-
 Configure via `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
 
 Default:
@@ -173,11 +146,7 @@ Default:
 ["W3CTraceContextPropagator"]
 ```
 
-
-
 ### Exporters
-
-TODO: add more info
 
 Configure via:
 - `cds.requires.telemetry.tracing.exporter = { module, class, config? }`
@@ -186,13 +155,40 @@ Configure via:
 Default:
 ```
 {
-  "tracing": {
-    "module": "@cap-js/opentelemetry-instrumentation",
-    "class": "ConsoleSpanExporter"
+  {
+    "kind": "telemetry-to-console",
+    "tracing": {
+      "module": "@cap-js/opentelemetry-instrumentation",
+      "class": "ConsoleSpanExporter"
+    },
+    "metrics": {
+      "module": "@cap-js/opentelemetry-instrumentation",
+      "class": "ConsoleMetricExporter"
+    }
   },
-  "metrics": {
-    "module": "@cap-js/opentelemetry-instrumentation",
-    "class": "ConsoleMetricExporter"
+  {
+    "kind": "telemetry-to-dynatrace",
+    "tracing": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-trace-otlp-proto",
+        "class": "OTLPTraceExporter"
+      }
+    },
+    "metrics": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-metrics-otlp-proto",
+        "class": "OTLPMetricExporter"
+      }
+    }
+  },
+  {
+    "kind": "telemetry-to-jaeger",
+    "tracing": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-trace-otlp-proto",
+        "class": "OTLPTraceExporter"
+      }
+    }
   }
 }
 ```
@@ -212,21 +208,7 @@ Default:
       }
     }
     ```
-1. For Jaeger (on Kyma or locally via Docker image), use:
-    ```
-    {
-      "_tracing": {
-        "module": "@opentelemetry/exporter-jaeger",
-        "class": "JaegerExporter"
-      },
-      "tracing": {
-        "module": "@opentelemetry/exporter-trace-otlp-proto",
-        "class": "OTLPTraceExporter"
-      },
-      "metrics": { ??? }
-    }
-    ```
-1. For gRPC (CLS???), use:
+1. For gRPC, use:
     ```
     {
       "tracing": {
@@ -240,20 +222,7 @@ Default:
       }
     }
     ```
-1. For Proto (Dynatrace), use:
-    ```
-    {
-      "tracing": {
-        "module": "@opentelemetry/exporter-trace-otlp-proto",
-        "class": "OTLPTraceExporter"
-      },
-      "metrics": {
-        "module": "@opentelemetry/exporter-metrics-otlp-proto",
-        "class": "OTLPMetricExporter"
-      }
-    }
-    ```
-1. For HTTP (???), use:
+1. For HTTP, use:
     ```
     {
       "tracing": {
@@ -272,7 +241,7 @@ Default:
 ### Environment variables
 
 - `NO_TELEMETRY`: Disables the plugin
-- `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `otel` is used
+- `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `telemetry` is used
 - `OTEL_SERVICE_NAME`: If not specified, the name is determined from package.json (defaulting to "CAP Application")
 - `OTEL_SERVICE_VERSION`: If not specified, the version is determined from package.json (defaulting to "1.0.0")
 
