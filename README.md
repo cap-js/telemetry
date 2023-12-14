@@ -30,7 +30,7 @@ Annotate services with `@cds.tracing: false` to disable all tracing for that ser
 
 ## Predefined Kinds
 
-There are three predefined kinds:
+There are three predefined kinds as follows.
 
 ### `telemetry-to-console`
 
@@ -45,7 +45,7 @@ The default kind in both development and production.
 Exports traces and metrics to Dynatrace.
 Hence, a Dynatrace instance is required and the app must be bound to a Dynatrace instance.
 
-Use via `cds.requires.telemetry.kind = 'telemetry-to-dyntrace'`.
+Use via `cds.requires.telemetry.kind = 'to-dyntrace'`.
 
 Required additional dependencies:
 - `@dynatrace/oneagent-sdk`
@@ -75,7 +75,7 @@ requires:
 
 Exports traces to Jaeger. Jaeger does not support metrics!
 
-Use via `cds.requires.telemetry.kind = 'telemetry-to-jaeger'`.
+Use via `cds.requires.telemetry.kind = 'to-jaeger'`.
 
 Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
@@ -241,6 +241,7 @@ Default:
 ### Environment variables
 
 - `NO_TELEMETRY`: Disables the plugin
+- `NO_LOCATE`: Disables function location in tracing
 - `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `telemetry` is used
 - `OTEL_SERVICE_NAME`: If not specified, the name is determined from package.json (defaulting to "CAP Application")
 - `OTEL_SERVICE_VERSION`: If not specified, the version is determined from package.json (defaulting to "1.0.0")
