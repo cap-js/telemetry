@@ -77,6 +77,7 @@
           }
         },
         "tracing": {
+          "hrtime": true,
           "sampler": {
             "kind": "ParentBasedSampler",
             "root": "AlwaysOnSampler"
@@ -129,6 +130,7 @@
         },
         "telemetry-to-jaeger": {
           "tracing": {
+            "hrtime": false,
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-proto",
               "class": "OTLPTraceExporter"

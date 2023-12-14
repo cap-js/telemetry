@@ -71,6 +71,14 @@ requires:
               - metrics.ingest
 ```
 
+In Dynatrace:
+- Ensure that OpenTelemetry Node.js Instrumentation agent support is enabled:
+  - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
+  - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
+- Ensure that W3C Trace Context is enabled:
+  - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
+  - Turn on Send W3C Trace Context HTTP headers.
+
 ### `telemetry-to-jaeger`
 
 Exports traces to Jaeger. Jaeger does not support metrics!
