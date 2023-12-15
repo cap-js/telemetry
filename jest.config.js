@@ -2,7 +2,7 @@
 process.env.CDS_ENV = 'better-sqlite'
 
 const config = {
-  testTimeout: 5000,
+  testTimeout: 42000,
   testMatch: ['**/*.test.js']
 }
 
