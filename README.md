@@ -23,6 +23,8 @@ Add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry`. Th
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
 Additionally, tracing for individual services can be diabled by annotating the service with `@cds.tracing: false`.
 
+Database tracing is currently limited to @cap-js/sqlite and @cap-js/hana.
+
 See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself when exporting to Dynatrace or Jaeger.
 
 
