@@ -85,11 +85,11 @@ requires:
 
 In Dynatrace, you need to ensure that the following two features are enabled:
 1. OpenTelemetry Node.js Instrumentation agent support:
-  - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
-  - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
+    - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
+    - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
 2. W3C Trace Context:
-  - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
-  - Turn on Send W3C Trace Context HTTP headers.
+    - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
+    - Turn on Send W3C Trace Context HTTP headers.
 
 ### `telemetry-to-jaeger`
 
