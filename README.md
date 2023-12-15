@@ -18,32 +18,46 @@ See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstar
 
 ## Setup
 
-Add `@cap-js/telemetry` to your dependencies.
+Add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry`. That's all.
 
-See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself.
+The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
+Additionally, tracing for individual services can be diabled by annotating the service with `@cds.tracing: false`.
 
-Disable the plugin by setting environment variable `NO_TELEMETRY` to something truthy.
+Database tracing is currently limited to @cap-js/sqlite and @cap-js/hana.
 
-Annotate services with `@cds.tracing: false` to disable all tracing for that service.
+See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself when exporting to Dynatrace or Jaeger.
 
 
 
 ## Predefined Kinds
 
-There are three predefined kinds as follows.
+There are three predefined kinds as follows:
 
 ### `telemetry-to-console`
 
-Prints traces and logs to the console.
+Prints traces and metrics to the console like so:
+
+```
+[odata] - GET /odata/v4/processor/Incidents 
+[telemetry] - elapsed times:
+    0.00 →   2.85 =   2.85 ms  GET /odata/v4/processor/Incidents
+    0.47 →   1.24 =   0.76 ms    ProcessorService - READ ProcessorService.Incidents
+    0.78 →   1.17 =   0.38 ms      db - READ sap.capire.incidents.Incidents
+    0.97 →   1.06 =   0.09 ms        @cap-js/sqlite - prepare SELECT json_object('ID',ID,'createdAt',createdAt,'creat…
+    1.10 →   1.13 =   0.03 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'createdAt',createdAt,'crea…
+    1.27 →   1.88 =   0.61 ms    ProcessorService - READ ProcessorService.Incidents.drafts
+    1.54 →   1.86 =   0.32 ms      db - READ sap.capire.incidents.Incidents
+    1.74 →   1.78 =   0.04 ms        @cap-js/sqlite - prepare SELECT json_object('ID',ID,'DraftAdministrativeData_Dra…
+    1.81 →   1.85 =   0.04 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'DraftAdministrativeData_Dr…
+```
 
 No additional dependencies needed.
-
 The default kind in both development and production.
 
 ### `telemetry-to-dyntrace`
 
 Exports traces and metrics to Dynatrace.
-Hence, a Dynatrace instance is required and the app must be bound to a Dynatrace instance.
+Hence, Dynatrace is required and the app must be bound to a Dynatrace instance.
 
 Use via `cds.requires.telemetry.kind = 'to-dyntrace'`.
 
@@ -53,9 +67,9 @@ Required additional dependencies:
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
-This can only be done via binding to a "managed service instance", i.e., not a user-provided instance.
+This can only be done via binding to a "managed service instance", i.e., not a user-provided service instance.
 There are two config options: (1) `rest_apitoken` (to be deprecated) and (2) `metrics_apitoken` via `tokens`.
-Example (you only need one):
+Example (you only need option 1 or option 2):
 ```yaml
 requires:
   - name: my-dynatrace-instance
@@ -71,13 +85,13 @@ requires:
               - metrics.ingest
 ```
 
-In Dynatrace:
-- Ensure that OpenTelemetry Node.js Instrumentation agent support is enabled:
-  - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
-  - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
-- Ensure that W3C Trace Context is enabled:
-  - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
-  - Turn on Send W3C Trace Context HTTP headers.
+In Dynatrace, you need to ensure that the following two features are enabled:
+1. OpenTelemetry Node.js Instrumentation agent support:
+    - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
+    - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
+2. W3C Trace Context:
+    - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
+    - Turn on Send W3C Trace Context HTTP headers.
 
 ### `telemetry-to-jaeger`
 
@@ -97,7 +111,8 @@ Provide custom credentials like so:
         "kind": "telemetry-to-jaeger",
         "tracing": {
           "config": {
-            // add credentials here as decribed in https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
+            // add credentials here as decribed in
+            // https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
           }
         }
       }
@@ -244,8 +259,6 @@ Default:
     }
     ```
 
-
-
 ### Environment variables
 
 - `NO_TELEMETRY`: Disables the plugin
@@ -257,14 +270,6 @@ Default:
 For the complete list of environment variables supported by OpenTelemetry, see [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables).
 
 Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID`, if present, are used to determine some [Attributes](https://opentelemetry.io/docs/specs/otel/common/#attribute).
-
-
-
-### Instrumentation range - TODO
-
-- Set the log level for the cds logger `app` to `trace`, to trace individual CAP handler
-- With log level `info` of `cds` the handling function in each Service is traced, including DB Services 
-- Annotate services with `@cds.tracing : false` to disable all tracing for that service. Counterwise, you can enable only the tracing for one service with `@cds.tracing : true`. The exception is detailed OData Adapter tracing, which can only be enabled or disabled globally. At the moment the annotation also only disables all CAP tracing, but not the HTTP and Express tracing.
 
 
 
