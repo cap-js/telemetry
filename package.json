@@ -1,8 +1,8 @@
 {
-  "name": "@cap-js/opentelemetry-instrumentation",
+  "name": "@cap-js/telemetry",
   "version": "0.0.1",
   "description": "CDS plugin providing automatic OpenTelemetry instrumentation.",
-  "repository": "cap-js/opentelemetry-instrumentation",
+  "repository": "cap-js/telemetry",
   "author": "SAP SE (https://www.sap.com)",
   "homepage": "https://cap.cloud.sap/",
   "license": "SEE LICENSE IN LICENSE",
@@ -30,7 +30,7 @@
     "@sap/cds": "^7"
   },
   "devDependencies": {
-    "@cap-js/opentelemetry-instrumentation": "file:.",
+    "@cap-js/telemetry": "file:.",
     "@cap-js/sqlite": "^1.3.1",
     "axios": "^1.6.2",
     "chai": "^4.3.10",
@@ -104,13 +104,13 @@
         "telemetry-to-console": {
           "tracing": {
             "exporter": {
-              "module": "@cap-js/opentelemetry-instrumentation",
+              "module": "@cap-js/telemetry",
               "class": "ConsoleSpanExporter"
             }
           },
           "metrics": {
             "exporter": {
-              "module": "@cap-js/opentelemetry-instrumentation",
+              "module": "@cap-js/telemetry",
               "class": "ConsoleMetricExporter"
             }
           }

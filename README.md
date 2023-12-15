@@ -1,10 +1,10 @@
-# Welcome to @cap-js/opentelemetry-instrumentation
+# Welcome to @cap-js/telemetry
 
 
 
 ## About this project
 
-`@cap-js/opentelemetry-instrumentation` is a CDS plugin providing [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
+`@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
 
 Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [opentelemetry.io](https://opentelemetry.io/docs).
 
@@ -18,7 +18,7 @@ See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstar
 
 ## Setup
 
-Add `@cap-js/opentelemetry-instrumentation` to your dependencies.
+Add `@cap-js/telemetry` to your dependencies.
 
 See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself.
 
@@ -166,11 +166,11 @@ Default:
   {
     "kind": "telemetry-to-console",
     "tracing": {
-      "module": "@cap-js/opentelemetry-instrumentation",
+      "module": "@cap-js/telemetry",
       "class": "ConsoleSpanExporter"
     },
     "metrics": {
-      "module": "@cap-js/opentelemetry-instrumentation",
+      "module": "@cap-js/telemetry",
       "class": "ConsoleMetricExporter"
     }
   },
@@ -270,7 +270,7 @@ Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUI
 
 ## Support, Feedback, Contributing
 
-This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://github.com/cap-js/opentelemetry-instrumentation/issues). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, the project structure, as well as additional contribution information, see our [Contribution Guidelines](CONTRIBUTING.md).
+This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://github.com/cap-js/telemetry/issues). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, the project structure, as well as additional contribution information, see our [Contribution Guidelines](CONTRIBUTING.md).
 
 
 
@@ -282,4 +282,4 @@ We as members, contributors, and leaders pledge to make participation in our com
 
 ## Licensing
 
-Copyright 2023 SAP SE or an SAP affiliate company and contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/cap-js/opentelemetry-instrumentation).
+Copyright 2023 SAP SE or an SAP affiliate company and contributors. Please see our [LICENSE](LICENSE) for copyright and license information. Detailed information including third-party components and their licensing/copyright information is available [via the REUSE tool](https://api.reuse.software/info/github.com/cap-js/telemetry).
