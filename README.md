@@ -33,7 +33,22 @@ There are three predefined kinds as follows:
 
 ### `telemetry-to-console`
 
-Prints traces and logs to the console.
+Prints traces and metrics to the console like so:
+
+```
+[odata] - GET /odata/v4/processor/Incidents 
+[telemetry] - elapsed times:
+    0.00 →   2.85 =   2.85 ms  GET /odata/v4/processor/Incidents
+    0.47 →   1.24 =   0.76 ms    ProcessorService - READ ProcessorService.Incidents
+    0.78 →   1.17 =   0.38 ms      db - READ sap.capire.incidents.Incidents
+    0.97 →   1.06 =   0.09 ms        @cap-js/sqlite - prepare SELECT json_object('ID',ID,'createdAt',createdAt,'creat…
+    1.10 →   1.13 =   0.03 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'createdAt',createdAt,'crea…
+    1.27 →   1.88 =   0.61 ms    ProcessorService - READ ProcessorService.Incidents.drafts
+    1.54 →   1.86 =   0.32 ms      db - READ sap.capire.incidents.Incidents
+    1.74 →   1.78 =   0.04 ms        @cap-js/sqlite - prepare SELECT json_object('ID',ID,'DraftAdministrativeData_Dra…
+    1.81 →   1.85 =   0.04 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'DraftAdministrativeData_Dr…
+```
+
 No additional dependencies needed.
 The default kind in both development and production.
 
