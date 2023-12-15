@@ -109,7 +109,8 @@ Provide custom credentials like so:
         "kind": "telemetry-to-jaeger",
         "tracing": {
           "config": {
-            // add credentials here as decribed in https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
+            // add credentials here as decribed in
+            // https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
           }
         }
       }
