@@ -1,5 +1,5 @@
 {
   "dependencies": {
-    "@cap-js/opentelemetry-instrumentation": "*"
+    "@cap-js/telemetry": "*"
   }
 }
