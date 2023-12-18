@@ -1,5 +1,7 @@
 # Welcome to @cap-js/telemetry
 
+[![REUSE status](https://api.reuse.software/badge/github.com/cap-js/telemetry)](https://api.reuse.software/info/github.com/cap-js/telemetry)
+
 
 
 ## About this project
