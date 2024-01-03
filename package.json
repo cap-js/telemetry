@@ -63,7 +63,7 @@
             "W3CTraceContextPropagator"
           ],
           "_hrtime": true,
-          "tx": false
+          "_tx": false
         },
         "metrics": {
           "config": {
