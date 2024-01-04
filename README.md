@@ -15,7 +15,6 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 ## Table of Contents
 
 - [About this project](#about-this-project)
-- [Table of Contents](#table-of-contents)
 - [Requirements](#requirements)
 - [Setup](#setup)
 - [Predefined Kinds](#predefined-kinds)
