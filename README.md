@@ -20,14 +20,12 @@ See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstar
 
 ## Setup
 
-Add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry`. That's all.
+Simply add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry` and you will find telemetry output written to the console.
+See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself when exporting to Dynatrace, Jaeger, etc.
 
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
-Additionally, tracing for individual services can be diabled by annotating the service with `@cds.tracing: false`.
 
-Database tracing is currently limited to @cap-js/sqlite and @cap-js/hana.
-
-See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself when exporting to Dynatrace or Jaeger.
+Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
 
 
 
@@ -53,13 +51,13 @@ Prints traces and metrics to the console like so:
     1.81 →   1.85 =   0.04 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'DraftAdministrativeData_Dr…
 ```
 
-No additional dependencies needed.
-The default kind in both development and production.
+No additional dependencies are needed.
+This is the default kind in both development and production.
 
 ### `telemetry-to-dyntrace`
 
 Exports traces and metrics to Dynatrace.
-Hence, Dynatrace is required and the app must be bound to a Dynatrace instance.
+Hence, a Dynatrace instance is required and the app must be bound to that Dynatrace instance.
 
 Use via `cds.requires.telemetry.kind = 'to-dyntrace'`.
 
@@ -71,6 +69,7 @@ Required additional dependencies:
 The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
 This can only be done via binding to a "managed service instance", i.e., not a user-provided service instance.
 There are two config options: (1) `rest_apitoken` (to be deprecated) and (2) `metrics_apitoken` via `tokens`.
+
 Example (you only need option 1 or option 2):
 ```yaml
 requires:
@@ -87,7 +86,7 @@ requires:
               - metrics.ingest
 ```
 
-In Dynatrace, you need to ensure that the following two features are enabled:
+In Dynatrace itself, you need to ensure that the following two features are enabled:
 1. OpenTelemetry Node.js Instrumentation agent support:
     - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
     - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
@@ -97,11 +96,11 @@ In Dynatrace, you need to ensure that the following two features are enabled:
 
 ### `telemetry-to-jaeger`
 
-Exports traces to Jaeger. Jaeger does not support metrics!
+Exports traces to Jaeger.
 
 Use via `cds.requires.telemetry.kind = 'to-jaeger'`.
 
-Required additional dependencies:
+Required additional dependencies (As Jaeger does not support metrics, only a trace exporter is needed.):
 - `@opentelemetry/exporter-trace-otlp-proto`
 
 Provide custom credentials like so:
