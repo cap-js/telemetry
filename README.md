@@ -12,6 +12,27 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 
 
 
+## Table of Contents
+
+- [About this project](#about-this-project)
+- [Requirements](#requirements)
+- [Setup](#setup)
+- [Predefined Kinds](#predefined-kinds)
+  - [`telemetry-to-console`](#telemetry-to-console)
+  - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
+  - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
+- [Detailed Configuration Options](#detailed-configuration-options)
+  - [Instrumentations](#instrumentations)
+  - [Sampler](#sampler)
+  - [Propagators](#propagators)
+  - [Exporters](#exporters)
+  - [Environment variables](#environment-variables)
+- [Support, Feedback, Contributing](#support-feedback-contributing)
+- [Code of Conduct](#code-of-conduct)
+- [Licensing](#licensing)
+
+
+
 ## Requirements
 
 See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstart your development and grow as you go with SAP Cloud Application Programming Model.
