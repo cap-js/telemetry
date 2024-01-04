@@ -1,0 +1,6 @@
+@host = http://localhost:4004
+
+###
+
+GET {{host}}/odata/v4/admin/Books
+Authorization: Basic alice:wonderland

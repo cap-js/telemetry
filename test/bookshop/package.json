@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "@cap-js/telemetry": "*"
+  },
+  "_cds": {
+    "requires": {
+      "telemetry": {
+        "kind": "telemetry-to-jaeger"
+      }
+    }
   }
 }
