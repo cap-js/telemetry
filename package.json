@@ -103,7 +103,6 @@
         },
         "telemetry-to-jaeger": {
           "tracing": {
-            "hrtime": false,
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-proto",
               "class": "OTLPTraceExporter"
