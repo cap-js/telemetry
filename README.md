@@ -20,14 +20,12 @@ See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstar
 
 ## Setup
 
-Add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry`. That's all.
+Simply add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry` and you will find telemetry output written to the console.
+See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself when exporting to Dynatrace, Jaeger, etc.
 
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
-Additionally, tracing for individual services can be diabled by annotating the service with `@cds.tracing: false`.
 
-Database tracing is currently limited to @cap-js/sqlite and @cap-js/hana.
-
-See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself when exporting to Dynatrace or Jaeger.
+Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
 
 
 
@@ -44,22 +42,22 @@ Prints traces and metrics to the console like so:
 [telemetry] - elapsed times:
     0.00 →   2.85 =   2.85 ms  GET /odata/v4/processor/Incidents
     0.47 →   1.24 =   0.76 ms    ProcessorService - READ ProcessorService.Incidents
-    0.78 →   1.17 =   0.38 ms      db - READ sap.capire.incidents.Incidents
+    0.78 →   1.17 =   0.38 ms      db - READ ProcessorService.Incidents
     0.97 →   1.06 =   0.09 ms        @cap-js/sqlite - prepare SELECT json_object('ID',ID,'createdAt',createdAt,'creat…
     1.10 →   1.13 =   0.03 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'createdAt',createdAt,'crea…
     1.27 →   1.88 =   0.61 ms    ProcessorService - READ ProcessorService.Incidents.drafts
-    1.54 →   1.86 =   0.32 ms      db - READ sap.capire.incidents.Incidents
+    1.54 →   1.86 =   0.32 ms      db - READ ProcessorService.Incidents.drafts
     1.74 →   1.78 =   0.04 ms        @cap-js/sqlite - prepare SELECT json_object('ID',ID,'DraftAdministrativeData_Dra…
     1.81 →   1.85 =   0.04 ms        @cap-js/sqlite - stmt.all SELECT json_object('ID',ID,'DraftAdministrativeData_Dr…
 ```
 
-No additional dependencies needed.
-The default kind in both development and production.
+No additional dependencies are needed.
+This is the default kind in both development and production.
 
 ### `telemetry-to-dyntrace`
 
 Exports traces and metrics to Dynatrace.
-Hence, Dynatrace is required and the app must be bound to a Dynatrace instance.
+Hence, a Dynatrace instance is required and the app must be bound to that Dynatrace instance.
 
 Use via `cds.requires.telemetry.kind = 'to-dyntrace'`.
 
@@ -71,6 +69,7 @@ Required additional dependencies:
 The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
 This can only be done via binding to a "managed service instance", i.e., not a user-provided service instance.
 There are two config options: (1) `rest_apitoken` (to be deprecated) and (2) `metrics_apitoken` via `tokens`.
+
 Example (you only need option 1 or option 2):
 ```yaml
 requires:
@@ -87,7 +86,7 @@ requires:
               - metrics.ingest
 ```
 
-In Dynatrace, you need to ensure that the following two features are enabled:
+In Dynatrace itself, you need to ensure that the following two features are enabled:
 1. OpenTelemetry Node.js Instrumentation agent support:
     - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
     - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
@@ -97,11 +96,11 @@ In Dynatrace, you need to ensure that the following two features are enabled:
 
 ### `telemetry-to-jaeger`
 
-Exports traces to Jaeger. Jaeger does not support metrics!
+Exports traces to Jaeger.
 
 Use via `cds.requires.telemetry.kind = 'to-jaeger'`.
 
-Required additional dependencies:
+Required additional dependencies (As Jaeger does not support metrics, only a trace exporter is needed.):
 - `@opentelemetry/exporter-trace-otlp-proto`
 
 Provide custom credentials like so:
@@ -123,7 +122,7 @@ Provide custom credentials like so:
 }
 ```
 
-Run Jaeger locally:
+Run Jaeger locally via [docker](https://www.docker.com):
 - Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
 - Open `localhost:16686` to see the traces
 
