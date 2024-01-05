@@ -132,9 +132,11 @@ Provide custom credentials like so:
       "telemetry": {
         "kind": "telemetry-to-jaeger",
         "tracing": {
-          "config": {
-            // add credentials here as decribed in
-            // https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
+          "exporter": {
+            "config": { //> this object is passed into constructor as is
+              // add credentials here as decribed in
+              // https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
+            }
           }
         }
       }
@@ -145,6 +147,7 @@ Provide custom credentials like so:
 
 Run Jaeger locally via [docker](https://www.docker.com):
 - Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
+    - With this, no custom credentials are needed
 - Open `localhost:16686` to see the traces
 
 
