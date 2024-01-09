@@ -101,6 +101,20 @@
             }
           }
         },
+        "telemetry-to-cls": {
+          "tracing": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-trace-otlp-grpc",
+              "class": "OTLPTraceExporter"
+            }
+          },
+          "metrics": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-metrics-otlp-grpc",
+              "class": "OTLPMetricExporter"
+            }
+          }
+        },
         "telemetry-to-jaeger": {
           "tracing": {
             "exporter": {
