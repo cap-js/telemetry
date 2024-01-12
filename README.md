@@ -150,6 +150,20 @@ Run Jaeger locally via [docker](https://www.docker.com):
     - With this, no custom credentials are needed
 - Open `localhost:16686` to see the traces
 
+### `telemetry-to-cloud-logging`
+
+Exports traces and metrics to SAP Cloud Logging.
+Hence, a SAP Cloud Logging instance is required and the app must be bound to that SAP Cloud Logging instance.
+
+Use via `cds.requires.telemetry.kind = 'to-cloud-logging'`.
+
+Required additional dependencies:
+- `@grpc/grpc-js`
+- `@opentelemetry/exporter-trace-otlp-grpc`
+- `@opentelemetry/exporter-metrics-otlp-grpc`
+
+...
+
 
 
 ## Detailed Configuration Options
