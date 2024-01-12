@@ -75,12 +75,12 @@ Prints traces and metrics to the console like so:
 No additional dependencies are needed.
 This is the default kind in both development and production.
 
-### `telemetry-to-dyntrace`
+### `telemetry-to-dynatrace`
 
 Exports traces and metrics to Dynatrace.
 Hence, a Dynatrace instance is required and the app must be bound to that Dynatrace instance.
 
-Use via `cds.requires.telemetry.kind = 'to-dyntrace'`.
+Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
 - `@dynatrace/oneagent-sdk`
