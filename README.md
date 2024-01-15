@@ -20,6 +20,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 - [Predefined Kinds](#predefined-kinds)
   - [`telemetry-to-console`](#telemetry-to-console)
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
+  - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Instrumentations](#instrumentations)
@@ -115,6 +116,27 @@ In Dynatrace itself, you need to ensure that the following two features are enab
     - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
     - Turn on Send W3C Trace Context HTTP headers.
 
+### `telemetry-to-cloud-logging`
+
+Exports traces and metrics to SAP Cloud Logging.
+Hence, a SAP Cloud Logging instance is required and the app must be bound to that SAP Cloud Logging instance.
+
+Use via `cds.requires.telemetry.kind = 'to-cloud-logging'`.
+
+Required additional dependencies:
+- `@grpc/grpc-js`
+- `@opentelemetry/exporter-trace-otlp-grpc`
+- `@opentelemetry/exporter-metrics-otlp-grpc`
+
+In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Logging instance, you need to include the following configuration while creating the SAP Cloud Logging instance (or by updating an existing instance):
+```json
+{
+  "ingest_otlp": {
+    "enabled": true
+  }
+}
+```
+
 ### `telemetry-to-jaeger`
 
 Exports traces to Jaeger.
@@ -149,29 +171,6 @@ Run Jaeger locally via [docker](https://www.docker.com):
 - Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
     - With this, no custom credentials are needed
 - Open `localhost:16686` to see the traces
-
-### `telemetry-to-cloud-logging`
-
-Exports traces and metrics to SAP Cloud Logging.
-Hence, a SAP Cloud Logging instance is required and the app must be bound to that SAP Cloud Logging instance.
-
-Use via `cds.requires.telemetry.kind = 'to-cloud-logging'`.
-
-Required additional dependencies:
-- `@grpc/grpc-js`
-- `@opentelemetry/exporter-trace-otlp-grpc`
-- `@opentelemetry/exporter-metrics-otlp-grpc`
-
-Necessary SAP Cloud Logging instance parameters:
-```json
-{
-  "ingest_otlp": {
-    "enabled": true
-  }
-}
-```
-
-...
 
 
 
