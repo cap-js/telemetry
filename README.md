@@ -162,6 +162,15 @@ Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-grpc`
 - `@opentelemetry/exporter-metrics-otlp-grpc`
 
+Necessary SAP Cloud Logging instance parameters:
+```json
+{
+  "ingest_otlp": {
+    "enabled": true
+  }
+}
+```
+
 ...
 
 
@@ -173,7 +182,7 @@ Required additional dependencies:
 Configure via `cds.requires.telemetry.instrumentations = { <name>: { module, class, config? } }`
 
 Default:
-```
+```json
 {
   "http": {
     "module": "@opentelemetry/instrumentation-http",
@@ -192,7 +201,7 @@ Default:
 Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio? }`
 
 Default:
-```
+```json
 {
   "kind": "ParentBasedSampler",
   "root": "AlwaysOnSampler"
@@ -204,7 +213,7 @@ Default:
 Configure via `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
 
 Default:
-```
+```json
 ["W3CTraceContextPropagator"]
 ```
 
@@ -215,7 +224,7 @@ Configure via:
 - `cds.requires.telemetry.metrics.exporter = { module, class, config? }`
 
 Default:
-```
+```json
 {
   {
     "kind": "telemetry-to-console",
@@ -258,7 +267,7 @@ Default:
 #### Some Alternative Exporters
 
 1. For JSON output to the console, use:
-    ```
+    ```json
     {
       "tracing": {
         "module": "@opentelemetry/sdk-trace-base",
@@ -271,7 +280,7 @@ Default:
     }
     ```
 1. For gRPC, use:
-    ```
+    ```json
     {
       "tracing": {
         "module": "@opentelemetry/exporter-trace-otlp-grpc",
@@ -285,7 +294,7 @@ Default:
     }
     ```
 1. For HTTP, use:
-    ```
+    ```json
     {
       "tracing": {
         "module": "@opentelemetry/exporter-trace-otlp-http",
