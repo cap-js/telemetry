@@ -2,10 +2,12 @@
   "dependencies": {
     "@cap-js/telemetry": "*"
   },
-  "_cds": {
+  "cds": {
     "requires": {
       "telemetry": {
-        "kind": "telemetry-to-jaeger"
+        "_kind": "to-jaeger",
+        "__kind": "to-dynatrace",
+        "___kind": "to-cloud-logging"
       }
     }
   }
