@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Predefined kind for SAP Cloud Logging (`telemetry-to-cloud-logging`)
+- Built-in `ConsoleMetricExporter` prints DB pool and other metrics separately
 
 ## Version 0.0.1 - 2024-01-04
 
