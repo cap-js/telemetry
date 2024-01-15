@@ -37,7 +37,7 @@
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.46.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.46.0",
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.46.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.46.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.47.0",
     "axios": "^1.6.2",
     "chai": "^4.3.10",
     "chai-as-promised": "^7.1.1",
