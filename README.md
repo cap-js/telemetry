@@ -84,8 +84,7 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@dynatrace/oneagent-sdk`
-- `@opentelemetry/exporter-trace-otlp-proto`
+- `@opentelemetry/exporter-trace-otlp-proto` -> maybe
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
