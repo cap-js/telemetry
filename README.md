@@ -87,10 +87,10 @@ Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
-The necessary scope for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
+The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
 This can only be done via binding to a "managed service instance", i.e., not a user-provided service instance.
 
-Excerpt from mta.yaml:
+Excerpt from example mta.yaml:
 ```yaml
 requires:
   - name: my-dynatrace-instance
