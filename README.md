@@ -84,26 +84,22 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@opentelemetry/exporter-trace-otlp-proto` -> maybe
+- `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
-The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
+The necessary scope for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
 This can only be done via binding to a "managed service instance", i.e., not a user-provided service instance.
-There are two config options: (1) `rest_apitoken` (to be deprecated) and (2) `metrics_apitoken` via `tokens`.
 
-Example (you only need option 1 or option 2):
+Excerpt from mta.yaml:
 ```yaml
 requires:
   - name: my-dynatrace-instance
     parameters:
       config:
-        # option 1
-        rest_apitoken:
-          scopes: ['metrics.ingest']
-        # option 2
         tokens:
-          - name: metrics_apitoken
+          - name: ingest_apitoken #> default lookup name, configurable via cds.requires.telemetry.token_name
             scopes:
+              - openTelemetryTrace.ingest
               - metrics.ingest
 ```
 
