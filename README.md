@@ -111,6 +111,13 @@ In Dynatrace itself, you need to ensure that the following two features are enab
     - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
     - Turn on Send W3C Trace Context HTTP headers.
 
+#### Leveraging Dynatrace OneAgent
+
+If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
+(Your app still needs to be bound to a Dynatrace instance, of course.)
+Hence, additionally dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
+This is actually the perferred operating model for `telemetry-to-dynatrace` as it provides a better experience than exporting via OpenTelemetry.
+
 ### `telemetry-to-cloud-logging`
 
 Exports traces and metrics to SAP Cloud Logging.
