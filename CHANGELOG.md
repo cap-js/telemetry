@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for exporting traces to Dynatrace via OpenTelemetry
-- `@opentelemetry/host-metrics` is automatically started, if it is in the project's dependencies
+- `@opentelemetry/host-metrics` is automatically fired up, if it is in the project's dependencies
 
 ## Version 0.0.2 - 2024-01-15
 
