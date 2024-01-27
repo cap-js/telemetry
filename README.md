@@ -104,6 +104,7 @@ requires:
 ```
 
 In the user-provided service case, you'll need to generate a token in Dynatrace with the necessary scopes, add it to the credentials of the user-provided service, and configure `cds.requires.telemetry.token_name` if the token's key in the credentials object is not `ingest_apitoken`.
+
 In Dynatrace itself, you need to ensure that the following two features are enabled:
 1. OpenTelemetry Node.js Instrumentation agent support:
     - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
