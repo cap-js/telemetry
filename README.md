@@ -84,29 +84,26 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@dynatrace/oneagent-sdk`
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
-The necessary scope for exporting metrics (`metrics.ingest`) is not part of the standard `apitoken` and must be requested.
-This can only be done via binding to a "managed service instance", i.e., not a user-provided service instance.
-There are two config options: (1) `rest_apitoken` (to be deprecated) and (2) `metrics_apitoken` via `tokens`.
+The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
+This can be done via parameterizing the binding to a "managed service instance" (i.e., not a user-provided service instance) as follows.
 
-Example (you only need option 1 or option 2):
+Excerpt from example mta.yaml:
 ```yaml
 requires:
   - name: my-dynatrace-instance
     parameters:
       config:
-        # option 1
-        rest_apitoken:
-          scopes: ['metrics.ingest']
-        # option 2
         tokens:
-          - name: metrics_apitoken
+          - name: ingest_apitoken #> default lookup name, configurable via cds.requires.telemetry.token_name
             scopes:
+              - openTelemetryTrace.ingest
               - metrics.ingest
 ```
+
+In the user-provided service case, you'll need to generate a token in Dynatrace with the necessary scopes, add it to the credentials of the user-provided service, and configure `cds.requires.telemetry.token_name` if the token's key in the credentials object is not `ingest_apitoken`.
 
 In Dynatrace itself, you need to ensure that the following two features are enabled:
 1. OpenTelemetry Node.js Instrumentation agent support:
@@ -115,6 +112,13 @@ In Dynatrace itself, you need to ensure that the following two features are enab
 2. W3C Trace Context:
     - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
     - Turn on Send W3C Trace Context HTTP headers.
+
+#### Leveraging Dynatrace OneAgent
+
+If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
+(Your app still needs to be bound to a Dynatrace instance, of course.)
+Hence, additionally dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
+This is actually the perferred operating model for `telemetry-to-dynatrace` as it provides a better experience than exporting via OpenTelemetry.
 
 ### `telemetry-to-cloud-logging`
 
