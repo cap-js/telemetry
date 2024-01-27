@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- Support for exporting traces to Dynatrace via OpenTelemetry
+- Support for exporting traces to Dynatrace via OpenTelemetry exporter (instead of Dynatrace OneAgent)
 - `@opentelemetry/host-metrics` is automatically fired up, if it is in the project's dependencies
 
 ## Version 0.0.2 - 2024-01-15
