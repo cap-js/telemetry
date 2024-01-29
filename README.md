@@ -51,6 +51,24 @@ Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/
 
 
 
+## Telemetry Signals
+
+TODO
+
+### Traces
+
+TODO
+
+### Metrics
+
+TODO
+
+### Logs
+
+Exporting logs via OpenTelemetry is not yet supported.
+
+
+
 ## Predefined Kinds
 
 There are three predefined kinds as follows:
