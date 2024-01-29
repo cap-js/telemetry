@@ -17,6 +17,10 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 - [About this project](#about-this-project)
 - [Requirements](#requirements)
 - [Setup](#setup)
+- [Telemetry Signals](#telemetry-signals)
+  - [Traces](#traces)
+  - [Metrics](#metrics)
+  - [Logs](#logs)
 - [Predefined Kinds](#predefined-kinds)
   - [`telemetry-to-console`](#telemetry-to-console)
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
@@ -53,15 +57,69 @@ Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/
 
 ## Telemetry Signals
 
-TODO
+There are three categories of telemetry data, also referred to as _signals_.
+The following briefly describes, how each is addressed in `@cap-js/telemetry`.
+
+For more information on signals in general, please refer to https://opentelemetry.io/docs/concepts/signals.
 
 ### Traces
 
-TODO
+Traces allow you to analyze how a request, message, task, etc. is being processed by your app.
+For this, `@cap-js/telemetry` wraps all essential functions of `cds.Service` and its derivates.
+For @cap-js databases (e.g., `@cap-js/sqlite`), this includes `prepare()` and subsequent `stmt.run()` and the likes.
+
+Example trace in Dynatrace:
+TO ADD
+
+An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
+
+In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no OpenTelemetry exporter is needed to transport the traces to Dynatrace.
+`@cap-js/telemetry` recognizes this and ignores any exporter config if the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) is used.
 
 ### Metrics
 
-TODO
+Metrics are "measurements captured at runtime", which help you understand your app's health and performance.
+
+Out of the box, `@cap-js/telemetry` offers metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`.
+
+Example db pool metrics printed to the console:
+```
+[telemetry] - db.pool:
+     size | available | pending
+      1/1 |       1/1 |       0
+```
+
+Additionally, `@cap-js/telemetry` instantiates and starts [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) if it is found in the app's dependencies.
+To avoid spamming the console, only `process.*` metrics are printed by default.
+Printing the `system.*` metrics can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
+
+Example host metrics printed to the console:
+```
+[telemetry] - host metrics:
+  Process Cpu time in seconds: { user: 1691.832, system: 218.223 }
+  Process Cpu usage time 0-1: { user: 82.07801878654074, system: 10.586932682237526 }
+  Process Memory usage in bytes: 141049856
+```
+
+Finally, custom metrics can be added as shown in the following example (tenant-aware request counting):
+```js
+// server.js
+
+const cds = require('@sap/cds')
+
+let counter
+cds.middlewares.add((req, _, next) => {
+  counter.add(1, { 'sap.tenancy.tenant_id': req.tenant })
+  next()
+})
+cds.on('listening', () => {
+  const { metrics } = require('@opentelemetry/api')
+  const meter = metrics.getMeter('@capire/incidents:req.counter')
+  counter = meter.createCounter('req.counter')
+})
+
+module.exports = cds.server
+```
 
 ### Logs
 
