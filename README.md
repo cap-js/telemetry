@@ -69,7 +69,7 @@ For this, `@cap-js/telemetry` wraps all essential functions of `cds.Service` and
 For @cap-js databases (e.g., `@cap-js/sqlite`), this includes `prepare()` and subsequent `stmt.run()` and the likes.
 
 Example trace in Dynatrace:
-TO ADD
+![Example trace in Dynatrace](docs/dynatrace.png)
 
 An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
 
