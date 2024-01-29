@@ -64,7 +64,7 @@ For more information on signals in general, please refer to https://opentelemetr
 
 ### Traces
 
-Traces allow you to analyze how a request, message, task, etc. is being processed by your app.
+Traces allow you to analyze how a request, message, task, etc. is being processed throughout your distributed system.
 For this, `@cap-js/telemetry` wraps all essential functions of `cds.Service` and its derivates.
 For @cap-js databases (e.g., `@cap-js/sqlite`), this includes `prepare()` and subsequent `stmt.run()` and the likes.
 
