@@ -148,7 +148,7 @@ There are three predefined kinds as follows:
 
 ### `telemetry-to-console`
 
-Prints traces and metrics to the console as shown in [Setup](#setup) and [Telemetry Signals - Metrics](#metrics).
+Prints traces and metrics to the console as previously depicted (traces in [Setup](#setup) and metrics in [Telemetry Signals - Metrics](#metrics)).
 
 No additional dependencies are needed.
 This is the default kind in both development and production.
