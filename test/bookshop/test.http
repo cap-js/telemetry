@@ -7,5 +7,5 @@ Authorization: Basic alice:wonderland
 
 ###
 
-GET {{host}}/odata/v4/admin/NonRecordingSpan
+GET {{host}}/odata/v4/admin/Authors
 Authorization: Basic alice:wonderland
