@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 0.0.4 - tbd
+
+### Added
+
+- Re-use `TracerProvider` and `MeterProvider` that were initialized by a different module (OpenTelemetry only allows one-time initialization)
+
+### Fixed
+
+- `NonRecordingSpan`s are handled correctly
+
 ## Version 0.0.3 - 2024-01-30
 
 ### Added
