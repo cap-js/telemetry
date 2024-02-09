@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 0.0.4 - tbd
+
+### Fixed
+
+- NonRecordingSpans are handled correctly
+
 ## Version 0.0.3 - 2024-01-30
 
 ### Added
