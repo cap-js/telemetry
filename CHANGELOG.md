@@ -6,9 +6,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## Version 0.0.4 - tbd
 
+### Added
+
+- Use `TracerProvider` and `MeterProvider` that were initialized by a different module (OpenTelemetry only allows one-time initialization)
+
 ### Fixed
 
-- NonRecordingSpans are handled correctly
+- `NonRecordingSpan`s are handled correctly
 
 ## Version 0.0.3 - 2024-01-30
 
