@@ -4,3 +4,8 @@
 
 GET {{host}}/odata/v4/admin/Books
 Authorization: Basic alice:wonderland
+
+###
+
+GET {{host}}/odata/v4/admin/NonRecordingSpan
+Authorization: Basic alice:wonderland
