@@ -1,13 +1,24 @@
 {
   "dependencies": {
-    "@cap-js/telemetry": "*"
+    "@cap-js/telemetry": "*",
+    "@cap-js/sqlite": "*",
+    "@opentelemetry/host-metrics": "*"
   },
   "cds": {
     "requires": {
       "telemetry": {
         "_kind": "to-jaeger",
         "__kind": "to-dynatrace",
-        "___kind": "to-cloud-logging"
+        "___kind": "to-cloud-logging",
+        "instrumentations": {
+          "http": {
+            "config": {
+              "ignoreIncomingPaths": [
+                "/odata/v4/admin/Authors"
+              ]
+            }
+          }
+        }
       }
     }
   }
