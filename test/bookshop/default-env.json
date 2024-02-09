@@ -1,0 +1,128 @@
+{
+  "VCAP_SERVICES": {
+    "hana": [
+      {
+        "label": "hana",
+        "provider": null,
+        "plan": "hdi-shared",
+        "name": "calesi-telemetry-db",
+        "tags": ["hana", "database", "relational"],
+        "instance_guid": "16138adc-de64-4ac9-859e-cb7b632b4b16",
+        "instance_name": "calesi-telemetry-db",
+        "binding_guid": "1539beac-cd4b-4fef-9703-77cf067b29bb",
+        "binding_name": null,
+        "credentials": {
+          "database_id": "d1359a3e-f774-40c3-ac3a-673b587d934e",
+          "host": "d1359a3e-f774-40c3-ac3a-673b587d934e.hna1.prod-eu10.hanacloud.ondemand.com",
+          "port": "443",
+          "driver": "com.sap.db.jdbc.Driver",
+          "url": "jdbc:sap://d1359a3e-f774-40c3-ac3a-673b587d934e.hna1.prod-eu10.hanacloud.ondemand.com:443?encrypt=true&validateCertificate=true&currentschema=9102F312B3284700A37E3E4F3AD426EA",
+          "schema": "9102F312B3284700A37E3E4F3AD426EA",
+          "hdi_user": "9102F312B3284700A37E3E4F3AD426EA_5P1G31QC3MTVRW2T7KOGYB4U0_DT",
+          "hdi_password": "Zl81fy_3qoFQ2u4AQ3Dy.0VeCMTG-QJlIOwO6sDgz4b29oQhovTK6rQxcQ_yrrEX-LwJpes0x4dAtN6.I8m32kCUnEFFQG2nByo6yOvq07iwIGOWSHHHPyjkXTUh3zG_",
+          "user": "9102F312B3284700A37E3E4F3AD426EA_5P1G31QC3MTVRW2T7KOGYB4U0_RT",
+          "password": "Oc2HLVHNwashov3lRx7jm_.ZyvXKzanl2D7pcSFz8OX1-JBZTB1Gljq9yFHa_EQZCDHYwu0JZXvCpJsQ8h-wVL.CoJYRAkHzj.I8JZvrlxa8IF6CJ2XTr-Cp4fC2hie4",
+          "certificate": "-----BEGIN CERTIFICATE-----\nMIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\nMQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\nd3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\nQTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\nMRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\nb20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\nCSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\nnh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\nT19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\ngdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\nBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\nTLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\nDQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\nhMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\nPnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\nYSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\nCAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n-----END CERTIFICATE-----"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ],
+    "cloud-logging": [
+      {
+        "label": "cloud-logging",
+        "provider": null,
+        "plan": "standard",
+        "name": "cdsnode-cloud-logging",
+        "tags": ["Cloud Logging"],
+        "instance_guid": "50de4c0d-eac3-43fa-9fd5-89d207a3aab8",
+        "instance_name": "cdsnode-cloud-logging",
+        "binding_guid": "8a3c71f4-b793-467e-b4cc-6b411b39c1c8",
+        "binding_name": null,
+        "credentials": {
+          "client-ca": "-----BEGIN CERTIFICATE-----\nMIIFFzCCA3+gAwIBAgIHAND8Gqui8TANBgkqhkiG9w0BAQsFADCBsTELMAkGA1UE\nBhMCREUxGzAZBgNVBAgTEkJhZGVuLVd1ZXJ0dGVtYmVyZzESMBAGA1UEBxMJS2Fy\nbHNydWhlMQ8wDQYDVQQKEwZTQVAgU0UxFjAUBgNVBAsTDUNsb3VkIExvZ2dpbmcx\nSDBGBgNVBAMTP3Jvb3QtY2Etc2YtNTBkZTRjMGQtZWFjMy00M2ZhLTlmZDUtODlk\nMjA3YTNhYWI4LTIyOTc4MTE5Nzc5MTk4NTAeFw0yNDAxMTIxMzU3MjhaFw0zNDAx\nMTIxMzU3MjhaMIGxMQswCQYDVQQGEwJERTEbMBkGA1UECBMSQmFkZW4tV3VlcnR0\nZW1iZXJnMRIwEAYDVQQHEwlLYXJsc3J1aGUxDzANBgNVBAoTBlNBUCBTRTEWMBQG\nA1UECxMNQ2xvdWQgTG9nZ2luZzFIMEYGA1UEAxM/cm9vdC1jYS1zZi01MGRlNGMw\nZC1lYWMzLTQzZmEtOWZkNS04OWQyMDdhM2FhYjgtMjI5NzgxMTk3NzkxOTg1MIIB\nojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEA2HeKuvGFIZfLt2b/buTYoEX/\nqhO6nUL0fRHWMdlY7uRsauJ4BhBc7xYMr7mACMiMXJi5IW8+89+BAMnH/vSmv/lK\nHeMhT8M4MeJiNKraDGknxWRzdDjr/Ub2kzlXcO0orpPjXaA7M6OS9bxwAUoK3jzZ\nmJoEWj1qL51UcSjhU0iiMsOlmfKTlloVGDKht1qW8uGkVRlUpqZwdv+49WnJW9gT\nh9aI3VuS3YX+LYp/b4pM/N36F7Yacv5IKW1pAE6h236jE9SLvqoIcciT57XwxlXD\n2k+nTYyON4Ar9b+s7Sgx5wAcLIzJmL51aotPYTVjVkhUTmnxbPiSMg9eRBBDfrke\nCCdvPu0IoyWhofqqlVahDtTW/v8YTz3VD5bY2QKdDrU3aTrvy/D+LQimZdke5L8j\nXN/tWmpUAQrfsXqtJ0G4F/uTiiaGZxsZzZLvn5C2SV5HDkMgReqir7S+IWXQexBw\nqADtowUZ+yIF3Pul5Pj9r59gpm2f3UQJhuLIrOEXAgMBAAGjMjAwMA8GA1UdEwEB\n/wQFMAMBAf8wHQYDVR0OBBYEFAEVpjj5Frg2D7wNexf122dTnBk9MA0GCSqGSIb3\nDQEBCwUAA4IBgQA99tL7Fv8+UTVK6/aVzP+UEIinH1SCZmhEDCjsmTlCQtz0bmTQ\nKQ+9IjRRNwdzUn6+Fb4UwnmBSWlwe+PO+yq+Ex/UlItwT5dR4ghADrKMqpnyXu+s\nkzpEjk1ADjxKZpUF9DBoI6Z0Ecmqc1Aix3cSgiHJjQkztfDEiIQnL4JQH9pBFDs2\nooPv8GS3rzzN4eBqryrsd3BTpLxA3dcR2BKFIVTYyIGdvyDSUf5CnAcEQtvJujhQ\nzs7MFmyAiXhsFdafXxz7uc6xoiu6Rcxg7F0P+nf4q8W8RSXk9Bh1iHYMfgK/EUXF\nGVIuzw+EIPqWvqfh+TWnZif9MGQCwM+Ug+WutXFRz8N31HQnr0IP4rVfR5kN64FS\nusJMf/sUsUDgY4cDCTVKhYPMEgU+roZ4Jv+HfGrgYqRVG6lI+64xDQCzOdzoGgRV\n0Jjm0lYe3qQH6kwqBfoMeQZ1XmAumARNgt/jZnTLRAwlIau7uhdNQrbe69MTVM3u\nomKHNox7/iCgj9k=\n-----END CERTIFICATE-----\n",
+          "dashboards-endpoint": "dashboards-sf-50de4c0d-eac3-43fa-9fd5-89d207a3aab8.cls-13.cloud.logs.services.eu10.hana.ondemand.com",
+          "dashboards-password": "ulZuGROQuTIwbrGdvHuHUYu",
+          "dashboards-username": "user_8a3c71f4-b793-467e-b4cc-6b411b39c1c8",
+          "ingest-endpoint": "ingest-sf-50de4c0d-eac3-43fa-9fd5-89d207a3aab8.cls-13.cloud.logs.services.eu10.hana.ondemand.com",
+          "ingest-mtls-cert": "-----BEGIN CERTIFICATE-----\nMIIFBjCCA26gAwIBAgIGP5l/1z8mMA0GCSqGSIb3DQEBCwUAMIGxMQswCQYDVQQG\nEwJERTEbMBkGA1UECBMSQmFkZW4tV3VlcnR0ZW1iZXJnMRIwEAYDVQQHEwlLYXJs\nc3J1aGUxDzANBgNVBAoTBlNBUCBTRTEWMBQGA1UECxMNQ2xvdWQgTG9nZ2luZzFI\nMEYGA1UEAxM/cm9vdC1jYS1zZi01MGRlNGMwZC1lYWMzLTQzZmEtOWZkNS04OWQy\nMDdhM2FhYjgtMjI5NzgxMTk3NzkxOTg1MB4XDTI0MDExNTA5MzExOVoXDTI0MDQx\nNDA5MzExOVowgaIxCzAJBgNVBAYTAkRFMRswGQYDVQQIExJCYWRlbi1XdWVydHRl\nbWJlcmcxEjAQBgNVBAcTCUthcmxzcnVoZTEPMA0GA1UEChMGU0FQIFNFMRYwFAYD\nVQQLEw1DbG91ZCBMb2dnaW5nMTkwNwYDVQQDEzBjZXJ0LThhM2M3MWY0LWI3OTMt\nNDY3ZS1iNGNjLTZiNDExYjM5YzFjOC1pbmdlc3QwggGiMA0GCSqGSIb3DQEBAQUA\nA4IBjwAwggGKAoIBgQCf+ZZctNsYzZk+BU9vd8lVEFOJRQvXvUBAGjmzokW69mdg\n5CA8ZZYMmee6CRkPidiOJxrPo2AqwhbS/Vzl+lJayzcuaWF8Xtd7ubniS8H2jtcq\n6QY6aTkZDNyKKsr9RVyNmGGgurX8TTV9F+InZwAKwC60KJFVN3a/xrv4Cq66ZowZ\nV+kEUMkYevXyEGAziuMKXL+v7lVS01qpyniDE+fIXzGW0I/Dumx0gBdiuzieMZeZ\nRwlH5ZqvsQeabF3nFgCViXaKxgfbhboJbbi7WjPw8JZIRKXKwqaR3kezxWvQuBr5\n92bVad2nirZOzJbI5aDnvFY5MBghrnkE41vkBO8jyqUk5z/pO/DdamvRHYl15Br8\nHhWQCBTfadSTf3WiYZ+L0ZI+fbLk2VTYlA9lQWrW2YOZvoqXE72mNJj/09DUO+90\n8592sWxJ20rclcsFTsCRoUbQxz0k6DTWvp8GReOm8v3FlHGLDVyULv3YtkTpkxyE\nvJdQw68iARn3vAlOqIkCAwEAAaMxMC8wDAYDVR0TAQH/BAIwADAfBgNVHSMEGDAW\ngBQBFaY4+Ra4Ng+8DXsX9dtnU5wZPTANBgkqhkiG9w0BAQsFAAOCAYEAF7A6JIHg\nPYdfClckriSUoY9W4Yno8RzLWvdc4pRXfAek8nKf3HVVmuAOFaTqX3482/7fNcRg\nL1dwMcXBQXK+z5RkCJDAHvX/Hdc9PJSYQcPZGA2otd2LWZt5MWDybo7GYW3yQd5J\nLxNHAR1rNCmzWKTPvjDzoKI6/s+foNOZTUInJhjpaFrUyVBmwt+dPfOxvR1K7jP9\nHMiHrtw0Tqzkbe03FVJ5XehxmBr/hNqm0L2UHUunA7H8sNL+jSZXDAYmuxfKSEJS\nqwxsb4hrt5eOs9p0F0BAw+KSbIwCPgE4zFW4wC9LrR4Sjh4bGprpnxTVMbx+wXam\ndhpuWF0IxNqQwbQ8JnVeI7kCBUVT6d+4BeabYbV0xe6KxsYvJhQZfqHJR2j3Z5xD\nf8Nr1UpHNpNgLZb8N/SC73/FlYuBl5BkHqXQSwqiCRx4ZBTwYFU2TehwD2ahFg5r\nfIZnJo3KxC1CcOFvYK+Ykq1e6oh3C/7F8HJ//4QtFmRh5/NB8L9uHh5U\n-----END CERTIFICATE-----\n",
+          "ingest-mtls-endpoint": "ingest-mtls-sf-50de4c0d-eac3-43fa-9fd5-89d207a3aab8.cls-13.cloud.logs.services.eu10.hana.ondemand.com",
+          "ingest-mtls-key": "-----BEGIN PRIVATE KEY-----\n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\ntqfWvGpM6pt1VR0xtnn2Q7U=\n-----END PRIVATE KEY-----\n",
+          "ingest-otlp-cert": "-----BEGIN CERTIFICATE-----\nMIIFDDCCA3SgAwIBAgIHALLWS7SRZzANBgkqhkiG9w0BAQsFADCBsTELMAkGA1UE\nBhMCREUxGzAZBgNVBAgTEkJhZGVuLVd1ZXJ0dGVtYmVyZzESMBAGA1UEBxMJS2Fy\nbHNydWhlMQ8wDQYDVQQKEwZTQVAgU0UxFjAUBgNVBAsTDUNsb3VkIExvZ2dpbmcx\nSDBGBgNVBAMTP3Jvb3QtY2Etc2YtNTBkZTRjMGQtZWFjMy00M2ZhLTlmZDUtODlk\nMjA3YTNhYWI4LTIyOTc4MTE5Nzc5MTk4NTAeFw0yNDAxMTUwOTMxMjBaFw0yNDA0\nMTQwOTMxMjBaMIGnMQswCQYDVQQGEwJERTEbMBkGA1UECBMSQmFkZW4tV3VlcnR0\nZW1iZXJnMRIwEAYDVQQHEwlLYXJsc3J1aGUxDzANBgNVBAoTBlNBUCBTRTEWMBQG\nA1UECxMNQ2xvdWQgTG9nZ2luZzE+MDwGA1UEAxM1Y2VydC04YTNjNzFmNC1iNzkz\nLTQ2N2UtYjRjYy02YjQxMWIzOWMxYzgtaW5nZXN0LW90bHAwggGiMA0GCSqGSIb3\nDQEBAQUAA4IBjwAwggGKAoIBgQDh1x/eYFFyLcw/VnFbC0FcHlA5kVlolQ9zNpKz\nKufQGmlKeQwwf9v4THGfEakDZsp7M5BQe/zpvCR5L751O6rOIUolkDqi1kKflxXn\nIMKxFQSTncQMKKsSbZvhn3GHMx1CBihXfIZau6XEzrAuSjZwvVIUYySxU+5IGcc0\n16rCNs82cB7pmBUmLKJOO9sPXpXMAuMdB4T8tsCJKFsW/9JrsxIWgbQrGt6ag1d+\nt10G/XN1Svq/YeZEobUzzxHEbrCaJ/hsukaW5ZTtOj/fG4H/IE1WmH0T92R4wBJD\n0EDRsYAmx7hw+X9beCjeO7GoAJ4pw9+hOlIFxdcIVf7UdlQt7i5GhpnRYGvkW3Hl\nkyPnBYDz/f17P0YrSai0pqTspjSv9mSAaV1RzbFiYZUymMfkGZOlZfA+nLPrBxmg\nykKt38gzM4+avcghnWWTvRUCc3rM51IDZfG38Tqrwpw7wbzY7cvTwqg1j1GggmSu\nw0TAyEdfYCmA181/RNabo+bi/u8CAwEAAaMxMC8wDAYDVR0TAQH/BAIwADAfBgNV\nHSMEGDAWgBQBFaY4+Ra4Ng+8DXsX9dtnU5wZPTANBgkqhkiG9w0BAQsFAAOCAYEA\ntm2DfPbN2ZT8cwGkIBlopr/v6htIvkE1a1E9dBBRBBX8IvKT7fVHzYCcAA6US3sE\nAGSpHRiSNDqJvAXPXJ9mW32bV/ro0RhiQMMrnoUdjAIQ6H1/wT8VCpyYFxR+hRfb\nM2CsblmmVcgm/9zi9u+0f5hZnUUQxfZeWm91quYj8y0l2ZIOtq7ZG05o2T9fm0rv\n6RNGhJtcREHwhDHteD1u3gnEc+ZQG4S2T5FKXMq9nfQd+Zn5TYxOGuMzu0vMw93D\n7FdUvJNgTiwTSpXvh+O/PUv1WIXQOim578E2WljBjVLMTR4bncB7awSiIab1TQrJ\nYsQFGgZHO7IG+KD8k95FgDbhzIIKE/IzS/cY83ExYp3oN6MZAJFilgTzQTCKg2gv\norqMw/J+/A1M5HbGFmF/6Brw4/xEgyqCdIx1CEvccKHnABjpp22vA450zqGNjCB9\n6wxavRlJfA3UAS/FzBCRj8RQBqb8aMEVWvwQRneAzktR0bW0vbfFrc8xbNR+5C9g\n-----END CERTIFICATE-----\n",
+          "ingest-otlp-endpoint": "ingest-otlp-sf-50de4c0d-eac3-43fa-9fd5-89d207a3aab8.cls-13.cloud.logs.services.eu10.hana.ondemand.com:443",
+          "ingest-otlp-key": "-----BEGIN PRIVATE KEY-----\n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\nu2Q5RgWD9fRpfkJbBf+c4lvK\n-----END PRIVATE KEY-----\n",
+          "ingest-password": "ubeBOMzdYDmZTbGBcGzorzI",
+          "ingest-username": "QKCxvPILnY",
+          "server-ca": "\n-----BEGIN CERTIFICATE-----\nMIIFFjCCAv6gAwIBAgIRAJErCErPDBinU/bWLiWnX1owDQYJKoZIhvcNAQELBQAw\nTzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\ncmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwHhcNMjAwOTA0MDAwMDAw\nWhcNMjUwOTE1MTYwMDAwWjAyMQswCQYDVQQGEwJVUzEWMBQGA1UEChMNTGV0J3Mg\nRW5jcnlwdDELMAkGA1UEAxMCUjMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK\nAoIBAQC7AhUozPaglNMPEuyNVZLD+ILxmaZ6QoinXSaqtSu5xUyxr45r+XXIo9cP\nR5QUVTVXjJ6oojkZ9YI8QqlObvU7wy7bjcCwXPNZOOftz2nwWgsbvsCUJCWH+jdx\nsxPnHKzhm+/b5DtFUkWWqcFTzjTIUu61ru2P3mBw4qVUq7ZtDpelQDRrK9O8Zutm\nNHz6a4uPVymZ+DAXXbpyb/uBxa3Shlg9F8fnCbvxK/eG3MHacV3URuPMrSXBiLxg\nZ3Vms/EY96Jc5lP/Ooi2R6X/ExjqmAl3P51T+c8B5fWmcBcUr2Ok/5mzk53cU6cG\n/kiFHaFpriV1uxPMUgP17VGhi9sVAgMBAAGjggEIMIIBBDAOBgNVHQ8BAf8EBAMC\nAYYwHQYDVR0lBBYwFAYIKwYBBQUHAwIGCCsGAQUFBwMBMBIGA1UdEwEB/wQIMAYB\nAf8CAQAwHQYDVR0OBBYEFBQusxe3WFbLrlAJQOYfr52LFMLGMB8GA1UdIwQYMBaA\nFHm0WeZ7tuXkAXOACIjIGlj26ZtuMDIGCCsGAQUFBwEBBCYwJDAiBggrBgEFBQcw\nAoYWaHR0cDovL3gxLmkubGVuY3Iub3JnLzAnBgNVHR8EIDAeMBygGqAYhhZodHRw\nOi8veDEuYy5sZW5jci5vcmcvMCIGA1UdIAQbMBkwCAYGZ4EMAQIBMA0GCysGAQQB\ngt8TAQEBMA0GCSqGSIb3DQEBCwUAA4ICAQCFyk5HPqP3hUSFvNVneLKYY611TR6W\nPTNlclQtgaDqw+34IL9fzLdwALduO/ZelN7kIJ+m74uyA+eitRY8kc607TkC53wl\nikfmZW4/RvTZ8M6UK+5UzhK8jCdLuMGYL6KvzXGRSgi3yLgjewQtCPkIVz6D2QQz\nCkcheAmCJ8MqyJu5zlzyZMjAvnnAT45tRAxekrsu94sQ4egdRCnbWSDtY7kh+BIm\nlJNXoB1lBMEKIq4QDUOXoRgffuDghje1WrG9ML+Hbisq/yFOGwXD9RiX8F6sw6W4\navAuvDszue5L3sz85K+EC4Y/wFVDNvZo4TYXao6Z0f+lQKc0t8DQYzk1OXVu8rp2\nyJMC6alLbBfODALZvYH7n7do1AZls4I9d1P4jnkDrQoxB3UqQ9hVl3LEKQ73xF1O\nyK5GhDDX8oVfGKF5u+decIsH4YaTw7mP3GFxJSqv3+0lUFJoi5Lc5da149p90Ids\nhCExroL1+7mryIkXPeFM5TgO9r0rvZaBFOvV2z0gp35Z0+L4WPlbuEjN/lxPFin+\nHlUjr8gRsI3qfJOQFy/9rKIJR0Y/8Omwt/8oTWgy1mdeHmmjk7j1nYsvC9JSQ6Zv\nMldlTTKB3zhThV1+XWYp6rjd5JW1zbVWEkLNxE7GJThEUG3szgBVGP7pSWTUTsqX\nnLRbwHOoq7hHwg==\n-----END CERTIFICATE-----\n\n-----BEGIN CERTIFICATE-----\nMIIFYDCCBEigAwIBAgIQQAF3ITfU6UK47naqPGQKtzANBgkqhkiG9w0BAQsFADA/\nMSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT\nDkRTVCBSb290IENBIFgzMB4XDTIxMDEyMDE5MTQwM1oXDTI0MDkzMDE4MTQwM1ow\nTzELMAkGA1UEBhMCVVMxKTAnBgNVBAoTIEludGVybmV0IFNlY3VyaXR5IFJlc2Vh\ncmNoIEdyb3VwMRUwEwYDVQQDEwxJU1JHIFJvb3QgWDEwggIiMA0GCSqGSIb3DQEB\nAQUAA4ICDwAwggIKAoICAQCt6CRz9BQ385ueK1coHIe+3LffOJCMbjzmV6B493XC\nov71am72AE8o295ohmxEk7axY/0UEmu/H9LqMZshftEzPLpI9d1537O4/xLxIZpL\nwYqGcWlKZmZsj348cL+tKSIG8+TA5oCu4kuPt5l+lAOf00eXfJlII1PoOK5PCm+D\nLtFJV4yAdLbaL9A4jXsDcCEbdfIwPPqPrt3aY6vrFk/CjhFLfs8L6P+1dy70sntK\n4EwSJQxwjQMpoOFTJOwT2e4ZvxCzSow/iaNhUd6shweU9GNx7C7ib1uYgeGJXDR5\nbHbvO5BieebbpJovJsXQEOEO3tkQjhb7t/eo98flAgeYjzYIlefiN5YNNnWe+w5y\nsR2bvAP5SQXYgd0FtCrWQemsAXaVCg/Y39W9Eh81LygXbNKYwagJZHduRze6zqxZ\nXmidf3LWicUGQSk+WT7dJvUkyRGnWqNMQB9GoZm1pzpRboY7nn1ypxIFeFntPlF4\nFQsDj43QLwWyPntKHEtzBRL8xurgUBN8Q5N0s8p0544fAQjQMNRbcTa0B7rBMDBc\nSLeCO5imfWCKoqMpgsy6vYMEG6KDA0Gh1gXxG8K28Kh8hjtGqEgqiNx2mna/H2ql\nPRmP6zjzZN7IKw0KKP/32+IVQtQi0Cdd4Xn+GOdwiK1O5tmLOsbdJ1Fu/7xk9TND\nTwIDAQABo4IBRjCCAUIwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAQYw\nSwYIKwYBBQUHAQEEPzA9MDsGCCsGAQUFBzAChi9odHRwOi8vYXBwcy5pZGVudHJ1\nc3QuY29tL3Jvb3RzL2RzdHJvb3RjYXgzLnA3YzAfBgNVHSMEGDAWgBTEp7Gkeyxx\n+tvhS5B1/8QVYIWJEDBUBgNVHSAETTBLMAgGBmeBDAECATA/BgsrBgEEAYLfEwEB\nATAwMC4GCCsGAQUFBwIBFiJodHRwOi8vY3BzLnJvb3QteDEubGV0c2VuY3J5cHQu\nb3JnMDwGA1UdHwQ1MDMwMaAvoC2GK2h0dHA6Ly9jcmwuaWRlbnRydXN0LmNvbS9E\nU1RST09UQ0FYM0NSTC5jcmwwHQYDVR0OBBYEFHm0WeZ7tuXkAXOACIjIGlj26Ztu\nMA0GCSqGSIb3DQEBCwUAA4IBAQAKcwBslm7/DlLQrt2M51oGrS+o44+/yQoDFVDC\n5WxCu2+b9LRPwkSICHXM6webFGJueN7sJ7o5XPWioW5WlHAQU7G75K/QosMrAdSW\n9MUgNTP52GE24HGNtLi1qoJFlcDyqSMo59ahy2cI2qBDLKobkx/J3vWraV0T9VuG\nWCLKTVXkcGdtwlfFRjlBz4pYg1htmf5X6DYO8A4jqv2Il9DjXA6USbW1FzXSLr9O\nhe8Y4IWS6wY7bCkjCWDcRQJMEhg76fsO3txE+FiYruq9RUWhiF1myv4Q6W+CyBFC\nDfvp7OOGAN6dEOM4+qR9sdjoSYKEBpsr6GtPAQw4dy753ec5\n-----END CERTIFICATE-----\n"
+        },
+        "syslog_drain_url": "https://QKCxvPILnY:ubeBOMzdYDmZTbGBcGzorzI@ingest-sf-50de4c0d-eac3-43fa-9fd5-89d207a3aab8.cls-13.cloud.logs.services.eu10.hana.ondemand.com/cfsyslog",
+        "volume_mounts": []
+      }
+    ],
+    "dynatrace": [
+      {
+        "label": "dynatrace",
+        "provider": null,
+        "plan": "environment",
+        "name": "cdsnode-dynatrace",
+        "tags": ["dynatrace"],
+        "instance_guid": "539bd89a-a786-43bb-af3b-6999bc6c691b",
+        "instance_name": "cdsnode-dynatrace",
+        "binding_guid": "6e57d708-e6b5-44e9-bb79-1d10a666ecf8",
+        "binding_name": null,
+        "credentials": {
+          "apitoken": "dt0c01.CRE2P5D6JK7ATSCUIR67ESFU.NR566AD3YPM63NJS42BKUECDID63QTSQ52ZVPCPEDRMSXZTUHFDHFMAJNN6Q65WY",
+          "apiurl": "https://apm.cf.eu10.hana.ondemand.com/e/2c47e072-cacc-4ae2-bf75-6de82ffad339/api",
+          "environmentid": "2c47e072-cacc-4ae2-bf75-6de82ffad339",
+          "metrics_apitoken": "dt0c01.ED4H4ZRAETXTFXZZ64ZPS5D5.BRM74AQT472HJLFKZFQJOXEIHJZMPH3AWUGCQZEPF6HQHDBUPNVRXELQ3O3RVV4L",
+          "permission_assignments": [
+            {
+              "name": "CDSNODE Dynatrace Admin",
+              "roles": ["admin", "configure_sensitive", "log_analytics", "view_sensitive"]
+            },
+            {
+              "name": "CDSNODE Dynatrace User",
+              "roles": ["log_analytics", "user"]
+            }
+          ],
+          "skiperrors": "true",
+          "token_expiry": "2025-01-15T13:21:15.798Z"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ],
+    "application-logs": [
+      {
+        "label": "application-logs",
+        "provider": null,
+        "plan": "lite",
+        "name": "calesi-telemetry-logging",
+        "tags": [],
+        "instance_guid": "bb4b71f2-012a-4af0-b22a-1ecd2ccac2ff",
+        "instance_name": "calesi-telemetry-logging",
+        "binding_guid": "d88c7538-025a-4f49-b0d3-11ff1d016976",
+        "binding_name": null,
+        "credentials": {},
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ]
+  },
+  "VCAP_APPLICATION": {
+    "cf_api": "https://api.cf.eu10.hana.ondemand.com",
+    "limits": {
+      "fds": 32768
+    },
+    "application_name": "calesi-telemetry-srv",
+    "application_uris": ["cdx-nodejs-dev-calesi-telemetry-srv.cfapps.eu10.hana.ondemand.com"],
+    "name": "calesi-telemetry-srv",
+    "space_name": "dev",
+    "space_id": "c75c145c-c176-4c56-83b2-e3cb64db2358",
+    "organization_id": "a49fc927-b443-4b55-983b-5a9e8d661411",
+    "organization_name": "cdx-nodejs",
+    "uris": ["cdx-nodejs-dev-calesi-telemetry-srv.cfapps.eu10.hana.ondemand.com"],
+    "users": null,
+    "application_id": "4cbc7811-7c94-4d71-a6ba-e0b0d2f2b17d"
+  }
+}
