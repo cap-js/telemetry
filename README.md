@@ -106,7 +106,7 @@ Example db pool metrics printed to the console:
 
 Additionally, `@cap-js/telemetry` instantiates and starts [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) if it is found in the app's dependencies.
 To avoid spamming the console, only `process.*` metrics are printed by default.
-Printing the `system.*` metrics can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
+Printing the `system.*` metrics to the console can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
 It is not possible to influence which metrics `@opentelemetry/host-metrics` sends to a backend.
 
 Example host metrics printed to the console:
