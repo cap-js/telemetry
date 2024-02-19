@@ -2,11 +2,15 @@
 
 [![REUSE status](https://api.reuse.software/badge/github.com/cap-js/telemetry)](https://api.reuse.software/info/github.com/cap-js/telemetry)
 
+
+
 ## About this project
 
 `@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
 
 Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [opentelemetry.io](https://opentelemetry.io/docs).
+
+
 
 ## Table of Contents
 
@@ -32,16 +36,20 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 - [Code of Conduct](#code-of-conduct)
 - [Licensing](#licensing)
 
+
+
 ## Requirements
 
 See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstart your development and grow as you go with SAP Cloud Application Programming Model.
+
+
 
 ## Setup
 
 Simply add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemetry` and you will find telemetry output written to the console like so:
 
 ```
-[odata] - GET /odata/v4/processor/Incidents
+[odata] - GET /odata/v4/processor/Incidents 
 [telemetry] - elapsed times:
     0.00 →   2.85 =   2.85 ms  GET /odata/v4/processor/Incidents
     0.47 →   1.24 =   0.76 ms    ProcessorService - READ ProcessorService.Incidents
@@ -59,6 +67,8 @@ See [Predefined Kinds](#predefined-kinds) for additional dependencies you need t
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
 
 Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
+
+
 
 ## Telemetry Signals
 
@@ -88,7 +98,6 @@ Metrics are "measurements captured at runtime", which help you understand your a
 Out of the box, `@cap-js/telemetry` offers metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`.
 
 Example db pool metrics printed to the console:
-
 ```
 [telemetry] - db.pool:
      size | available | pending
@@ -98,10 +107,9 @@ Example db pool metrics printed to the console:
 Additionally, `@cap-js/telemetry` instantiates and starts [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) if it is found in the app's dependencies.
 To avoid spamming the console, only `process.*` metrics are printed by default.
 Printing the `system.*` metrics in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
-The same variable activates the transfer to your logging target.
+Currently, there is no public config option to influence which metrics `@opentelemetry/host-metrics` sends to a backend.
 
 Example host metrics printed to the console:
-
 ```
 [telemetry] - host metrics:
   Process Cpu time in seconds: { user: 1691.832, system: 218.223 }
@@ -110,29 +118,30 @@ Example host metrics printed to the console:
 ```
 
 Finally, custom metrics can be added as shown in the following example (tenant-aware request counting):
-
 ```js
 // server.js
 
-const cds = require("@sap/cds");
+const cds = require('@sap/cds')
 
-let counter;
+let counter
 cds.middlewares.add((req, _, next) => {
-  counter.add(1, { "sap.tenancy.tenant_id": req.tenant });
-  next();
-});
-cds.on("listening", () => {
-  const { metrics } = require("@opentelemetry/api");
-  const meter = metrics.getMeter("@capire/incidents:req.counter");
-  counter = meter.createCounter("req.counter");
-});
+  counter.add(1, { 'sap.tenancy.tenant_id': req.tenant })
+  next()
+})
+cds.on('listening', () => {
+  const { metrics } = require('@opentelemetry/api')
+  const meter = metrics.getMeter('@capire/incidents:req.counter')
+  counter = meter.createCounter('req.counter')
+})
 
-module.exports = cds.server;
+module.exports = cds.server
 ```
 
 ### Logs
 
 Exporting logs via OpenTelemetry is not yet supported.
+
+
 
 ## Predefined Kinds
 
@@ -153,7 +162,6 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
@@ -161,7 +169,6 @@ The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metr
 This can be done via parameterizing the binding to a "managed service instance" (i.e., not a user-provided service instance) as follows.
 
 Excerpt from example mta.yaml:
-
 ```yaml
 requires:
   - name: my-dynatrace-instance
@@ -177,13 +184,12 @@ requires:
 In the user-provided service case, you'll need to generate a token in Dynatrace with the necessary scopes, add it to the credentials of the user-provided service, and configure `cds.requires.telemetry.token_name` if the token's key in the credentials object is not `ingest_apitoken`.
 
 In Dynatrace itself, you need to ensure that the following two features are enabled:
-
 1. OpenTelemetry Node.js Instrumentation agent support:
-   - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
-   - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
+    - From the Dynatrace menu, go to Settings > Preferences > OneAgent features.
+    - Find and turn on OpenTelemetry Node.js Instrumentation agent support.
 2. W3C Trace Context:
-   - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
-   - Turn on Send W3C Trace Context HTTP headers.
+    - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
+    - Turn on Send W3C Trace Context HTTP headers.
 
 #### Leveraging Dynatrace OneAgent
 
@@ -200,13 +206,11 @@ Hence, a SAP Cloud Logging instance is required and the app must be bound to tha
 Use via `cds.requires.telemetry.kind = 'to-cloud-logging'`.
 
 Required additional dependencies:
-
 - `@grpc/grpc-js`
 - `@opentelemetry/exporter-trace-otlp-grpc`
 - `@opentelemetry/exporter-metrics-otlp-grpc`
 
 In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Logging instance, you need to include the following configuration while creating the SAP Cloud Logging instance (or by updating an existing instance):
-
 ```json
 {
   "ingest_otlp": {
@@ -222,11 +226,9 @@ Exports traces to Jaeger.
 Use via `cds.requires.telemetry.kind = 'to-jaeger'`.
 
 Required additional dependencies (As Jaeger does not support metrics, only a trace exporter is needed.):
-
 - `@opentelemetry/exporter-trace-otlp-proto`
 
 Provide custom credentials like so:
-
 ```jsonc
 {
   "cds": {
@@ -235,8 +237,7 @@ Provide custom credentials like so:
         "kind": "telemetry-to-jaeger",
         "tracing": {
           "exporter": {
-            "config": {
-              //> this object is passed into constructor as is
+            "config": { //> this object is passed into constructor as is
               // add credentials here as decribed in
               // https://www.npmjs.com/package/@opentelemetry/exporter-trace-otlp-proto
             }
@@ -249,10 +250,11 @@ Provide custom credentials like so:
 ```
 
 Run Jaeger locally via [docker](https://www.docker.com):
-
 - Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
-  - With this, no custom credentials are needed
+    - With this, no custom credentials are needed
 - Open `localhost:16686` to see the traces
+
+
 
 ## Detailed Configuration Options
 
@@ -261,14 +263,15 @@ Run Jaeger locally via [docker](https://www.docker.com):
 Configure via `cds.requires.telemetry.instrumentations = { <name>: { module, class, config? } }`
 
 Default:
-
 ```json
 {
   "http": {
     "module": "@opentelemetry/instrumentation-http",
     "class": "HttpInstrumentation",
     "config": {
-      "ignoreIncomingPaths": ["/health"]
+      "ignoreIncomingPaths": [
+        "/health"
+      ]
     }
   }
 }
@@ -279,7 +282,6 @@ Default:
 Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio? }`
 
 Default:
-
 ```json
 {
   "kind": "ParentBasedSampler",
@@ -292,7 +294,6 @@ Default:
 Configure via `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
 
 Default:
-
 ```json
 ["W3CTraceContextPropagator"]
 ```
@@ -300,12 +301,10 @@ Default:
 ### Exporters
 
 Configure via:
-
 - `cds.requires.telemetry.tracing.exporter = { module, class, config? }`
 - `cds.requires.telemetry.metrics.exporter = { module, class, config? }`
 
 Default:
-
 ```json
 {
   {
@@ -349,45 +348,45 @@ Default:
 #### Some Alternative Exporters
 
 1. For JSON output to the console, use:
-   ```json
-   {
-     "tracing": {
-       "module": "@opentelemetry/sdk-trace-base",
-       "class": "ConsoleSpanExporter"
-     },
-     "metrics": {
-       "module": "@opentelemetry/sdk-metrics",
-       "class": "ConsoleMetricExporter"
-     }
-   }
-   ```
+    ```json
+    {
+      "tracing": {
+        "module": "@opentelemetry/sdk-trace-base",
+        "class": "ConsoleSpanExporter"
+      },
+      "metrics": {
+        "module": "@opentelemetry/sdk-metrics",
+        "class": "ConsoleMetricExporter"
+      }
+    }
+    ```
 1. For gRPC, use:
-   ```json
-   {
-     "tracing": {
-       "module": "@opentelemetry/exporter-trace-otlp-grpc",
-       "class": "OTLPTraceExporter"
-     },
-
-     "metrics": {
-       "module": "@opentelemetry/exporter-metrics-otlp-grpc",
-       "class": "OTLPMetricExporter"
-     }
-   }
-   ```
+    ```json
+    {
+      "tracing": {
+        "module": "@opentelemetry/exporter-trace-otlp-grpc",
+        "class": "OTLPTraceExporter"
+      },
+      
+      "metrics": {
+        "module": "@opentelemetry/exporter-metrics-otlp-grpc",
+        "class": "OTLPMetricExporter"
+      }
+    }
+    ```
 1. For HTTP, use:
-   ```json
-   {
-     "tracing": {
-       "module": "@opentelemetry/exporter-trace-otlp-http",
-       "class": "OTLPTraceExporter"
-     },
-     "metrics": {
-       "module": "@opentelemetry/exporter-metrics-otlp-http",
-       "class": "OTLPMetricExporter"
-     }
-   }
-   ```
+    ```json
+    {
+      "tracing": {
+        "module": "@opentelemetry/exporter-trace-otlp-http",
+        "class": "OTLPTraceExporter"
+      },
+      "metrics": {
+        "module": "@opentelemetry/exporter-metrics-otlp-http",
+        "class": "OTLPMetricExporter"
+      }
+    }
+    ```
 
 ### Environment variables
 
@@ -401,13 +400,19 @@ For the complete list of environment variables supported by OpenTelemetry, see [
 
 Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID`, if present, are used to determine some [Attributes](https://opentelemetry.io/docs/specs/otel/common/#attribute).
 
+
+
 ## Support, Feedback, Contributing
 
 This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://github.com/cap-js/telemetry/issues). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, the project structure, as well as additional contribution information, see our [Contribution Guidelines](CONTRIBUTING.md).
 
+
+
 ## Code of Conduct
 
 We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone. By participating in this project, you agree to abide by its [Code of Conduct](CODE_OF_CONDUCT.md) at all times.
+
+
 
 ## Licensing
 
