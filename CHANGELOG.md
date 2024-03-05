@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## Version 0.0.5 - tbd
 
-### Fixed
+### Added
 
 - Register span processor also if tracer provider is initialized by a different module
 
