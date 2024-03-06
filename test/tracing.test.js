@@ -2,7 +2,7 @@ const cds = require('@sap/cds')
 const { expect, GET, POST } = cds.test().in(__dirname + '/bookshop')
 const log = cds.test.log()
 
-describe('Integration tests cds with open telemetry', () => {
+describe('tracing', () => {
   const admin = { auth: { username: 'alice' } }
 
   beforeEach(log.clear)
