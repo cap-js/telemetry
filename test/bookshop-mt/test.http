@@ -3,9 +3,17 @@
 ###
 
 GET {{host}}/odata/v4/admin/Books
-Authorization: Basic alice:wonderland
+Authorization: Basic user_tenant_1:
 
 ###
 
 GET {{host}}/odata/v4/admin/Authors
-Authorization: Basic alice:wonderland
+Authorization: Basic user_tenant_1:
+
+###
+
+cds build --for hana
+copy from db to tenant_1
+
+cds subscribe tenant_1 --to http://localhost:4004 -u user_tenant_1:
+

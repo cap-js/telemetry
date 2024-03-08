@@ -1,9 +1,11 @@
 {
-  "dependencies": {
+  "name": "bookshop-mt",
+  "dependencies": {    
     "@cap-js/telemetry": "*",
     "@cap-js/sqlite": "*",
     "@opentelemetry/host-metrics": "*",
-    "@sap/cds-mtxs": "*"
+    "@sap/cds-mtxs": "*",
+    "@sap/hana-client": "*"
   },
   "cds": {
     "requires": {
@@ -25,15 +27,28 @@
               ]
             }
           }
+        },               
+        "tracing": {
+          "exporter": {
+            "module": "@opentelemetry/sdk-trace-base",
+            "class": "ConsoleSpanExporter"
+          }
+        },
+        "metrics": {
+          "exporter": {
+            "module": "@opentelemetry/sdk-metrics",
+            "class": "ConsoleMetricExporter"
+          }
         }
-      },
+      },      
       "auth": {
         "kind": "mocked-auth",
         "users": {
           "user_tenant_1": {
             "tenant": "tenant_1",
             "roles": [
-              "admin"
+              "admin",
+              "cds.Subscriber"
             ]
           },
           "user_tenant_2": {
@@ -45,7 +60,10 @@
         }
       },
       "multitenancy": true,
-      "toggles": true
+      "[hybrid]": {
+        "db": "hana",
+        "multitenancy": true
+      }
     }
   }
 }
