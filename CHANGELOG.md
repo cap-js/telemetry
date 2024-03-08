@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Register span processor also if tracer provider is initialized by a different module
 
+### Changed
+
+- By default, all `system.*` metrics collected by `@opentelemetry/host-metrics` are ignored
+  + Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
+
 ## Version 0.0.4 - 2024-02-09
 
 ### Added
