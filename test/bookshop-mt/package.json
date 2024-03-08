@@ -28,13 +28,13 @@
             }
           }
         },               
-        "tracing": {
+        "_tracing": {
           "exporter": {
             "module": "@opentelemetry/sdk-trace-base",
             "class": "ConsoleSpanExporter"
           }
         },
-        "metrics": {
+        "_metrics": {
           "exporter": {
             "module": "@opentelemetry/sdk-metrics",
             "class": "ConsoleMetricExporter"
