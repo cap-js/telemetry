@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Register span processor also if tracer provider is initialized by a different module
+- Support for _Pull Metric Exporter_
 
 ### Changed
 
