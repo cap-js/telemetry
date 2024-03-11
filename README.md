@@ -268,7 +268,7 @@ Run Jaeger locally via [docker](https://www.docker.com):
 ### Configuration Pass Through
 
 In general, you can influence the configuration of a used module via the respective `config` node in `cds.env.requires.telemetry`.
-For example, it is possible to specify the `temporalityPreference` setting of the metrics exporter in use via:
+For example, it is possible to specify the `temporalityPreference` setting of the respective metrics exporter like so:
 ```jsonc
 {
   "cds": {
