@@ -9,11 +9,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Register span processor also if tracer provider is initialized by a different module
+- Support for so-called _Pull Metric Exporter_ (e.g., `@opentelemetry/exporter-prometheus`)
+- Tenant-dependent DB attributes
 
 ### Changed
 
 - By default, all `system.*` metrics collected by `@opentelemetry/host-metrics` are ignored
   + Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
+- Metric exporter's property `temporalityPreference` always gets defaulted to `DELTA`
+  + Was previously only done for kind `telemetry-to-dynatrace`
+  + Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
+
+### Fixed
+
+- Identification of first-level spans in built-in `ConsoleSpanExporter`
 
 ## Version 0.0.4 - 2024-02-09
 

@@ -241,7 +241,7 @@ Provide custom credentials like so:
   "cds": {
     "requires": {
       "telemetry": {
-        "kind": "telemetry-to-jaeger",
+        "kind": "to-jaeger",
         "tracing": {
           "exporter": {
             "config": { //> this object is passed into constructor as is
