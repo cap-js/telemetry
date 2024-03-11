@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   + Was previously only done for kind `telemetry-to-dynatrace`
   + Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
 
+### Fixed
+
+- Identification of first-level spans in built-in `ConsoleSpanExporter`
+
 ## Version 0.0.4 - 2024-02-09
 
 ### Added
