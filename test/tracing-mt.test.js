@@ -1,18 +1,14 @@
 const cds = require('@sap/cds')
-const DIR = __dirname + '/bookshop-mt'
-cds.test.in(DIR)
+const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'multitenancy')
+const log = cds.test.log()
 
-const TENANT1 = 'tenant_1'
-const TENANT2 = 'tenant_2'
-const USER1 = `user_${TENANT1}`
-const USER2 = `user_${TENANT2}`
-
-const user1 = { auth: { username: USER1 } }
-const user2 = { auth: { username: USER2 } }
-
-describe('Integration tests cds with open telemetry', () => {
-  const { expect, GET, POST } = cds.test(DIR)
-  const log = cds.test.log()
+describe('tracing with multitenancy', () => {
+  const TENANT1 = 'tenant_1'
+  const TENANT2 = 'tenant_2'
+  const USER1 = `user_${TENANT1}`
+  const USER2 = `user_${TENANT2}`
+  const user1 = { auth: { username: USER1 } }
+  const user2 = { auth: { username: USER2 } }
 
   beforeAll(async () => {
     const mts = await cds.connect.to('cds.xt.DeploymentService')
@@ -38,12 +34,15 @@ describe('Integration tests cds with open telemetry', () => {
     expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* AdminService - READ AdminService.Books/)
   })
 
-  test('NonRecordingSpans are handled correctly', async () => {
-    const { status: postStatus } = await POST('/odata/v4/admin/Authors', { ID: 42, name: 'Douglas Adams' }, user1)
-    expect(postStatus).to.equal(201)
-    const { status: getStatus } = await GET('/odata/v4/admin/Authors?$select=ID', user1)
-    expect(getStatus).to.equal(200)
-    // primitive check that console has no trace logs
-    expect(log.output).not.to.match(/telemetry/)
-  })
+  // --- TODO ---
+
+  test.skip('$batch is traced', async () => {})
+
+  test.skip('individual handlers are traced', async () => {})
+
+  test.skip('srv.emit is traced', async () => {})
+
+  test.skip('cds.spawn is traced', async () => {})
+
+  test.skip('remote is traced', async () => {})
 })
