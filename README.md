@@ -27,6 +27,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
 - [Detailed Configuration Options](#detailed-configuration-options)
+  - [Configuration Pass Through](#configuration-pass-through)
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
@@ -263,6 +264,28 @@ Run Jaeger locally via [docker](https://www.docker.com):
 
 
 ## Detailed Configuration Options
+
+### Configuration Pass Through
+
+In general, you can influence the configuration of a used module via the respective `config` node in `cds.env.requires.telemetry`.
+For example, it is possible to specify the `temporalityPreference` setting of the respective metrics exporter like so:
+```jsonc
+{
+  "cds": {
+    "requires": {
+      "telemetry": {
+        "metrics": {
+          "exporter": {
+            "config": { //> this object is passed into constructor as is
+              "temporalityPreference": "DELTA"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 ### Instrumentations
 
