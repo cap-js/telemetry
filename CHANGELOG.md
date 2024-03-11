@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Register span processor also if tracer provider is initialized by a different module
 - Support for so-called _Pull Metric Exporter_ (e.g., `@opentelemetry/exporter-prometheus`)
+- Tenant-dependent DB attributes
 
 ### Changed
 
