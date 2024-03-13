@@ -70,7 +70,9 @@
           "propagators": [
             "W3CTraceContextPropagator"
           ],
-          "_hrtime": true,
+          "[development]": {
+            "_hrtime": true
+          },
           "_tx": false
         },
         "metrics": {
