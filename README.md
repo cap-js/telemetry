@@ -363,6 +363,21 @@ Default:
     }
   },
   {
+    "kind": "telemetry-to-cloud-logging",
+    "tracing": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-trace-otlp-grpc",
+        "class": "OTLPTraceExporter"
+      }
+    },
+    "metrics": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-metrics-otlp-grpc",
+        "class": "OTLPMetricExporter"
+      }
+    }
+  },
+  {
     "kind": "telemetry-to-jaeger",
     "tracing": {
       "exporter": {
@@ -380,26 +395,16 @@ Default:
     ```json
     {
       "tracing": {
-        "module": "@opentelemetry/sdk-trace-base",
-        "class": "ConsoleSpanExporter"
+        "exporter": {
+          "module": "@opentelemetry/sdk-trace-base",
+          "class": "ConsoleSpanExporter"
+        }
       },
       "metrics": {
-        "module": "@opentelemetry/sdk-metrics",
-        "class": "ConsoleMetricExporter"
-      }
-    }
-    ```
-1. For gRPC, use:
-    ```json
-    {
-      "tracing": {
-        "module": "@opentelemetry/exporter-trace-otlp-grpc",
-        "class": "OTLPTraceExporter"
-      },
-      
-      "metrics": {
-        "module": "@opentelemetry/exporter-metrics-otlp-grpc",
-        "class": "OTLPMetricExporter"
+        "exporter": {
+          "module": "@opentelemetry/sdk-metrics",
+          "class": "ConsoleMetricExporter"
+        }
       }
     }
     ```
@@ -407,12 +412,16 @@ Default:
     ```json
     {
       "tracing": {
-        "module": "@opentelemetry/exporter-trace-otlp-http",
-        "class": "OTLPTraceExporter"
+        "exporter": {
+          "module": "@opentelemetry/exporter-trace-otlp-http",
+          "class": "OTLPTraceExporter"
+        }
       },
       "metrics": {
-        "module": "@opentelemetry/exporter-metrics-otlp-http",
-        "class": "OTLPMetricExporter"
+        "exporter": {
+          "module": "@opentelemetry/exporter-metrics-otlp-http",
+          "class": "OTLPMetricExporter"
+        }
       }
     }
     ```
