@@ -25,16 +25,18 @@ describe('tracing', () => {
   })
 
   test('$batch is traced', async () => {
-    const res = await POST(
+    await POST(
       '/odata/v4/genre/$batch',
       {
         requests: [
-          { id: 'r1', method: 'POST', url: '/Genres', headers: { 'content-type': 'application/json' }, body: {} }
+          { id: 'r1', method: 'POST', url: '/Genres', headers: { 'content-type': 'application/json' }, body: {} },
+          { id: 'r2', method: 'GET', url: '/Genres', headers: {} }
         ]
       },
       admin
     )
-    debugger
+    // 4: create/ new, read after write, read actives, read drafts
+    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
   })
 
   // --- TODO ---
