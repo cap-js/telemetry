@@ -1,4 +1,5 @@
 using { sap.capire.bookshop as my } from '../db/schema';
+
 service CatalogService {
 
   /** For displaying lists of Books */
