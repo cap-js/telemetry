@@ -71,7 +71,7 @@
             "W3CTraceContextPropagator"
           ],
           "[development]": {
-            "_hrtime": true
+            "hrtime": true
           },
           "_tx": false
         },
