@@ -17,7 +17,7 @@ describe('metrics', () => {
   test('system metrics are not collected by default', async () => {
     const { status } = await GET('/odata/v4/admin/Books', admin)
     expect(status).to.equal(200)
-    
+
     await wait(100)
 
     expect(log.output).to.match(/process/i)

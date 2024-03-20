@@ -24,9 +24,22 @@ describe('tracing', () => {
     expect(log.output).not.to.match(/telemetry/)
   })
 
-  // --- TODO ---
+  test('$batch is traced', async () => {
+    await POST(
+      '/odata/v4/genre/$batch',
+      {
+        requests: [
+          { id: 'r1', method: 'POST', url: '/Genres', headers: { 'content-type': 'application/json' }, body: {} },
+          { id: 'r2', method: 'GET', url: '/Genres', headers: {} }
+        ]
+      },
+      admin
+    )
+    // 4: create/ new, read after write, read actives, read drafts
+    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
+  })
 
-  test.skip('$batch is traced', async () => {})
+  // --- TODO ---
 
   test.skip('individual handlers are traced', async () => {})
 

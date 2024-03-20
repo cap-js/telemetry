@@ -9,3 +9,11 @@ Authorization: Basic alice:wonderland
 
 GET {{host}}/odata/v4/admin/Authors
 Authorization: Basic alice:wonderland
+
+###
+
+POST {{host}}/odata/v4/genre/Genres
+Authorization: Basic alice:wonderland
+Content-Type: application/json
+
+{}
