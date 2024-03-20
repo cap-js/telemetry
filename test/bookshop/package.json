@@ -24,19 +24,6 @@
               ]
             }
           }
-        },
-        "tracing": {
-          "__hrtime": false,
-          "_exporter": {
-            "module": "@opentelemetry/sdk-trace-base",
-            "class": "ConsoleSpanExporter"
-          }
-        },
-        "_metrics": {
-          "exporter": {
-            "module": "@opentelemetry/sdk-metrics",
-            "class": "ConsoleMetricExporter"
-          }
         }
       },
       "[multitenancy]": {
