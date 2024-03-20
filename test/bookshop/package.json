@@ -6,11 +6,6 @@
     "@sap/cds-mtxs": "*"
   },
   "cds": {
-    "_log": {
-      "levels": {
-        "cds": "error"
-      }
-    },
     "requires": {
       "telemetry": {
         "_kind": "to-jaeger",
