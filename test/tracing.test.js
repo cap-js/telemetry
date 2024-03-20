@@ -24,9 +24,20 @@ describe('tracing', () => {
     expect(log.output).not.to.match(/telemetry/)
   })
 
-  // --- TODO ---
+  test('$batch is traced', async () => {
+    const res = await POST(
+      '/odata/v4/genre/$batch',
+      {
+        requests: [
+          { id: 'r1', method: 'POST', url: '/Genres', headers: { 'content-type': 'application/json' }, body: {} }
+        ]
+      },
+      admin
+    )
+    debugger
+  })
 
-  test.skip('$batch is traced', async () => {})
+  // --- TODO ---
 
   test.skip('individual handlers are traced', async () => {})
 

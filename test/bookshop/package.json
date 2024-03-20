@@ -6,6 +6,11 @@
     "@sap/cds-mtxs": "*"
   },
   "cds": {
+    "_log": {
+      "levels": {
+        "cds": "error"
+      }
+    },
     "requires": {
       "telemetry": {
         "_kind": "to-jaeger",
@@ -21,12 +26,13 @@
           }
         },
         "tracing": {
-          "exporter": {
+          "__hrtime": false,
+          "_exporter": {
             "module": "@opentelemetry/sdk-trace-base",
             "class": "ConsoleSpanExporter"
           }
         },
-        "metrics": {
+        "_metrics": {
           "exporter": {
             "module": "@opentelemetry/sdk-metrics",
             "class": "ConsoleMetricExporter"
