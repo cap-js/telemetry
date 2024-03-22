@@ -363,6 +363,21 @@ Default:
     }
   },
   {
+    "kind": "telemetry-to-cloud-logging",
+    "tracing": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-trace-otlp-grpc",
+        "class": "OTLPTraceExporter"
+      }
+    },
+    "metrics": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-metrics-otlp-grpc",
+        "class": "OTLPMetricExporter"
+      }
+    }
+  },
+  {
     "kind": "telemetry-to-jaeger",
     "tracing": {
       "exporter": {
@@ -380,26 +395,16 @@ Default:
     ```json
     {
       "tracing": {
-        "module": "@opentelemetry/sdk-trace-base",
-        "class": "ConsoleSpanExporter"
+        "exporter": {
+          "module": "@opentelemetry/sdk-trace-base",
+          "class": "ConsoleSpanExporter"
+        }
       },
       "metrics": {
-        "module": "@opentelemetry/sdk-metrics",
-        "class": "ConsoleMetricExporter"
-      }
-    }
-    ```
-1. For gRPC, use:
-    ```json
-    {
-      "tracing": {
-        "module": "@opentelemetry/exporter-trace-otlp-grpc",
-        "class": "OTLPTraceExporter"
-      },
-      
-      "metrics": {
-        "module": "@opentelemetry/exporter-metrics-otlp-grpc",
-        "class": "OTLPMetricExporter"
+        "exporter": {
+          "module": "@opentelemetry/sdk-metrics",
+          "class": "ConsoleMetricExporter"
+        }
       }
     }
     ```
@@ -407,15 +412,26 @@ Default:
     ```json
     {
       "tracing": {
-        "module": "@opentelemetry/exporter-trace-otlp-http",
-        "class": "OTLPTraceExporter"
+        "exporter": {
+          "module": "@opentelemetry/exporter-trace-otlp-http",
+          "class": "OTLPTraceExporter"
+        }
       },
       "metrics": {
-        "module": "@opentelemetry/exporter-metrics-otlp-http",
-        "class": "OTLPMetricExporter"
+        "exporter": {
+          "module": "@opentelemetry/exporter-metrics-otlp-http",
+          "class": "OTLPMetricExporter"
+        }
       }
     }
     ```
+
+### High resolution timestamps (beta)
+
+By default, the start time of a span is taken from `Date.now()` and, hence, has only millisecond resolution.
+Via `cds.requires.telemetry.tracing.hrtime = true`, you can instruct the plugin to specify the start and end times of spans, which it does with nanosecond resolution.
+This may result in minor drifts, especially for spans created by other instrumentations such as `@opentelemetry/instrumentation-http`.
+Hence, the `hrtime` mode is on by default in development but not in production.
 
 ### Environment variables
 
