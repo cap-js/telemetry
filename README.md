@@ -426,6 +426,13 @@ Default:
     }
     ```
 
+### High resolution timestamps (beta)
+
+By default, the start time of a span is taken from `Date.now()` and, hence, has only millisecond resolution.
+Via `cds.requires.telemetry.tracing.hrtime = true`, you can instruct the plugin to specify the start and end times of spans, which it does with nanosecond resolution.
+This may result in minor drifts, especially for spans created by other instrumentations such as `@opentelemetry/instrumentation-http`.
+Hence, the `hrtime` mode is on by default in development but not in production.
+
 ### Environment variables
 
 - `NO_TELEMETRY`: Disables the plugin
