@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Validate existence of credentials only for configured kind
+
 ### Removed
 
 ## Version 0.1.0 - 2024-03-22
