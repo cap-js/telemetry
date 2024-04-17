@@ -1,0 +1,32 @@
+---
+modules:
+  - name: {{appName}}-srv
+    type: {{language}}
+    path: {{& srvPath}}
+    requires:
+      - name: {{appName}}-cloud-logging
+
+{{#hasMultitenancy}}
+  - name: {{appName}}-mtx
+    type: nodejs
+    path: {{#isNodejs}}gen/{{/isNodejs}}mtx/sidecar
+    requires:
+      - name: {{appName}}-cloud-logging
+{{/hasMultitenancy}}
+
+{{#hasApprouter}}
+  - name: {{appName}}
+    type: approuter.nodejs
+    requires:
+      - name: {{appName}}-cloud-logging
+{{/hasApprouter}}
+
+resources:
+  - name: {{appName}}-cloud-logging
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: cloud-logging
+      service-plan: standard
+      config:
+      ingest_otlp: # REVISIT: Necessary?
+        enabled: true
