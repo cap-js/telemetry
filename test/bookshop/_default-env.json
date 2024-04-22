@@ -1,0 +1,75 @@
+{
+  "VCAP_SERVICES": {
+    "dynatrace": [
+      {
+        "label": "dynatrace",
+        "provider": null,
+        "plan": "environment",
+        "name": "dummy",
+        "tags": ["dynatrace"],
+        "instance_guid": "00000000-0000-0000-0000-000000000000",
+        "instance_name": "dummy",
+        "binding_guid": "00000000-0000-0000-0000-000000000000",
+        "binding_name": null,
+        "credentials": {
+          "apitoken": "dummy",
+          "apiurl": "https://example.com",
+          "environmentid": "00000000-0000-0000-0000-000000000000",
+          "ingest_apitoken": "dummy",
+          "permission_assignments": [],
+          "skiperrors": "true",
+          "token_expiry": "9999-12-31T23:59:59.999Z"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ],
+    "cloud-logging": [
+      {
+        "label": "cloud-logging",
+        "provider": null,
+        "plan": "standard",
+        "name": "dummy",
+        "tags": ["Cloud Logging"],
+        "instance_guid": "00000000-0000-0000-0000-000000000000",
+        "instance_name": "dummy",
+        "binding_guid": "00000000-0000-0000-0000-000000000000",
+        "binding_name": null,
+        "credentials": {
+          "client-ca": "-----BEGIN CERTIFICATE-----\nDUMMY\n-----END CERTIFICATE-----\n",
+          "dashboards-endpoint": "example.com",
+          "dashboards-password": "dummy",
+          "dashboards-username": "dummy",
+          "ingest-endpoint": "example.com",
+          "ingest-mtls-cert": "-----BEGIN CERTIFICATE-----\nDUMMY\n-----END CERTIFICATE-----\n",
+          "ingest-mtls-endpoint": "example.com",
+          "ingest-mtls-key": "-----BEGIN PRIVATE KEY-----\nDUMMY\n-----END PRIVATE KEY-----\n",
+          "ingest-otlp-cert": "-----BEGIN CERTIFICATE-----\nDUMMY\n-----END CERTIFICATE-----\n",
+          "ingest-otlp-endpoint": "example.com",
+          "ingest-otlp-key": "-----BEGIN PRIVATE KEY-----\nDUMMY\n-----END PRIVATE KEY-----\n",
+          "ingest-password": "dummy",
+          "ingest-username": "dummy",
+          "server-ca": "-----BEGIN CERTIFICATE-----\nDUMMY\n-----END CERTIFICATE-----\n"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ],
+    "user-provided": [
+      {
+        "label": "user-provided",
+        "name": "any-string-including-dynatrace",
+        "tags": [],
+        "instance_guid": "00000000-0000-0000-0000-000000000000",
+        "instance_name": "dummy",
+        "binding_guid": "00000000-0000-0000-0000-000000000000",
+        "binding_name": null,
+        "credentials": {
+          "foo": "bar"
+        },
+        "syslog_drain_url": null,
+        "volume_mounts": []
+      }
+    ]
+  }
+}
