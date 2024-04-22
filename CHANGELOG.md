@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for local modules (e.g., exporters) via `[...].module = '<path relative to cds.root>'`
+
 ### Changed
 
 ### Fixed

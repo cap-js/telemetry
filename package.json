@@ -78,7 +78,8 @@
         "metrics": {
           "config": {
             "exportIntervalMillis": 60000
-          }
+          },
+          "_pool": true
         },
         "kind": "telemetry-to-console"
       },
