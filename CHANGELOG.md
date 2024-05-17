@@ -4,19 +4,18 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 0.2.0 - tbd
+## Version 0.2.0 - 2024-05-17
 
 ### Added
 
 - Support for local modules (e.g., exporters) via `[...].module = '<path relative to cds.root>'`
-
-### Changed
+- Disable pool metrics via `cds.env.requires.telemetry.metrics._db_pool = false` (beta)
 
 ### Fixed
 
+- Get credentials from `cds.env`
 - Validate existence of credentials only for configured kind
-
-### Removed
+- HTTP attributes only for root spans (reduces trace payload size)
 
 ## Version 0.1.0 - 2024-03-22
 
