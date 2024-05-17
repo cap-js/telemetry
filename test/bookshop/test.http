@@ -38,3 +38,11 @@ Content-Type: application/json
     }
   ]
 }
+
+###
+
+POST {{host}}/odata/v4/admin/spawn
+Authorization: Basic alice:wonderland
+Content-Type: application/json
+
+{}

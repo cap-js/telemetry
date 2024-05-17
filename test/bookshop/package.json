@@ -19,6 +19,12 @@
               ]
             }
           }
+        },
+        "_tracing": {
+          "exporter": {
+            "module": "@opentelemetry/sdk-trace-base",
+            "class": "ConsoleSpanExporter"
+          }
         }
       },
       "[multitenancy]": {
