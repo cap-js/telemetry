@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- Detect build job triggered using `@sap/cds-dk/bin/cds.js`
+- Detect build job started via `@sap/cds-dk/bin/cds.js`
 
 ## Version 0.2.1 - 2024-05-23
 
