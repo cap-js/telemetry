@@ -1,4 +1,5 @@
 {
+  "name": "bookshop",
   "dependencies": {
     "@cap-js/telemetry": "*",
     "@cap-js/sqlite": "*",
@@ -18,6 +19,12 @@
                 "/odata/v4/admin/Authors"
               ]
             }
+          }
+        },
+        "_tracing": {
+          "exporter": {
+            "module": "@opentelemetry/sdk-trace-base",
+            "class": "ConsoleSpanExporter"
           }
         }
       },

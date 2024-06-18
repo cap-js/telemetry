@@ -17,3 +17,32 @@ Authorization: Basic alice:wonderland
 Content-Type: application/json
 
 {}
+
+###
+
+POST {{host}}/odata/v4/admin/$batch
+Authorization: Basic alice:wonderland
+Content-Type: application/json
+
+{
+  "requests": [
+    {
+      "id": "1",
+      "method": "GET",
+      "url": "Books"
+    },
+    {
+      "id": "2",
+      "method": "GET",
+      "url": "Authors"
+    }
+  ]
+}
+
+###
+
+POST {{host}}/odata/v4/admin/spawn
+Authorization: Basic alice:wonderland
+Content-Type: application/json
+
+{}

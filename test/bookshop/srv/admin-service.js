@@ -2,6 +2,14 @@ const cds = require('@sap/cds/lib')
 
 module.exports = class AdminService extends cds.ApplicationService { init(){
   this.before ('NEW','Books.drafts', genid)
+
+  this.on('spawn', () => {
+    cds.spawn({ after: 3 }, async () => {
+      await SELECT.from('sap.capire.bookshop.Books')
+      await cds.services.AdminService.read('Authors')
+    })
+  })
+
   return super.init()
 }}
 

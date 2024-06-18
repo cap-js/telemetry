@@ -2,6 +2,8 @@ const cds = require('@sap/cds')
 const { expect, GET, POST } = cds.test().in(__dirname + '/bookshop')
 const log = cds.test.log()
 
+const sleep = require('util').promisify(setTimeout)
+
 describe('tracing', () => {
   const admin = { auth: { username: 'alice' } }
 
@@ -39,13 +41,18 @@ describe('tracing', () => {
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
   })
 
+  test('cds.spawn is traced', async () => {
+    await POST('/odata/v4/admin/spawn', {}, admin)
+    await sleep(30)
+    // 2: action + spawned action
+    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
+  })
+
   // --- TODO ---
 
   test.skip('individual handlers are traced', async () => {})
 
   test.skip('srv.emit is traced', async () => {})
-
-  test.skip('cds.spawn is traced', async () => {})
 
   test.skip('remote is traced', async () => {})
 })
