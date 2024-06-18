@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 0.3.0 - tbd
+
+- `cds add telemetry` adds cloud logging configuration.
+
 ## Version 0.2.3 - 2024-06-17
 
 ### Fixed
