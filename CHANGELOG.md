@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## Version 0.3.0 - tbd
 
-- `cds add telemetry` adds cloud logging configuration.
+- `cds add telemetry` adds cloud logging configuration to your _mta.yaml_.
 
 ## Version 0.2.3 - 2024-06-17
 
