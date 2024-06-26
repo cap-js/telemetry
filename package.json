@@ -26,7 +26,13 @@
     "@opentelemetry/semantic-conventions": "^1.10.1"
   },
   "peerDependencies": {
-    "@sap/cds": ">=7"
+    "@sap/cds": ">=7",
+    "@sap/cds-dk": "^8"
+  },
+  "peerDependenciesMeta": {
+    "@sap/cds-dk": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@cap-js/sqlite": "^1.4.0",

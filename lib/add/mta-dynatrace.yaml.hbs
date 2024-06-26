@@ -1,0 +1,25 @@
+---
+modules:
+  - name: {{appName}}-srv
+    type: {{language}}
+    path: {{& srvPath}}
+    requires:
+      - name: {{appName}}-dynatrace
+
+  - name: {{appName}}-mtx
+    type: nodejs
+    path: {{#isNodejs}}gen/{{/isNodejs}}mtx/sidecar
+    requires:
+      - name: {{appName}}-dynatrace
+
+  - name: {{appName}}
+    type: approuter.nodejs
+    requires:
+      - name: {{appName}}-dynatrace
+
+resources:
+  - name: {{appName}}-dynatrace
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: dynatrace
+      service-plan: standard
