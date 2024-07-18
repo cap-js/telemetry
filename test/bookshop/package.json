@@ -48,6 +48,9 @@
           }
         }
       }
+    },
+    "fiori": {
+      "draft_deletion_timeout": false
     }
   }
 }

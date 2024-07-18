@@ -37,7 +37,7 @@ describe('tracing', () => {
       },
       admin
     )
-    // 4: create/ new, read after write, read actives, read drafts
+    // 4: POST: create/ new + read after write, GET: read actives + read drafts
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
   })
 
