@@ -37,8 +37,8 @@ describe('tracing', () => {
       },
       admin
     )
-    // 4: create/ new, read after write, read actives, read drafts
-    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
+    // 5: create/ new, read after write, read actives, read drafts, read DraftAdministrativeData
+    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(5)
   })
 
   test('cds.spawn is traced', async () => {
