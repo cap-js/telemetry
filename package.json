@@ -31,7 +31,7 @@
   "devDependencies": {
     "@cap-js/sqlite": "^1.4.0",
     "@cap-js/telemetry": "file:.",
-    "@sap/cds-mtxs": "^1.16.0",
+    "@sap/cds-mtxs": "^2.0.2",
     "@dynatrace/oneagent-sdk": "^1.5.0",
     "@grpc/grpc-js": "^1.9.14",
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.52.1",
