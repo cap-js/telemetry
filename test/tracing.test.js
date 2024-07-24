@@ -48,15 +48,6 @@ describe('tracing', () => {
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
   })
   
-  test('native db statement is traced', async () => {
-    const db = await cds.connect.to('db');
-    await db.run('SELECT ID FROM AdminService_Books')
-    
-    // primitive check that console has trace logs
-    expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
-    expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - SELECT AdminService_Books/)
-  });
-
   describe('db', () => {
     describe('ql', () => {
       test('SELECT is traced', async () => {
@@ -67,6 +58,16 @@ describe('tracing', () => {
           /\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - READ sap\.capire\.bookshop\.Books/
         )
       })
+    })
+
+    test('native db statement is traced', async () => {
+      const db = await cds.connect.to('db')
+      await db.run('SELECT ID, title, stock, price FROM AdminService_Books WHERE ID = 201 OR ID = 207')
+      // primitive check that console has trace logs
+      expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
+      expect(log.output).to.match(
+        /\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - SELECT .* FROM AdminService_Books WHERE ID = 201 OR I…/
+      )
     })
   })
 
