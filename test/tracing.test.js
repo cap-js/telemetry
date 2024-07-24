@@ -47,7 +47,6 @@ describe('tracing', () => {
     // 2: action + spawned action
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
   })
-  
   describe('db', () => {
     describe('ql', () => {
       test('SELECT is traced', async () => {
