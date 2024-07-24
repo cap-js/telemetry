@@ -1,4 +1,5 @@
 {
+  "name": "bookshop",
   "dependencies": {
     "@cap-js/telemetry": "*",
     "@cap-js/sqlite": "*",
@@ -47,6 +48,9 @@
           }
         }
       }
+    },
+    "fiori": {
+      "draft_deletion_timeout": false
     }
   }
 }

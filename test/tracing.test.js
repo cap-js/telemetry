@@ -37,7 +37,7 @@ describe('tracing', () => {
       },
       admin
     )
-    // 4: create/ new, read after write, read actives, read drafts
+    // 4: POST: create/ new + read after write, GET: read actives + read drafts
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
   })
 
@@ -56,6 +56,19 @@ describe('tracing', () => {
     expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
     expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - SELECT AdminService_Books/)
   });
+
+  describe('db', () => {
+    describe('ql', () => {
+      test('SELECT is traced', async () => {
+        await SELECT.from('sap.capire.bookshop.Books')
+        // primitive check that console has trace logs
+        expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
+        expect(log.output).to.match(
+          /\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - READ sap\.capire\.bookshop\.Books/
+        )
+      })
+    })
+  })
 
   // --- TODO ---
 
