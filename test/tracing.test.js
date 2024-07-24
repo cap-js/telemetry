@@ -59,6 +59,16 @@ describe('tracing', () => {
         )
       })
     })
+
+    test('native db statement is traced', async () => {
+      const db = await cds.connect.to('db')
+      await db.run('SELECT ID, title, stock, price FROM AdminService_Books WHERE ID = 201 OR ID = 207')
+      // primitive check that console has trace logs
+      expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
+      expect(log.output).to.match(
+        /\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - SELECT .* FROM AdminService_Books WHERE ID = 201 OR I…/
+      )
+    })
   })
 
   // --- TODO ---
