@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for tracing native db statements (i.e., `cds.run('SELECT * FROM DUMMY')`)
 - Support for SAP Cloud Logging credentials via user-provided service
 
 ### Changed
