@@ -4,6 +4,7 @@
     "@cap-js/telemetry": "*",
     "@cap-js/sqlite": "*",
     "@opentelemetry/host-metrics": "*",
+    "@opentelemetry/instrumentation-runtime-node": "*",
     "@sap/cds-mtxs": "*"
   },
   "cds": {
@@ -19,6 +20,10 @@
                 "/odata/v4/admin/Authors"
               ]
             }
+          },
+          "instrumentation-runtime-node": {
+            "class": "RuntimeNodeInstrumentation",
+            "module": "@opentelemetry/instrumentation-runtime-node"
           }
         },
         "_tracing": {

@@ -10,8 +10,19 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Support for tracing native db statements (i.e., `cds.run('SELECT * FROM DUMMY')`)
 - Support for SAP Cloud Logging credentials via user-provided service
+- Support for adding `@opentelemetry/instrumentation-runtime-node`
+  - `npm add @opentelemetry/instrumentation-runtime-node`
+  -  to `cds.requires.telemetry.instrumentations`, add:
+      ```json
+      "instrumentation-runtime-node": {
+        "class": "RuntimeNodeInstrumentation",
+        "module": "@opentelemetry/instrumentation-runtime-node"
+      }
+      ```
 
 ### Changed
+
+- Instrumentations are registered after tracing and metrics are set up
 
 ### Fixed
 
@@ -55,8 +66,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for own, high resolution timestamps
-  + Enable via `cds.env.requires.telemetry.tracing.hrtime = true`
-  + Enabled by default in development profile
+  - Enable via `cds.env.requires.telemetry.tracing.hrtime = true`
+  - Enabled by default in development profile
 
 ## Version 0.0.5 - 2024-03-11
 
@@ -69,10 +80,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - By default, all `system.*` metrics collected by `@opentelemetry/host-metrics` are ignored
-  + Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
+  - Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
 - Metric exporter's property `temporalityPreference` always gets defaulted to `DELTA`
-  + Was previously only done for kind `telemetry-to-dynatrace`
-  + Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
+  - Was previously only done for kind `telemetry-to-dynatrace`
+  - Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
 
 ### Fixed
 
