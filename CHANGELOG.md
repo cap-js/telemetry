@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Tracing of db statements without active span
+
 ### Removed
 
 ## Version 0.2.3 - 2024-06-17
