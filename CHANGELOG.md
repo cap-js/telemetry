@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for SAP Cloud Logging credentials via user-provided service
+
 ### Changed
 
 ### Fixed
