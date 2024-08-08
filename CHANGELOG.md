@@ -4,10 +4,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.0.0 - tbd
+## Version 1.0.0 - 2024-08-08
 
 ### Added
 
+- Support for tracing native db statements (i.e., `cds.run('SELECT * FROM DUMMY')`)
 - Support for SAP Cloud Logging credentials via user-provided service
 - Support for adding `@opentelemetry/instrumentation-runtime-node`
   - `npm add @opentelemetry/instrumentation-runtime-node`
@@ -26,7 +27,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-### Removed
+- Tracing of db statements without active span
 
 ## Version 0.2.3 - 2024-06-17
 
