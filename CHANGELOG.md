@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - Instrumentations are registered after tracing and metrics are set up
+- `telemetry-to-dynatrace`: Regardless of whether Dynatrace OneAgent is present or not, if dependency `@opentelemetry/exporter-trace-otlp-proto` is present, `@cap-js/telemetry` will export the traces via OpenTelemetry.
 
 ### Fixed
 
