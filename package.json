@@ -16,14 +16,15 @@
     "test": "npx jest --silent"
   },
   "_dependencies": {
-    "@opentelemetry/api": "^1.7.0",
-    "@opentelemetry/core": "^1.11.0",
-    "@opentelemetry/instrumentation-http": "^0.51.1",
-    "@opentelemetry/resources": "^1.10.1",
-    "@opentelemetry/sdk-metrics": "^1.17.1",
-    "@opentelemetry/sdk-trace-base": "^1.10.1",
-    "@opentelemetry/sdk-trace-node": "^1.21.0",
-    "@opentelemetry/semantic-conventions": "^1.10.1"
+    "@opentelemetry/api": "^1.9",
+    "@opentelemetry/core": "^1.25",
+    "@opentelemetry/instrumentation": "^0.52",
+    "@opentelemetry/instrumentation-http": "^0.52",
+    "@opentelemetry/resources": "^1.25",
+    "@opentelemetry/sdk-metrics": "^1.25",
+    "@opentelemetry/sdk-trace-base": "^1.25",
+    "@opentelemetry/sdk-trace-node": "^1.25",
+    "@opentelemetry/semantic-conventions": "^1.25"
   },
   "peerDependencies": {
     "@sap/cds": ">=7"
@@ -38,7 +39,6 @@
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.52.1",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.52.1",
     "@opentelemetry/host-metrics": "^0.35.0",
-    "@opentelemetry/instrumentation": "^0.52.1",
     "@opentelemetry/instrumentation-runtime-node": "^0.6.0",
     "@sap/cds-mtxs": "^2.0.5",
     "axios": "^1.6.7",
