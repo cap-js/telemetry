@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.0.1 - 2024-08-10
+
+### Fixed
+
+- Explicitly pass own providers when registering instrumentations (the global providers may be influenced by, for example, Dynatrace OneAgent)
+
 ## Version 1.0.0 - 2024-08-08
 
 ### Added

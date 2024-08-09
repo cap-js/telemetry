@@ -1,6 +1,6 @@
 {
   "name": "@cap-js/telemetry",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CDS plugin providing observability features, incl. automatic OpenTelemetry instrumentation.",
   "repository": "cap-js/telemetry",
   "author": "SAP SE (https://www.sap.com)",
@@ -15,7 +15,7 @@
     "lint": "npx eslint .",
     "test": "npx jest --silent"
   },
-  "_dependencies": {
+  "dependencies": {
     "@opentelemetry/api": "^1.9",
     "@opentelemetry/core": "^1.25",
     "@opentelemetry/instrumentation": "^0.52",
