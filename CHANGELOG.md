@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Built-in `ConsoleMetricExporter` uses correct attribute name `process.cpu.state` while exporting host metrics
+
 ## Version 1.0.1 - 2024-08-10
 
 ### Fixed
