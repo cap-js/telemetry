@@ -55,39 +55,41 @@
   "cds": {
     "requires": {
       "telemetry": {
-        "instrumentations": {
-          "http": {
-            "module": "@opentelemetry/instrumentation-http",
-            "class": "HttpInstrumentation",
-            "config": {
-              "ignoreIncomingPaths": [
-                "/health"
-              ]
-            }
-          }
-        },
-        "tracing": {
-          "sampler": {
-            "kind": "ParentBasedSampler",
-            "root": "AlwaysOnSampler"
-          },
-          "propagators": [
-            "W3CTraceContextPropagator"
-          ],
-          "[development]": {
-            "hrtime": true
-          },
-          "_tx": false
-        },
-        "metrics": {
-          "config": {
-            "exportIntervalMillis": 60000
-          },
-          "_db_pool": true
-        },
         "kind": "telemetry-to-console"
       },
       "kinds": {
+        "telemetry": {
+          "instrumentations": {
+            "http": {
+              "module": "@opentelemetry/instrumentation-http",
+              "class": "HttpInstrumentation",
+              "config": {
+                "ignoreIncomingPaths": [
+                  "/health"
+                ]
+              }
+            }
+          },
+          "tracing": {
+            "sampler": {
+              "kind": "ParentBasedSampler",
+              "root": "AlwaysOnSampler"
+            },
+            "propagators": [
+              "W3CTraceContextPropagator"
+            ],
+            "[development]": {
+              "hrtime": true
+            },
+            "_tx": false
+          },
+          "metrics": {
+            "config": {
+              "exportIntervalMillis": 60000
+            },
+            "_db_pool": true
+          }
+        },
         "telemetry-to-console": {
           "tracing": {
             "exporter": {
