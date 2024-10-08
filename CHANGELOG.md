@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.0.2 - tbd
+## Version 1.1.0 - tbd
+
+### Added
+
+- Experimental!: propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
 
 ### Fixed
 
