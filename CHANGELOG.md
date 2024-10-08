@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- Experimental!: propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
+- Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
 
 ### Fixed
 
