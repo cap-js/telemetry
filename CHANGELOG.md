@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
+  - Enable via environment variable `SAP_PASSPORT`
 
 ### Fixed
 
@@ -28,7 +29,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for SAP Cloud Logging credentials via user-provided service
 - Support for adding `@opentelemetry/instrumentation-runtime-node`
   - `npm add @opentelemetry/instrumentation-runtime-node`
-  -  to `cds.requires.telemetry.instrumentations`, add:
+  -  To `cds.requires.telemetry.instrumentations`, add:
       ```json
       "instrumentation-runtime-node": {
         "class": "RuntimeNodeInstrumentation",
