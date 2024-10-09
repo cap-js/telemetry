@@ -4,11 +4,17 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.0.2 - tbd
+## Version 1.1.0 - tbd
+
+### Added
+
+- Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
+  - Enable via environment variable `SAP_PASSPORT`
 
 ### Fixed
 
 - Built-in `ConsoleMetricExporter` uses correct attribute name `process.cpu.state` while exporting host metrics
+- Exporting traces to the console in the presence of a traceparent header
 
 ## Version 1.0.1 - 2024-08-10
 
@@ -24,7 +30,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for SAP Cloud Logging credentials via user-provided service
 - Support for adding `@opentelemetry/instrumentation-runtime-node`
   - `npm add @opentelemetry/instrumentation-runtime-node`
-  -  to `cds.requires.telemetry.instrumentations`, add:
+  -  To `cds.requires.telemetry.instrumentations`, add:
       ```json
       "instrumentation-runtime-node": {
         "class": "RuntimeNodeInstrumentation",
