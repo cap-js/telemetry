@@ -2,7 +2,10 @@
   "name": "@cap-js/telemetry",
   "version": "1.0.2",
   "description": "CDS plugin providing observability features, incl. automatic OpenTelemetry instrumentation.",
-  "repository": "cap-js/telemetry",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cap-js/telemetry.git"
+  },
   "author": "SAP SE (https://www.sap.com)",
   "homepage": "https://cap.cloud.sap/",
   "license": "SEE LICENSE IN LICENSE",
@@ -52,39 +55,41 @@
   "cds": {
     "requires": {
       "telemetry": {
-        "instrumentations": {
-          "http": {
-            "module": "@opentelemetry/instrumentation-http",
-            "class": "HttpInstrumentation",
-            "config": {
-              "ignoreIncomingPaths": [
-                "/health"
-              ]
-            }
-          }
-        },
-        "tracing": {
-          "sampler": {
-            "kind": "ParentBasedSampler",
-            "root": "AlwaysOnSampler"
-          },
-          "propagators": [
-            "W3CTraceContextPropagator"
-          ],
-          "[development]": {
-            "hrtime": true
-          },
-          "_tx": false
-        },
-        "metrics": {
-          "config": {
-            "exportIntervalMillis": 60000
-          },
-          "_db_pool": true
-        },
         "kind": "telemetry-to-console"
       },
       "kinds": {
+        "telemetry": {
+          "instrumentations": {
+            "http": {
+              "module": "@opentelemetry/instrumentation-http",
+              "class": "HttpInstrumentation",
+              "config": {
+                "ignoreIncomingPaths": [
+                  "/health"
+                ]
+              }
+            }
+          },
+          "tracing": {
+            "sampler": {
+              "kind": "ParentBasedSampler",
+              "root": "AlwaysOnSampler"
+            },
+            "propagators": [
+              "W3CTraceContextPropagator"
+            ],
+            "[development]": {
+              "hrtime": true
+            },
+            "_tx": false
+          },
+          "metrics": {
+            "config": {
+              "exportIntervalMillis": 60000
+            },
+            "_db_pool": true
+          }
+        },
         "telemetry-to-console": {
           "tracing": {
             "exporter": {

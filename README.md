@@ -438,6 +438,7 @@ Hence, the `hrtime` mode is on by default in development but not in production.
 
 - `NO_TELEMETRY`: Disables the plugin
 - `NO_LOCATE`: Disables function location in tracing
+- `SAP_PASSPORT`: Enables propagating W3C trace context to SAP HANA (experimental!)
 - `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `telemetry` is used
 - `OTEL_SERVICE_NAME`: If not specified, the name is determined from package.json (defaulting to "CAP Application")
 - `OTEL_SERVICE_VERSION`: If not specified, the version is determined from package.json (defaulting to "1.0.0")
@@ -456,8 +457,7 @@ This project is open to feature requests/suggestions, bug reports etc. via [GitH
 
 ## Code of Conduct
 
-We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone. By participating in this project, you agree to abide by its [Code of Conduct](CODE_OF_CONDUCT.md) at all times.
-
+We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone. By participating in this project, you agree to abide by its [Code of Conduct](https://github.com/cap-js/.github/blob/main/CODE_OF_CONDUCT.md) at all times.
 
 
 ## Licensing
