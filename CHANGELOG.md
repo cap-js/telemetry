@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
   - Enable via environment variable `SAP_PASSPORT`
+- If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.env.requires.telemetry.instrumentations`, it is registered automatically
 
 ### Changed
 
