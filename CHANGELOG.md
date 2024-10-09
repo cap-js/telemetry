@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 - Built-in `ConsoleMetricExporter` uses correct attribute name `process.cpu.state` while exporting host metrics
+- Exporting traces to the console in the presence of a traceparent header
 
 ## Version 1.0.1 - 2024-08-10
 
