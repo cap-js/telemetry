@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
   - Enable via environment variable `SAP_PASSPORT`
 
+### Changed
+
+- Base config moved to new `cds.requires.kinds.telemetry` for improved config merging
+
 ### Fixed
 
 - Built-in `ConsoleMetricExporter` uses correct attribute name `process.cpu.state` while exporting host metrics
