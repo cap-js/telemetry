@@ -17,7 +17,8 @@ describe('tracing', () => {
     expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* AdminService - READ AdminService.Books/)
   })
 
-  test('GET with traceparent is traced', async () => {
+  // REVISIT: jest breaks otel's patching of incoming request handling -> no span for 'GET' -> behavior to test not reproducible
+  xtest('GET with traceparent is traced', async () => {
     const config = { ...admin, headers: { traceparent: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01' } }
     const { status } = await GET('/odata/v4/admin/Books', config)
     expect(status).to.equal(200)
