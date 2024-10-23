@@ -65,7 +65,8 @@
               "class": "HttpInstrumentation",
               "config": {
                 "ignoreIncomingPaths": [
-                  "/health"
+                  "/health",
+                  "/odata/v4/admin/Status"
                 ]
               }
             }
