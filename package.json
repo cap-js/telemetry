@@ -146,6 +146,8 @@
               "class": "OTLPTraceExporter"
             }
           }
+        },
+        "telemetry-to-otlp": {
         }
       }
     }

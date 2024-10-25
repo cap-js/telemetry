@@ -10,6 +10,7 @@
   "cds": {
     "requires": {
       "telemetry": {
+        "kind": "to-otlp",
         "_kind": "to-jaeger",
         "__kind": "to-dynatrace",
         "___kind": "to-cloud-logging",
