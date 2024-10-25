@@ -67,7 +67,7 @@ See [Predefined Kinds](#predefined-kinds) for additional dependencies you need t
 
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
 
-Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
+Database tracing is limited to [@cap-js/cds-dbs](https://github.com/cap-js/cds-dbs)-based databases, such as [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
 
 
 
