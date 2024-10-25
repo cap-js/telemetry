@@ -26,6 +26,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
+  - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
   - [Instrumentations](#instrumentations)
@@ -261,6 +262,19 @@ Run Jaeger locally via [docker](https://www.docker.com):
 - Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
     - With this, no custom credentials are needed
 - Open `localhost:16686` to see the traces
+
+### `telemetry-to-otlp`
+
+Exports traces and metrics to an OTLP/gRPC or OTLP/HTTP endpoint based on [environment variables](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter).
+
+Use via `cds.requires.telemetry.kind = 'to-otlp'`.
+
+Required additional dependencies (`* = grpc|proto|http`):
+- `@grpc/grpc-js` (in case of OTLP/gRPC)
+- `@opentelemetry/exporter-trace-otlp-*`
+- `@opentelemetry/exporter-metrics-otlp-*`
+
+Please note that `@cap-js/telemetry` does not validate the configuration via environment variables!
 
 
 
