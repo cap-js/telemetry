@@ -146,6 +146,14 @@
               "class": "OTLPTraceExporter"
             }
           }
+        },
+        "telemetry-to-otlp": {
+          "tracing": {
+            "exporter": "env"
+          },
+          "metrics": {
+            "exporter": "env"
+          }
         }
       }
     }
