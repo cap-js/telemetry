@@ -67,7 +67,7 @@ See [Predefined Kinds](#predefined-kinds) for additional dependencies you need t
 
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
 
-Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
+Database tracing is limited to [@cap-js/cds-dbs](https://github.com/cap-js/cds-dbs)-based databases, such as [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
 
 
 
@@ -438,6 +438,7 @@ Hence, the `hrtime` mode is on by default in development but not in production.
 
 - `NO_TELEMETRY`: Disables the plugin
 - `NO_LOCATE`: Disables function location in tracing
+- `SAP_PASSPORT`: Enables propagating W3C trace context to SAP HANA (experimental!)
 - `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `telemetry` is used
 - `OTEL_SERVICE_NAME`: If not specified, the name is determined from package.json (defaulting to "CAP Application")
 - `OTEL_SERVICE_VERSION`: If not specified, the version is determined from package.json (defaulting to "1.0.0")
