@@ -17,8 +17,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   - Enable by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
     ```json
     "logging": {
-      "module": "@opentelemetry/exporter-logs-otlp-grpc",
-      "class": "OTLPLogExporter"
+      "exporter": {
+        "module": "@opentelemetry/exporter-logs-otlp-grpc",
+        "class": "OTLPLogExporter"
+      }
     }
     ```
   - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
