@@ -1,8 +1,13 @@
 /* eslint-disable no-console */
 
+process.env.cds_log_format = 'json'
+
 process.env.cds_requires_telemetry_logging_exporter_module = '@opentelemetry/sdk-logs'
 process.env.cds_requires_telemetry_logging_exporter_class = 'ConsoleLogRecordExporter'
-process.env.cds_log_format = 'json'
+
+// experimental feature of the experimental feature!!!
+process.env.cds_requires_telemetry_logging_processor_module = './lib/MySimpleLogRecordProcessor.js'
+process.env.cds_requires_telemetry_logging_processor_class = 'MySimpleLogRecordProcessor'
 
 const cds = require('@sap/cds')
 const { expect, GET } = cds.test().in(__dirname + '/bookshop')
