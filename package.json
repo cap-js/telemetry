@@ -1,6 +1,6 @@
 {
   "name": "@cap-js/telemetry",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "CDS plugin providing observability features, incl. automatic OpenTelemetry instrumentation.",
   "repository": {
     "type": "git",
@@ -20,14 +20,14 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
-    "@opentelemetry/core": "^1.25",
-    "@opentelemetry/instrumentation": "^0.54",
-    "@opentelemetry/instrumentation-http": "^0.54",
-    "@opentelemetry/resources": "^1.25",
-    "@opentelemetry/sdk-metrics": "^1.25",
-    "@opentelemetry/sdk-trace-base": "^1.25",
-    "@opentelemetry/sdk-trace-node": "^1.25",
-    "@opentelemetry/semantic-conventions": "^1.25"
+    "@opentelemetry/core": "^1.27",
+    "@opentelemetry/instrumentation": "^0.55",
+    "@opentelemetry/instrumentation-http": "^0.55",
+    "@opentelemetry/resources": "^1.27",
+    "@opentelemetry/sdk-metrics": "^1.27",
+    "@opentelemetry/sdk-trace-base": "^1.27",
+    "@opentelemetry/sdk-trace-node": "^1.27",
+    "@opentelemetry/semantic-conventions": "^1.27"
   },
   "peerDependencies": {
     "@sap/cds": ">=7"
@@ -37,12 +37,12 @@
     "@cap-js/telemetry": "file:.",
     "@dynatrace/oneagent-sdk": "^1.5.0",
     "@grpc/grpc-js": "^1.9.14",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.54.0",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.54.0",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.54.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.54.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.55.0",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.55.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.55.0",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.55.0",
     "@opentelemetry/host-metrics": "^0.35.0",
-    "@opentelemetry/instrumentation-runtime-node": "^0.9.0",
+    "@opentelemetry/instrumentation-runtime-node": "^0.10.0",
     "@sap/cds-mtxs": "^2.0.5",
     "axios": "^1.6.7",
     "chai": "^4.4.1",
