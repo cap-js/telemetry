@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- `cds.context` may be undefined in local scripting scenarios
+- ConsoleSpanExporter: `cds.context` may be undefined in local scripting scenarios
 
 ## Version 1.1.1 - 2024-11-28
 
