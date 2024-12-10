@@ -3,6 +3,10 @@ const cds = require('@sap/cds/lib')
 module.exports = class AdminService extends cds.ApplicationService { init(){
   this.before ('NEW','Books.drafts', genid)
 
+  this.before('READ', 'Genres', () => {
+    cds.log('AdminService').info('Hello, World!')
+  })
+
   this.on('spawn', () => {
     cds.spawn({ after: 3 }, async () => {
       await SELECT.from('sap.capire.bookshop.Books')
