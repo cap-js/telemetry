@@ -4,6 +4,68 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.1.2 - 2024-12-10
+
+### Fixed
+
+- ConsoleSpanExporter: `cds.context` may be undefined in local scripting scenarios
+
+## Version 1.1.1 - 2024-11-28
+
+### Fixed
+
+- Use attribute `url.path` (with fallback to deprecated `http.target`) for sampling decision
+
+## Version 1.1.0 - 2024-11-27
+
+### Added
+
+- Predefined kind `telemetry-to-otlp` that creates exporters based on OTLP exporter configuration via environment variables
+- Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
+  - Enable via environment variable `SAP_PASSPORT`
+- If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.env.requires.telemetry.instrumentations`, it is registered automatically
+  - Disable via `cds.env.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
+
+### Changed
+
+- Base config moved to new `cds.requires.kinds.telemetry` for improved config merging
+
+### Fixed
+
+- Built-in `ConsoleMetricExporter` uses correct attribute name `process.cpu.state` while exporting host metrics
+- Exporting traces to the console in the presence of a traceparent header
+
+## Version 1.0.1 - 2024-08-10
+
+### Fixed
+
+- Explicitly pass own providers when registering instrumentations (the global providers may be influenced by, for example, Dynatrace OneAgent)
+
+## Version 1.0.0 - 2024-08-08
+
+### Added
+
+- Support for tracing native db statements (i.e., `cds.run('SELECT * FROM DUMMY')`)
+- Support for SAP Cloud Logging credentials via user-provided service
+- Support for adding `@opentelemetry/instrumentation-runtime-node`
+  - `npm add @opentelemetry/instrumentation-runtime-node`
+  -  To `cds.requires.telemetry.instrumentations`, add:
+      ```json
+      "instrumentation-runtime-node": {
+        "class": "RuntimeNodeInstrumentation",
+        "module": "@opentelemetry/instrumentation-runtime-node"
+      }
+      ```
+
+### Changed
+
+- Instrumentations are registered after tracing and metrics are set up
+- `telemetry-to-dynatrace`: Regardless of whether Dynatrace OneAgent is present or not, if dependency `@opentelemetry/exporter-trace-otlp-proto` is present, `@cap-js/telemetry` will export the traces via OpenTelemetry.
+
+### Fixed
+
+- Tracing of db statements without active span
+
 ## Version 0.2.3 - 2024-06-17
 
 ### Fixed
@@ -40,8 +102,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for own, high resolution timestamps
-  + Enable via `cds.env.requires.telemetry.tracing.hrtime = true`
-  + Enabled by default in development profile
+  - Enable via `cds.env.requires.telemetry.tracing.hrtime = true`
+  - Enabled by default in development profile
 
 ## Version 0.0.5 - 2024-03-11
 
@@ -54,10 +116,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Changed
 
 - By default, all `system.*` metrics collected by `@opentelemetry/host-metrics` are ignored
-  + Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
+  - Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
 - Metric exporter's property `temporalityPreference` always gets defaulted to `DELTA`
-  + Was previously only done for kind `telemetry-to-dynatrace`
-  + Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
+  - Was previously only done for kind `telemetry-to-dynatrace`
+  - Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
 
 ### Fixed
 

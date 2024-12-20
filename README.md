@@ -26,6 +26,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
+  - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
   - [Instrumentations](#instrumentations)
@@ -67,7 +68,7 @@ See [Predefined Kinds](#predefined-kinds) for additional dependencies you need t
 
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
 
-Database tracing is currently limited to [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
+Database tracing is limited to [@cap-js/cds-dbs](https://github.com/cap-js/cds-dbs)-based databases, such as [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
 
 
 
@@ -169,7 +170,7 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@opentelemetry/exporter-trace-otlp-proto`
+- `@opentelemetry/exporter-trace-otlp-proto` (optional, see [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent))
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
@@ -204,6 +205,7 @@ If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present,
 (Your app still needs to be bound to a Dynatrace instance, of course. However, `@dynatrace/oneagent-sdk` is not required.)
 Hence, additionally dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
 This is actually the perferred operating model for `telemetry-to-dynatrace` as it provides a better experience than exporting via OpenTelemetry.
+If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
 
 ### `telemetry-to-cloud-logging`
 
@@ -260,6 +262,19 @@ Run Jaeger locally via [docker](https://www.docker.com):
 - Run `docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HOST_PORT=:9411 -e COLLECTOR_OTLP_ENABLED=true -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 4317:4317 -p 4318:4318 -p 14250:14250 -p 14268:14268 -p 14269:14269 -p 9411:9411 jaegertracing/all-in-one:latest`
     - With this, no custom credentials are needed
 - Open `localhost:16686` to see the traces
+
+### `telemetry-to-otlp`
+
+Exports traces and metrics to an OTLP/gRPC or OTLP/HTTP endpoint based on [environment variables](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter).
+
+Use via `cds.requires.telemetry.kind = 'to-otlp'`.
+
+Required additional dependencies (`* = grpc|proto|http`):
+- `@grpc/grpc-js` (in case of OTLP/gRPC)
+- `@opentelemetry/exporter-trace-otlp-*`
+- `@opentelemetry/exporter-metrics-otlp-*`
+
+Please note that `@cap-js/telemetry` does not validate the configuration via environment variables!
 
 
 
@@ -437,6 +452,7 @@ Hence, the `hrtime` mode is on by default in development but not in production.
 
 - `NO_TELEMETRY`: Disables the plugin
 - `NO_LOCATE`: Disables function location in tracing
+- `SAP_PASSPORT`: Enables propagating W3C trace context to SAP HANA (experimental!)
 - `OTEL_LOG_LEVEL`: If not specified, the log level of cds logger `telemetry` is used
 - `OTEL_SERVICE_NAME`: If not specified, the name is determined from package.json (defaulting to "CAP Application")
 - `OTEL_SERVICE_VERSION`: If not specified, the version is determined from package.json (defaulting to "1.0.0")
@@ -455,8 +471,7 @@ This project is open to feature requests/suggestions, bug reports etc. via [GitH
 
 ## Code of Conduct
 
-We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone. By participating in this project, you agree to abide by its [Code of Conduct](CODE_OF_CONDUCT.md) at all times.
-
+We as members, contributors, and leaders pledge to make participation in our community a harassment-free experience for everyone. By participating in this project, you agree to abide by its [Code of Conduct](https://github.com/cap-js/.github/blob/main/CODE_OF_CONDUCT.md) at all times.
 
 
 ## Licensing
