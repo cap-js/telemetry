@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.2.0 - tbd
+
+### Added
+
+- Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+
+### Changed
+
+### Fixed
+
+### Removed
+
 ## Version 1.1.2 - 2024-12-10
 
 ### Fixed
