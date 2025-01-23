@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- Trace attribute `db.client.response.returned_rows` for read queries via `cds.ql`
+- Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
 
 ### Changed
 
