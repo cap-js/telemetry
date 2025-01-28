@@ -52,6 +52,11 @@
             }
           }
         }
+      },
+      "messaging": {
+        "kind": "local-messaging",
+        "_kind": "file-based-messaging",
+        "file": "../msg-box"
       }
     },
     "fiori": {

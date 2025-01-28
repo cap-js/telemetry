@@ -41,7 +41,15 @@ Content-Type: application/json
 
 ###
 
-POST {{host}}/odata/v4/admin/spawn
+POST {{host}}/odata/v4/admin/test_spawn
+Authorization: Basic alice:wonderland
+Content-Type: application/json
+
+{}
+
+###
+
+POST {{host}}/odata/v4/admin/test_emit
 Authorization: Basic alice:wonderland
 Content-Type: application/json
 
