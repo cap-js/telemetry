@@ -7,15 +7,6 @@ const sleep = require('util').promisify(setTimeout)
 describe('tracing', () => {
   const admin = { auth: { username: 'alice' } }
 
-  afterAll(async () => {
-    await sleep(100)
-    try {
-      require('fs').rmSync(require('path').join(__dirname, 'msg-box'))
-    } catch {
-      // ignore
-    }
-  })
-
   beforeEach(log.clear)
 
   test('GET is traced', async () => {
@@ -69,10 +60,9 @@ describe('tracing', () => {
 
   test('emit is traced', async () => {
     await POST('/odata/v4/admin/test_emit', {}, admin)
-    await sleep(1000)
-    // TODO: how many roots?
-    // 2: emitting action + message consumption
-    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
+    await sleep(100)
+    // 1: local-messaging remains in same context
+    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(1)
   })
 
   describe('db', () => {
@@ -101,8 +91,6 @@ describe('tracing', () => {
   // --- TODO ---
 
   test.skip('individual handlers are traced', async () => {})
-
-  test.skip('srv.emit is traced', async () => {})
 
   test.skip('remote is traced', async () => {})
 })

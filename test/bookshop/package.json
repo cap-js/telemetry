@@ -57,6 +57,9 @@
         "kind": "local-messaging",
         "_kind": "file-based-messaging",
         "file": "../msg-box"
+      },
+      "_outbox": {
+        "kind": "persistent-outbox"
       }
     },
     "fiori": {
