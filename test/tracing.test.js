@@ -88,6 +88,12 @@ describe('tracing', () => {
     })
   })
 
+  test('custom spans are supported', async () => {
+    await GET('/odata/v4/catalog/ListOfBooks', {}, admin)
+    await sleep(100)
+    expect(log.output.match(/my custom span/g).length).to.equal(1)
+  })
+
   // --- TODO ---
 
   test.skip('individual handlers are traced', async () => {})
