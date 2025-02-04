@@ -9,12 +9,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+- TODO: custom spans
+- TODO: messaging
+- TODO: span kinds
 
 ### Changed
 
 ### Fixed
 
 ### Removed
+
+- TODO: `cds._telemetry`
 
 ## Version 1.1.2 - 2024-12-10
 
