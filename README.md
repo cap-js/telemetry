@@ -152,6 +152,8 @@ module.exports = cds.server
 
 ### Logs
 
+// TODO!
+
 Exporting logs via OpenTelemetry is not yet supported.
 
 
