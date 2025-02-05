@@ -26,6 +26,8 @@ class CatalogService extends cds.ApplicationService {
         }
       }
       return tracer.startActiveSpan(name, options, async span => {
+        // NOTE: this ignores error handling!!!
+        //       for details, check https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan
         const res = await next()
         span.setStatus({ code: SpanStatusCode.OK })
         span.end()

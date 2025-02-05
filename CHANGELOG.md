@@ -9,9 +9,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
-- TODO: custom spans
-- TODO: messaging
-- TODO: span kinds
+- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()`
+  + See https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan
+- Improved support for tracing messaging services and `cds.spawn`
 
 ### Changed
 
@@ -19,7 +19,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Removed
 
-- TODO: `cds._telemetry`
+- Internal `cds._telemetry`
 
 ## Version 1.1.2 - 2024-12-10
 
