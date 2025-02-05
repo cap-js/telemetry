@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Improved support for tracing messaging services and `cds.spawn`
+- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
 
 ### Changed
@@ -15,6 +17,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 ### Removed
+
+- Internal `cds._telemetry`
 
 ## Version 1.1.2 - 2024-12-10
 

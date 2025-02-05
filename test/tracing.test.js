@@ -52,10 +52,17 @@ describe('tracing', () => {
   })
 
   test('cds.spawn is traced', async () => {
-    await POST('/odata/v4/admin/spawn', {}, admin)
+    await POST('/odata/v4/admin/test_spawn', {}, admin)
     await sleep(30)
     // 2: action + spawned action
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
+  })
+
+  test('emit is traced', async () => {
+    await POST('/odata/v4/admin/test_emit', {}, admin)
+    await sleep(100)
+    // 1: local-messaging remains in same context
+    expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(1)
   })
 
   describe('db', () => {
@@ -81,11 +88,15 @@ describe('tracing', () => {
     })
   })
 
+  test('custom spans are supported', async () => {
+    await GET('/odata/v4/catalog/ListOfBooks', {}, admin)
+    await sleep(100)
+    expect(log.output.match(/my custom span/g).length).to.equal(1)
+  })
+
   // --- TODO ---
 
   test.skip('individual handlers are traced', async () => {})
-
-  test.skip('srv.emit is traced', async () => {})
 
   test.skip('remote is traced', async () => {})
 })
