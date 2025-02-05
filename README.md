@@ -152,9 +152,20 @@ module.exports = cds.server
 
 ### Logs
 
-// TODO!
-
-Exporting logs via OpenTelemetry is not yet supported.
+Exporting logs via OpenTelemetry is supported as an experimental opt-in feature.
+Enable by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
+```json
+"logging": {
+  "exporter": {
+    "module": "@opentelemetry/exporter-logs-otlp-grpc",
+    "class": "OTLPLogExporter"
+  },
+  "custom_fields": [
+    "foo",
+    "bar"
+  ]
+}
+```
 
 
 

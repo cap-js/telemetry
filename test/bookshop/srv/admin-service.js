@@ -12,6 +12,11 @@ module.exports = class AdminService extends cds.ApplicationService {
 
     this.before('READ', 'Genres', () => {
       cds.log('AdminService').info('Hello, World!')
+      try {
+        this.doesnt.exist
+      } catch (err) {
+        cds.log('AdminService').error(err)
+      }
     })
 
     this.on('test_spawn', () => {

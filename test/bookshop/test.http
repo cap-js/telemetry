@@ -59,3 +59,8 @@ Content-Type: application/json
 
 GET {{host}}/odata/v4/catalog/ListOfBooks
 Authorization: Basic alice:wonderland
+
+###
+
+GET {{host}}/odata/v4/admin/Genres
+Authorization: Basic alice:wonderland

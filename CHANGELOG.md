@@ -12,8 +12,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
 - Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
-  - Enable via config `cds.env.requires.telemetry.tracing._hana_prom`
+  - Enable via config `cds.requires.telemetry.tracing._hana_prom`
   - Requires `@cap-js/hana^1.7.0`
+- Experimental!: Intercept and export application logs (cf. `cds.log()`) via OpenTelemetry
+  - Enable by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
+    ```json
+    "logging": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-logs-otlp-grpc",
+        "class": "OTLPLogExporter"
+      },
+      "custom_fields": ["foo", "bar"]
+    }
+    ```
+  - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
 
 ### Changed
 
@@ -44,17 +56,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   - Disable via `cds.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
 - Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
   - Enable via environment variable `SAP_PASSPORT`
-- Experimental!: Intercept and export application logs (cf. `cds.log()`) via OpenTelemetry
-  - Enable by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
-    ```json
-    "logging": {
-      "exporter": {
-        "module": "@opentelemetry/exporter-logs-otlp-grpc",
-        "class": "OTLPLogExporter"
-      }
-    }
-    ```
-  - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
 
 ### Changed
 
