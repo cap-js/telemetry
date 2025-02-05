@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
 - Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
   - Enable via config `cds.env.requires.telemetry.tracing._hana_prom`
+  - Requires `@cap-js/hana^1.7.0`
 
 ### Changed
 
