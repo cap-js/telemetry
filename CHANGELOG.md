@@ -8,10 +8,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
-- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()`
-  + See https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan
 - Improved support for tracing messaging services and `cds.spawn`
+- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
+  + See https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan
+- Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
 
 ### Changed
 
