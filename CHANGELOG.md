@@ -4,6 +4,37 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.2.0 - tbd
+
+### Added
+
+- Improved support for tracing messaging services and `cds.spawn`
+- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
+- Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+- Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
+  - Enable via config `cds.env.requires.telemetry.tracing._hana_prom`
+  - Requires `@cap-js/hana^1.7.0`
+
+### Changed
+
+### Fixed
+
+### Removed
+
+- Internal `cds._telemetry`
+
+## Version 1.1.2 - 2024-12-10
+
+### Fixed
+
+- ConsoleSpanExporter: `cds.context` may be undefined in local scripting scenarios
+
+## Version 1.1.1 - 2024-11-28
+
+### Fixed
+
+- Use attribute `url.path` (with fallback to deprecated `http.target`) for sampling decision
+
 ## Version 1.1.0 - 2024-11-27
 
 ### Added
