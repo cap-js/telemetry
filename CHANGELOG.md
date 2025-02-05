@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Improved support for tracing messaging services and `cds.spawn`
 - Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+- Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
+  - Enable via config `cds.env.requires.telemetry.tracing._hana_prom`
+  - Requires `@cap-js/hana^1.7.0`
 
 ### Changed
 
