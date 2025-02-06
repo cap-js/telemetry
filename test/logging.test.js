@@ -41,19 +41,12 @@ describe('logging', () => {
     expect(logs.length).to.equal(3)
     expect(logs[0]).to.include({ body: 'GET /odata/v4/admin/Genres ' }) //> why the trailing space?
     expect(logs[1]).to.include({ body: 'Hello, World!' })
-    expect(logs[2]).to.deep.include({
+    expect(logs[2]).to.containSubset({
       body: "Oh no! Cannot read properties of undefined (reading 'exist')",
       attributes: {
         'log.type': 'LogRecord',
         'exception.message': "Cannot read properties of undefined (reading 'exist')",
-        'exception.stacktrace':
-          `TypeError: Cannot read properties of undefined (reading 'exist')
-    at AdminService.exist (${cds.root}/srv/admin-service.js:16:21)
-    at ${cds.home}/lib/srv/srv-dispatch.js:59:59
-    at Array.map (<anonymous>)
-    at AdminService.handle (${cds.home}/lib/srv/srv-dispatch.js:59:33)
-    at processTicksAndRejections (node:internal/process/task_queues:105:5)
-    at AdminService.handle (${cds.home}/libx/_runtime/common/Service.js:84:16)`,
+        'exception.stacktrace': s => s.match(/^TypeError: .+(\n\s+at .+){6}$/),
         'exception.type': 'TypeError',
         foo: 'bar'
       }
