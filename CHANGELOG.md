@@ -40,10 +40,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Predefined kind `telemetry-to-otlp` that creates exporters based on OTLP exporter configuration via environment variables
-- Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
-  - Enable via environment variable `SAP_PASSPORT`
 - If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.requires.telemetry.instrumentations`, it is registered automatically
   - Disable via `cds.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
+- Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
+  - Enable via environment variable `SAP_PASSPORT`
 
 ### Changed
 
