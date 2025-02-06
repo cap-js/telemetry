@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.2.0 - tbd
+## Version 1.2.0 - TBD
 
 ### Added
 
@@ -26,10 +26,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
     }
     ```
   - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
-
-### Changed
-
-### Fixed
 
 ### Removed
 
