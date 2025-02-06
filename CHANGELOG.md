@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
 - Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
-  - Enable via config `cds.env.requires.telemetry.tracing._hana_prom`
+  - Enable via config `cds.requires.telemetry.tracing._hana_prom`
   - Requires `@cap-js/hana^1.7.0`
 - Experimental!: Intercept and export application logs (cf. `cds.log()`) via OpenTelemetry
   - Enable by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
@@ -48,10 +48,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Predefined kind `telemetry-to-otlp` that creates exporters based on OTLP exporter configuration via environment variables
+- If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.requires.telemetry.instrumentations`, it is registered automatically
+  - Disable via `cds.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
 - Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
   - Enable via environment variable `SAP_PASSPORT`
-- If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.env.requires.telemetry.instrumentations`, it is registered automatically
-  - Disable via `cds.env.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
 
 ### Changed
 
@@ -116,7 +116,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for local modules (e.g., exporters) via `[...].module = '<path relative to cds.root>'`
-- Disable pool metrics via `cds.env.requires.telemetry.metrics._db_pool = false` (beta)
+- Disable pool metrics via `cds.requires.telemetry.metrics._db_pool = false` (beta)
 
 ### Fixed
 
@@ -129,7 +129,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for own, high resolution timestamps
-  - Enable via `cds.env.requires.telemetry.tracing.hrtime = true`
+  - Enable via `cds.requires.telemetry.tracing.hrtime = true`
   - Enabled by default in development profile
 
 ## Version 0.0.5 - 2024-03-11
@@ -146,7 +146,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   - Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
 - Metric exporter's property `temporalityPreference` always gets defaulted to `DELTA`
   - Was previously only done for kind `telemetry-to-dynatrace`
-  - Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
+  - Set custom value via `cds.requires.telemetry.metrics.exporter.config.temporalityPreference`
 
 ### Fixed
 
