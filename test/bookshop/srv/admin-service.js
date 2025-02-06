@@ -15,7 +15,8 @@ module.exports = class AdminService extends cds.ApplicationService {
       try {
         this.doesnt.exist
       } catch (err) {
-        cds.log('AdminService').error(err)
+        err.foo = 'bar'
+        cds.log('AdminService').error('Oh no!', err)
       }
     })
 
