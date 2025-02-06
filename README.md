@@ -166,6 +166,7 @@ Enable by adding section `logging` to `cds.requires.telemetry` as follows (using
   ]
 }
 ```
+Additionally, `cds.log()`'s JSON log formatter must be active (the default in production but not in development).
 
 
 
