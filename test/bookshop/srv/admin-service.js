@@ -10,6 +10,16 @@ module.exports = class AdminService extends cds.ApplicationService {
 
     this.before('NEW', 'Books.drafts', genid)
 
+    this.before('READ', 'Genres', () => {
+      cds.log('AdminService').info('Hello, World!')
+      try {
+        this.doesnt.exist
+      } catch (err) {
+        err.foo = 'bar'
+        cds.log('AdminService').error('Oh no!', err)
+      }
+    })
+
     this.on('test_spawn', () => {
       cds.spawn({ after: 3 }, async () => {
         await SELECT.from('sap.capire.bookshop.Books')

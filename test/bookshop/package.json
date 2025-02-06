@@ -31,6 +31,15 @@
             "module": "@opentelemetry/sdk-trace-base",
             "class": "ConsoleSpanExporter"
           }
+        },
+        "_logging": {
+          "exporter": {
+            "module": "@opentelemetry/exporter-logs-otlp-grpc",
+            "class": "OTLPLogExporter"
+          },
+          "custom_fields": [
+            "tenant_id"
+          ]
         }
       },
       "[multitenancy]": {
