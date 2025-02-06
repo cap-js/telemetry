@@ -47,7 +47,13 @@ describe('logging', () => {
         'log.type': 'LogRecord',
         'exception.message': "Cannot read properties of undefined (reading 'exist')",
         'exception.stacktrace':
-          "TypeError: Cannot read properties of undefined (reading 'exist')\n    at AdminService.exist (/Users/d050513/git/cap-js/telemetry/test/bookshop/srv/admin-service.js:16:21)\n    at /Users/d050513/git/cap-js/telemetry/node_modules/@sap/cds/lib/srv/srv-dispatch.js:59:59\n    at Array.map (<anonymous>)\n    at AdminService.handle (/Users/d050513/git/cap-js/telemetry/node_modules/@sap/cds/lib/srv/srv-dispatch.js:59:33)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at AdminService.handle (/Users/d050513/git/cap-js/telemetry/node_modules/@sap/cds/libx/_runtime/common/Service.js:84:16)",
+          `TypeError: Cannot read properties of undefined (reading 'exist')
+    at AdminService.exist (${cds.root}/srv/admin-service.js:16:21)
+    at ${cds.home}/lib/srv/srv-dispatch.js:59:59
+    at Array.map (<anonymous>)
+    at AdminService.handle (${cds.home}/lib/srv/srv-dispatch.js:59:33)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at AdminService.handle (${cds.home}/libx/_runtime/common/Service.js:84:16)`,
         'exception.type': 'TypeError',
         foo: 'bar'
       }
