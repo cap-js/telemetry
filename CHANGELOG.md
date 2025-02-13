@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Improved support for tracing messaging services and `cds.spawn`
 - Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()`
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+- Option to pass custom config to span processor via `cds.requires.telemetry.tracing.processor.config`
 - Support for loading instrumentation hooks via path relative to `cds.root`.
   - The respective module must export either a function or, for bundling purposes, an object with a function named after the respective hook.
   - Example based on `@opentelemetry/instrumentation-http`:
