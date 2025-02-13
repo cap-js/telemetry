@@ -16,9 +16,7 @@
         "instrumentations": {
           "http": {
             "config": {
-              "ignoreIncomingPaths": [
-                "/odata/v4/admin/Authors"
-              ]
+              "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
             }
           },
           "instrumentation-runtime-node": {
