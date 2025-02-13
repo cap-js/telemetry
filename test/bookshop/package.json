@@ -16,9 +16,7 @@
         "instrumentations": {
           "http": {
             "config": {
-              "ignoreIncomingPaths": [
-                "/odata/v4/admin/Authors"
-              ]
+              "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
             }
           },
           "instrumentation-runtime-node": {
@@ -31,6 +29,15 @@
             "module": "@opentelemetry/sdk-trace-base",
             "class": "ConsoleSpanExporter"
           }
+        },
+        "_logging": {
+          "exporter": {
+            "module": "@opentelemetry/exporter-logs-otlp-grpc",
+            "class": "OTLPLogExporter"
+          },
+          "custom_fields": [
+            "tenant_id"
+          ]
         }
       },
       "[multitenancy]": {
@@ -52,6 +59,14 @@
             }
           }
         }
+      },
+      "messaging": {
+        "kind": "local-messaging",
+        "_kind": "file-based-messaging",
+        "file": "../msg-box"
+      },
+      "_outbox": {
+        "kind": "persistent-outbox"
       }
     },
     "fiori": {

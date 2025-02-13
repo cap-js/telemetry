@@ -4,14 +4,74 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.1.0 - tbd
+## Version 1.2.0 - tbd
 
 ### Added
 
+- Improved support for tracing messaging services and `cds.spawn`
+- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()`
+- Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+- Option to pass custom config to span processor via `cds.requires.telemetry.tracing.processor.config`
+- Support for loading instrumentation hooks via path relative to `cds.root`.
+  - The respective module must export either a function or, for bundling purposes, an object with a function named after the respective hook.
+  - Example based on `@opentelemetry/instrumentation-http`:
+    ```json
+    "instrumentations": {
+      "http": {
+        "config": {
+          "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
+        }
+      }
+    }
+    ```
+- Support for ignoring incoming requests that match a certain base path via `cds.requires.telemetry.tracing.sampler.ignoreIncomingPaths = []` (beta)
+- Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
+  - Enable via config `cds.requires.telemetry.tracing._hana_prom`
+  - Requires `@cap-js/hana^1.7.0`
+- Experimental!: Intercept and export application logs (cf. `cds.log()`) via OpenTelemetry
+  - Enable by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
+    ```json
+    "logging": {
+      "exporter": {
+        "module": "@opentelemetry/exporter-logs-otlp-grpc",
+        "class": "OTLPLogExporter"
+      },
+      "custom_fields": ["foo", "bar"]
+    }
+    ```
+  - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
+
+### Changed
+
+- Default config `ignoreIncomingPaths: ['/health']` moved from `cds.requires.telemetry.instrumentations.http.config` to `cds.requires.telemetry.tracing.sampler`
+
+### Fixed
+
+### Removed
+
+- Internal `cds._telemetry`
+
+## Version 1.1.2 - 2024-12-10
+
+### Fixed
+
+- ConsoleSpanExporter: `cds.context` may be undefined in local scripting scenarios
+
+## Version 1.1.1 - 2024-11-28
+
+### Fixed
+
+- Use attribute `url.path` (with fallback to deprecated `http.target`) for sampling decision
+
+## Version 1.1.0 - 2024-11-27
+
+### Added
+
+- Predefined kind `telemetry-to-otlp` that creates exporters based on OTLP exporter configuration via environment variables
+- If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.requires.telemetry.instrumentations`, it is registered automatically
+  - Disable via `cds.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
 - Experimental!: Propagate W3C trace context to SAP HANA via session context `SAP_PASSPORT`
   - Enable via environment variable `SAP_PASSPORT`
-- If `@opentelemetry/instrumentation-runtime-node` is in the project's dependencies but not in `cds.env.requires.telemetry.instrumentations`, it is registered automatically
-  - Disable via `cds.env.requires.telemetry.instrumentations.instrumentation-runtime-node = false`
 
 ### Changed
 
@@ -36,13 +96,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for SAP Cloud Logging credentials via user-provided service
 - Support for adding `@opentelemetry/instrumentation-runtime-node`
   - `npm add @opentelemetry/instrumentation-runtime-node`
-  -  To `cds.requires.telemetry.instrumentations`, add:
-      ```json
-      "instrumentation-runtime-node": {
-        "class": "RuntimeNodeInstrumentation",
-        "module": "@opentelemetry/instrumentation-runtime-node"
-      }
-      ```
+  - To `cds.requires.telemetry.instrumentations`, add:
+    ```json
+    "instrumentation-runtime-node": {
+      "class": "RuntimeNodeInstrumentation",
+      "module": "@opentelemetry/instrumentation-runtime-node"
+    }
+    ```
 
 ### Changed
 
@@ -76,7 +136,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for local modules (e.g., exporters) via `[...].module = '<path relative to cds.root>'`
-- Disable pool metrics via `cds.env.requires.telemetry.metrics._db_pool = false` (beta)
+- Disable pool metrics via `cds.requires.telemetry.metrics._db_pool = false` (beta)
 
 ### Fixed
 
@@ -89,7 +149,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Support for own, high resolution timestamps
-  - Enable via `cds.env.requires.telemetry.tracing.hrtime = true`
+  - Enable via `cds.requires.telemetry.tracing.hrtime = true`
   - Enabled by default in development profile
 
 ## Version 0.0.5 - 2024-03-11
@@ -106,7 +166,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   - Disable change via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`
 - Metric exporter's property `temporalityPreference` always gets defaulted to `DELTA`
   - Was previously only done for kind `telemetry-to-dynatrace`
-  - Set custom value via `cds.env.requires.telemetry.metrics.exporter.config.temporalityPreference`
+  - Set custom value via `cds.requires.telemetry.metrics.exporter.config.temporalityPreference`
 
 ### Fixed
 

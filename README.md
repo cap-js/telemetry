@@ -4,7 +4,7 @@
 
 
 
-## About this project
+## About This Project
 
 `@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
 
@@ -14,7 +14,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 
 ## Table of Contents
 
-- [About this project](#about-this-project)
+- [About This Project](#about-this-project)
 - [Requirements](#requirements)
 - [Setup](#setup)
 - [Telemetry Signals](#telemetry-signals)
@@ -26,13 +26,16 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
+  - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
   - [Exporters](#exporters)
-  - [Environment variables](#environment-variables)
+  - [High Resolution Timestamps (beta)](#high-resolution-timestamps)
+  - [Environment Variables](#environment-variables)
+- [Custom Spans (beta)](#custom-spans)
 - [Support, Feedback, Contributing](#support-feedback-contributing)
 - [Code of Conduct](#code-of-conduct)
 - [Licensing](#licensing)
@@ -78,6 +81,7 @@ The following briefly describes, how each is addressed in `@cap-js/telemetry`.
 
 For more information on signals in general, please refer to https://opentelemetry.io/docs/concepts/signals.
 
+
 ### Traces
 
 Traces allow you to analyze how a request, message, task, etc. is being processed throughout your distributed system.
@@ -91,6 +95,7 @@ An example trace printed to the console can be found in [`telemetry-to-console`]
 
 In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no OpenTelemetry exporter is needed to transport the traces to Dynatrace.
 `@cap-js/telemetry` recognizes this and ignores any exporter config if the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) is used.
+
 
 ### Metrics
 
@@ -144,9 +149,26 @@ cds.on('listening', () => {
 module.exports = cds.server
 ```
 
+
 ### Logs
 
-Exporting logs via OpenTelemetry is not yet supported.
+Exporting logs via OpenTelemetry is supported as an experimental opt-in feature.
+Enable it by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
+```json
+"logging": {
+  "exporter": {
+    "module": "@opentelemetry/exporter-logs-otlp-grpc",
+    "class": "OTLPLogExporter"
+  },
+  "custom_fields": [
+    "foo",
+    "bar"
+  ]
+}
+```
+The property `custom_fields` allows to specify which properties of the log object shall be added as attributes to the `LogRecord`.
+
+In order for logs to be exported via OpenTelemetry, `cds.log()`'s JSON log formatter must be active, which is the default in production but not in development.
 
 
 
@@ -154,12 +176,14 @@ Exporting logs via OpenTelemetry is not yet supported.
 
 There are three predefined kinds as follows:
 
+
 ### `telemetry-to-console`
 
 Prints traces and metrics to the console as previously depicted (traces in [Setup](#setup) and metrics in [Telemetry Signals - Metrics](#metrics)).
 
 No additional dependencies are needed.
 This is the default kind in both development and production.
+
 
 ### `telemetry-to-dynatrace`
 
@@ -202,9 +226,10 @@ In Dynatrace itself, you need to ensure that the following two features are enab
 
 If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
 (Your app still needs to be bound to a Dynatrace instance, of course. However, `@dynatrace/oneagent-sdk` is not required.)
-Hence, additionally dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
+Hence, additional dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
 This is actually the perferred operating model for `telemetry-to-dynatrace` as it provides a better experience than exporting via OpenTelemetry.
 If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
+
 
 ### `telemetry-to-cloud-logging`
 
@@ -226,6 +251,7 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
   }
 }
 ```
+
 
 ### `telemetry-to-jaeger`
 
@@ -263,8 +289,23 @@ Run Jaeger locally via [docker](https://www.docker.com):
 - Open `localhost:16686` to see the traces
 
 
+### `telemetry-to-otlp`
+
+Exports traces and metrics to an OTLP/gRPC or OTLP/HTTP endpoint based on [environment variables](https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter).
+
+Use via `cds.requires.telemetry.kind = 'to-otlp'`.
+
+Required additional dependencies (`* = grpc|proto|http`):
+- `@grpc/grpc-js` (in case of OTLP/gRPC)
+- `@opentelemetry/exporter-trace-otlp-*`
+- `@opentelemetry/exporter-metrics-otlp-*`
+
+Please note that `@cap-js/telemetry` does not validate the configuration via environment variables!
+
+
 
 ## Detailed Configuration Options
+
 
 ### Configuration Pass Through
 
@@ -288,6 +329,7 @@ For example, it is possible to specify the `temporalityPreference` setting of th
 }
 ```
 
+
 ### Instrumentations
 
 Configure via `cds.requires.telemetry.instrumentations = { <name>: { module, class, config? } }`
@@ -297,27 +339,27 @@ Default:
 {
   "http": {
     "module": "@opentelemetry/instrumentation-http",
-    "class": "HttpInstrumentation",
-    "config": {
-      "ignoreIncomingPaths": [
-        "/health"
-      ]
-    }
+    "class": "HttpInstrumentation"
   }
 }
 ```
 
+
 ### Sampler
 
-Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio? }`
+Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio?, ignoreIncomingPaths? }`
 
 Default:
 ```json
 {
   "kind": "ParentBasedSampler",
-  "root": "AlwaysOnSampler"
+  "root": "AlwaysOnSampler",
+  "ignoreIncomingPaths": [
+    "/health"
+  ]
 }
 ```
+
 
 ### Propagators
 
@@ -327,6 +369,7 @@ Default:
 ```json
 ["W3CTraceContextPropagator"]
 ```
+
 
 ### Exporters
 
@@ -427,14 +470,16 @@ Default:
     }
     ```
 
-### High resolution timestamps (beta)
+
+### High Resolution Timestamps (beta) {#high-resolution-timestamps}
 
 By default, the start time of a span is taken from `Date.now()` and, hence, has only millisecond resolution.
 Via `cds.requires.telemetry.tracing.hrtime = true`, you can instruct the plugin to specify the start and end times of spans, which it does with nanosecond resolution.
 This may result in minor drifts, especially for spans created by other instrumentations such as `@opentelemetry/instrumentation-http`.
 Hence, the `hrtime` mode is on by default in development but not in production.
 
-### Environment variables
+
+### Environment Variables
 
 - `NO_TELEMETRY`: Disables the plugin
 - `NO_LOCATE`: Disables function location in tracing
@@ -446,6 +491,13 @@ Hence, the `hrtime` mode is on by default in development but not in production.
 For the complete list of environment variables supported by OpenTelemetry, see [Environment Variable Specification](https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables).
 
 Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUID`, if present, are used to determine some [Attributes](https://opentelemetry.io/docs/specs/otel/common/#attribute).
+
+
+
+## Custom Spans (beta) {#custom-spans}
+
+Custom spans can be added to the trace hierarchy via [`tracer.startActiveSpan()`](https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan).
+For this, you need to create your own tracer via [TraceAPI.getTracer()](https://open-telemetry.github.io/opentelemetry-js/classes/_opentelemetry_api.TraceAPI.html#getTracer).
 
 
 

@@ -7,6 +7,11 @@ Authorization: Basic alice:wonderland
 
 ###
 
+GET {{host}}/odata/v4/admin/Books(252)
+Authorization: Basic alice:wonderland
+
+###
+
 GET {{host}}/odata/v4/admin/Authors
 Authorization: Basic alice:wonderland
 
@@ -41,8 +46,26 @@ Content-Type: application/json
 
 ###
 
-POST {{host}}/odata/v4/admin/spawn
+POST {{host}}/odata/v4/admin/test_spawn
 Authorization: Basic alice:wonderland
 Content-Type: application/json
 
 {}
+
+###
+
+POST {{host}}/odata/v4/admin/test_emit
+Authorization: Basic alice:wonderland
+Content-Type: application/json
+
+{}
+
+###
+
+GET {{host}}/odata/v4/catalog/ListOfBooks
+Authorization: Basic alice:wonderland
+
+###
+
+GET {{host}}/odata/v4/admin/Genres
+Authorization: Basic alice:wonderland
