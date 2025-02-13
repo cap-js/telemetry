@@ -1,3 +1,8 @@
+// REVISIT: jest breaks otel's patching of incoming request handling -> we can't ignore via ignoreIncomingRequestHook
+process.env.cds_requires_telemetry_tracing_sampler = JSON.stringify({
+  ignoreIncomingPaths: ['/odata/v4/admin/Authors']
+})
+
 const cds = require('@sap/cds')
 const { expect, GET, POST } = cds.test().in(__dirname + '/bookshop')
 const log = cds.test.log()
@@ -32,6 +37,17 @@ describe('tracing', () => {
     expect(postStatus).to.equal(201)
     const { status: getStatus } = await GET('/odata/v4/admin/Authors?$select=ID', admin)
     expect(getStatus).to.equal(200)
+    // primitive check that console has no trace logs
+    expect(log.output).not.to.match(/telemetry/)
+  })
+
+  // REVISIT: jest breaks otel's patching of incoming request handling -> behavior to test not reproducible
+  xtest('instrumentation hooks', async () => {
+    await GET('/odata/v4/admin/Books(251)', admin)
+    // primitive check that console has trace logs
+    expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
+    log.clear()
+    await GET('/odata/v4/admin/Books(252)', admin)
     // primitive check that console has no trace logs
     expect(log.output).not.to.match(/telemetry/)
   })

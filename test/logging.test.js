@@ -3,8 +3,10 @@
 process.env.cds_log_format = 'json'
 
 process.env.cds_requires_telemetry = JSON.stringify({
-  instrumentations: {
-    http: { config: { ignoreIncomingPaths: ['/odata/v4/admin/Genres'] } }
+  tracing: {
+    sampler: {
+      ignoreIncomingPaths: ['/odata/v4/admin/Genres']
+    }
   },
   logging: {
     exporter: {
