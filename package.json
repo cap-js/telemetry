@@ -62,18 +62,16 @@
           "instrumentations": {
             "http": {
               "module": "@opentelemetry/instrumentation-http",
-              "class": "HttpInstrumentation",
-              "config": {
-                "ignoreIncomingPaths": [
-                  "/health"
-                ]
-              }
+              "class": "HttpInstrumentation"
             }
           },
           "tracing": {
             "sampler": {
               "kind": "ParentBasedSampler",
-              "root": "AlwaysOnSampler"
+              "root": "AlwaysOnSampler",
+              "ignoreIncomingPaths": [
+                "/health"
+              ]
             },
             "propagators": [
               "W3CTraceContextPropagator"

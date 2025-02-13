@@ -9,8 +9,22 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Improved support for tracing messaging services and `cds.spawn`
-- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()` (beta)
+- Support for adding custom spans to trace hierarchy via `tracer.startActiveSpan()`
 - Trace attribute `db.client.response.returned_rows` for queries via `cds.ql`
+- Option to pass custom config to span processor via `cds.requires.telemetry.tracing.processor.config`
+- Support for loading instrumentation hooks via path relative to `cds.root`.
+  - The respective module must export either a function or, for bundling purposes, an object with a function named after the respective hook.
+  - Example based on `@opentelemetry/instrumentation-http`:
+    ```json
+    "instrumentations": {
+      "http": {
+        "config": {
+          "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
+        }
+      }
+    }
+    ```
+- Support for ignoring incoming requests that match a certain base path via `cds.requires.telemetry.tracing.sampler.ignoreIncomingPaths = []` (beta)
 - Experimental!: Trace HANA interaction via `@cap-js/hana`'s promisification of the driver API for increased accuracy
   - Enable via config `cds.requires.telemetry.tracing._hana_prom`
   - Requires `@cap-js/hana^1.7.0`
@@ -28,6 +42,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
   - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
 
 ### Changed
+
+- Default config `ignoreIncomingPaths: ['/health']` moved from `cds.requires.telemetry.instrumentations.http.config` to `cds.requires.telemetry.tracing.sampler`
 
 ### Fixed
 
@@ -80,13 +96,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for SAP Cloud Logging credentials via user-provided service
 - Support for adding `@opentelemetry/instrumentation-runtime-node`
   - `npm add @opentelemetry/instrumentation-runtime-node`
-  -  To `cds.requires.telemetry.instrumentations`, add:
-      ```json
-      "instrumentation-runtime-node": {
-        "class": "RuntimeNodeInstrumentation",
-        "module": "@opentelemetry/instrumentation-runtime-node"
-      }
-      ```
+  - To `cds.requires.telemetry.instrumentations`, add:
+    ```json
+    "instrumentation-runtime-node": {
+      "class": "RuntimeNodeInstrumentation",
+      "module": "@opentelemetry/instrumentation-runtime-node"
+    }
+    ```
 
 ### Changed
 
