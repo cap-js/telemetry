@@ -339,12 +339,7 @@ Default:
 {
   "http": {
     "module": "@opentelemetry/instrumentation-http",
-    "class": "HttpInstrumentation",
-    "config": {
-      "ignoreIncomingPaths": [
-        "/health"
-      ]
-    }
+    "class": "HttpInstrumentation"
   }
 }
 ```
@@ -352,13 +347,16 @@ Default:
 
 ### Sampler
 
-Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio? }`
+Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio?, ignoreIncomingPaths? }`
 
 Default:
 ```json
 {
   "kind": "ParentBasedSampler",
-  "root": "AlwaysOnSampler"
+  "root": "AlwaysOnSampler",
+  "ignoreIncomingPaths": [
+    "/health"
+  ]
 }
 ```
 
