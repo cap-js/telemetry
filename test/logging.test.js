@@ -1,6 +1,9 @@
 /* eslint-disable no-console */
 
-process.env.cds_log_format = 'json'
+process.env.cds_log = JSON.stringify({
+  format: 'json',
+  cls_custom_fields: ['foo']
+})
 
 process.env.cds_requires_telemetry = JSON.stringify({
   tracing: {
@@ -13,7 +16,6 @@ process.env.cds_requires_telemetry = JSON.stringify({
       module: '@opentelemetry/sdk-logs',
       class: 'ConsoleLogRecordExporter'
     },
-    custom_fields: ['foo'],
     // experimental feature of the experimental feature!!!
     processor: {
       module: './lib/MySimpleLogRecordProcessor.js',
