@@ -18,7 +18,7 @@ const startup = cmd => {
 describe('plugin started', () => {
   afterAll(() => {
     require('fs').unlinkSync(__dirname + '/bookshop/mta.yaml')
-    require('fs').rmdirSync(__dirname + '/bookshop/gen', { recursive: true })
+    require('fs').rmSync(__dirname + '/bookshop/gen', { recursive: true })
   })
 
   test('not for NO_TELEMETRY=true', async () => {
