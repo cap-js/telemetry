@@ -159,16 +159,13 @@ Enable it by adding section `logging` to `cds.requires.telemetry` as follows (us
   "exporter": {
     "module": "@opentelemetry/exporter-logs-otlp-grpc",
     "class": "OTLPLogExporter"
-  },
-  "custom_fields": [
-    "foo",
-    "bar"
-  ]
+  }
 }
 ```
-The property `custom_fields` allows to specify which properties of the log object shall be added as attributes to the `LogRecord`.
+`cds.log()`'s custom fields configuration for SAP Cloud Logging determines the additional attributes added to the `LogRecord`.
+See [`cds.log()` - Custom Fields](https://cap.cloud.sap/docs/node.js/cds-log#custom-fields) for details.
 
-In order for logs to be exported via OpenTelemetry, `cds.log()`'s JSON log formatter must be active, which is the default in production but not in development.
+Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`'s JSON log formatter must be active, which is the default in production but not in development.
 
 
 
