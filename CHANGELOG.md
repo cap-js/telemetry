@@ -35,8 +35,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
       "exporter": {
         "module": "@opentelemetry/exporter-logs-otlp-grpc",
         "class": "OTLPLogExporter"
-      },
-      "custom_fields": ["foo", "bar"]
+      }
     }
     ```
   - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
