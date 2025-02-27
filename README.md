@@ -137,7 +137,7 @@ const cds = require('@sap/cds')
 
 let counter
 cds.middlewares.add((req, _, next) => {
-  counter.add(1, { 'sap.tenancy.tenant_id': req.tenant })
+  counter.add(1, { 'sap.tenancy.tenant_id': cds.context.tenant })
   next()
 })
 cds.on('listening', () => {
