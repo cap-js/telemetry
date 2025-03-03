@@ -45,7 +45,7 @@
     "@opentelemetry/instrumentation-runtime-node": "^0.12.0",
     "@sap/cds-mtxs": "^2.0.5",
     "axios": "^1.6.7",
-    "chai": "^4.4.1",
+    "chai": "^5.2.0",
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
     "eslint": "^9.7.0",
