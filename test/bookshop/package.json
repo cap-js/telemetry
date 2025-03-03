@@ -37,6 +37,14 @@
           }
         }
       },
+      "messaging": {
+        "kind": "local-messaging",
+        "_kind": "file-based-messaging",
+        "file": "../msg-box"
+      },
+      "_outbox": {
+        "kind": "persistent-outbox"
+      },
       "[multitenancy]": {
         "multitenancy": true,
         "auth": {
@@ -56,14 +64,6 @@
             }
           }
         }
-      },
-      "messaging": {
-        "kind": "local-messaging",
-        "_kind": "file-based-messaging",
-        "file": "../msg-box"
-      },
-      "_outbox": {
-        "kind": "persistent-outbox"
       }
     },
     "log": {
