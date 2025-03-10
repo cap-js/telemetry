@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- Don't crash in case property `attributes` of parent span is undefined
+- Don't crash in case there are errors while determining the attributes for the current span
 
 ## Version 1.2.2 - 2025-03-03
 
