@@ -37,7 +37,7 @@ describe('tracing', () => {
     expect(status).to.equal(200)
     // primitive check that console has trace logs
     expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
-    expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* AdminService - READ AdminService.Books/)
+    expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - READ sap.capire.bookshop.Books/)
   })
 
   test('NonRecordingSpans are handled correctly', async () => {
