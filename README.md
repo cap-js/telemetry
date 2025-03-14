@@ -252,6 +252,10 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 }
 ```
 
+If you are using user-provided binding for Cloud Logging, make sure that the instance has a tag "cloud-logging":
+```bash
+cf cups <your-service-name> -p ups.json -t "cloud-logging"
+```
 
 ### `telemetry-to-jaeger`
 
