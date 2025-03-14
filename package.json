@@ -79,7 +79,8 @@
             "[development]": {
               "hrtime": true
             },
-            "_tx": false
+            "_tx": false,
+            "_hana_prom": true
           },
           "metrics": {
             "config": {
