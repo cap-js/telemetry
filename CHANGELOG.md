@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- User-provided instances of SAP Cloud Logging should have either tag `cloud-logging` or `Cloud Logging`
+
 ### Removed
 
 ## Version 1.2.3 - 2025-03-10
@@ -77,7 +79,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- User-provided instances of SAP Cloud Logging should have a tag "cloud-logging" (not a name matching "cloud-logging")
+- User-provided instances of SAP Cloud Logging should have a tag `cloud-logging` (not a name matching `cloud-logging`)
 
 ### Removed
 
