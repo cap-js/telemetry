@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.2.4 - TBD
+
+### Added
+
+### Changed
+
+### Fixed
+
+- User-provided instances of SAP Cloud Logging should have either tag `cloud-logging` or `Cloud Logging`
+
+### Removed
+
 ## Version 1.2.3 - 2025-03-10
 
 ### Fixed
@@ -65,7 +77,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- User-provided instances of SAP Cloud Logging should have a tag "cloud-logging" (not a name matching "cloud-logging")
+- User-provided instances of SAP Cloud Logging should have a tag `cloud-logging` (not a name matching `cloud-logging`)
 
 ### Removed
 
