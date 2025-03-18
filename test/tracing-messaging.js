@@ -3,7 +3,7 @@ module.exports = (CASE, CHECK) => {
   const { expect, POST } = cds.test().in(__dirname + '/bookshop')
   const log = cds.test.log()
 
-  const sleep = require('util').promisify(setTimeout)
+  const sleep = require('node:timers/promises').setTimeout
 
   const admin = { auth: { username: 'alice' } }
 
