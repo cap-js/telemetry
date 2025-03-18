@@ -6,7 +6,7 @@ const cds = require('@sap/cds')
 const { expect, GET } = cds.test().in(__dirname + '/bookshop')
 const log = cds.test.log()
 
-const wait = require('util').promisify(setTimeout)
+const wait = require('node:timers/promises').setTimeout
 
 describe('metrics', () => {
   const admin = { auth: { username: 'alice' } }
