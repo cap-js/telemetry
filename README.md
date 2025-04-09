@@ -4,6 +4,11 @@
 
 
 
+> [!WARNING]
+> [OpenTelemetry SDK 2.0](https://github.com/open-telemetry/opentelemetry-js/releases/tag/v2.0.0) is not yet supported.
+
+
+
 ## About This Project
 
 `@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
@@ -252,6 +257,7 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 }
 ```
 
+If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has either tag `cloud-logging` or `Cloud Logging`.
 
 ### `telemetry-to-jaeger`
 
