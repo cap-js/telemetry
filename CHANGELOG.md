@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.3.0 - tbd
+
+### Added
+
+- Skip instrumentation of HANA driver, if it does it itself
+
+### Changed
+
+- By default, `@cap-js/hana`'s promisification of the driver API is wrapped
+  + Disable via config `cds.requires.telemetry.tracing._hana_prom = false`
+
+### Fixed
+
+### Removed
+
 ## Version 1.2.4 - 2025-04-09
 
 ### Fixed
