@@ -34,11 +34,16 @@
           "exporter": {
             "module": "@opentelemetry/exporter-logs-otlp-grpc",
             "class": "OTLPLogExporter"
-          },
-          "custom_fields": [
-            "tenant_id"
-          ]
+          }
         }
+      },
+      "messaging": {
+        "kind": "local-messaging",
+        "_kind": "file-based-messaging",
+        "file": "../msg-box"
+      },
+      "_outbox": {
+        "kind": "persistent-outbox"
       },
       "[multitenancy]": {
         "multitenancy": true,
@@ -59,15 +64,12 @@
             }
           }
         }
-      },
-      "messaging": {
-        "kind": "local-messaging",
-        "_kind": "file-based-messaging",
-        "file": "../msg-box"
-      },
-      "_outbox": {
-        "kind": "persistent-outbox"
       }
+    },
+    "log": {
+      "cls_custom_fields": [
+        "tenant_id"
+      ]
     },
     "fiori": {
       "draft_deletion_timeout": false

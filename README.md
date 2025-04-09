@@ -4,6 +4,11 @@
 
 
 
+> [!WARNING]
+> [OpenTelemetry SDK 2.0](https://github.com/open-telemetry/opentelemetry-js/releases/tag/v2.0.0) is not yet supported.
+
+
+
 ## About This Project
 
 `@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
@@ -137,7 +142,7 @@ const cds = require('@sap/cds')
 
 let counter
 cds.middlewares.add((req, _, next) => {
-  counter.add(1, { 'sap.tenancy.tenant_id': req.tenant })
+  counter.add(1, { 'sap.tenancy.tenant_id': cds.context.tenant })
   next()
 })
 cds.on('listening', () => {
@@ -159,16 +164,13 @@ Enable it by adding section `logging` to `cds.requires.telemetry` as follows (us
   "exporter": {
     "module": "@opentelemetry/exporter-logs-otlp-grpc",
     "class": "OTLPLogExporter"
-  },
-  "custom_fields": [
-    "foo",
-    "bar"
-  ]
+  }
 }
 ```
-The property `custom_fields` allows to specify which properties of the log object shall be added as attributes to the `LogRecord`.
+`cds.log()`'s custom fields configuration for SAP Cloud Logging determines the additional attributes added to the `LogRecord`.
+See [`cds.log()` - Custom Fields](https://cap.cloud.sap/docs/node.js/cds-log#custom-fields) for details.
 
-In order for logs to be exported via OpenTelemetry, `cds.log()`'s JSON log formatter must be active, which is the default in production but not in development.
+Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`'s JSON log formatter must be active, which is the default in production but not in development.
 
 
 
@@ -227,7 +229,10 @@ In Dynatrace itself, you need to ensure that the following two features are enab
 If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
 (Your app still needs to be bound to a Dynatrace instance, of course. However, `@dynatrace/oneagent-sdk` is not required.)
 Hence, additional dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
-This is actually the perferred operating model for `telemetry-to-dynatrace` as it provides a better experience than exporting via OpenTelemetry.
+
+Please note, however, that Dynatrace only exports traces triggered by incoming HTTP requests.
+That is, traces for background tasks started by `cds.spawn`, for example, would not be exported.
+
 If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
 
 
@@ -252,6 +257,7 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 }
 ```
 
+If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has either tag `cloud-logging` or `Cloud Logging`.
 
 ### `telemetry-to-jaeger`
 

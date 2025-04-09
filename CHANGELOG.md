@@ -4,7 +4,38 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.2.0 - tbd
+## Version 1.2.4 - TBD
+
+### Added
+
+### Changed
+
+### Fixed
+
+- User-provided instances of SAP Cloud Logging should have either tag `cloud-logging` or `Cloud Logging`
+
+### Removed
+
+## Version 1.2.3 - 2025-03-10
+
+### Fixed
+
+- Database span attributes
+- Don't crash in case there are errors while determining the attributes for the current span
+
+## Version 1.2.2 - 2025-03-03
+
+### Fixed
+
+- Handle SAP Passport inside `tracer.startActiveSpan()`
+
+## Version 1.2.1 - 2025-02-25
+
+### Fixed
+
+- Don't crash in case property `instrumentationLibrary` of parent span is undefined
+
+## Version 1.2.0 - 2025-02-14
 
 ### Added
 
@@ -35,8 +66,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
       "exporter": {
         "module": "@opentelemetry/exporter-logs-otlp-grpc",
         "class": "OTLPLogExporter"
-      },
-      "custom_fields": ["foo", "bar"]
+      }
     }
     ```
   - Requires additional dependencies `@opentelemetry/api-logs`, `@opentelemetry/sdk-logs`, and the configured exporter module (`cds.requires.telemetry.logging.module`)
@@ -46,6 +76,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Default config `ignoreIncomingPaths: ['/health']` moved from `cds.requires.telemetry.instrumentations.http.config` to `cds.requires.telemetry.tracing.sampler`
 
 ### Fixed
+
+- User-provided instances of SAP Cloud Logging should have a tag `cloud-logging` (not a name matching `cloud-logging`)
 
 ### Removed
 

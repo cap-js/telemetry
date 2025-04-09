@@ -69,3 +69,7 @@ Authorization: Basic alice:wonderland
 
 GET {{host}}/odata/v4/admin/Genres
 Authorization: Basic alice:wonderland
+
+###
+
+GET {{host}}/custom/Books

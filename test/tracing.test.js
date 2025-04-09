@@ -7,7 +7,7 @@ const cds = require('@sap/cds')
 const { expect, GET, POST } = cds.test().in(__dirname + '/bookshop')
 const log = cds.test.log()
 
-const sleep = require('util').promisify(setTimeout)
+const wait = require('node:timers/promises').setTimeout
 
 describe('tracing', () => {
   const admin = { auth: { username: 'alice' } }
@@ -30,6 +30,14 @@ describe('tracing', () => {
     // primitive check that console has trace logs
     expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
     expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* AdminService - READ AdminService.Books/)
+  })
+
+  test('custom GET is traced', async () => {
+    const { status } = await GET('/custom/Books', admin)
+    expect(status).to.equal(200)
+    // primitive check that console has trace logs
+    expect(log.output).to.match(/\[telemetry\] - elapsed times:/)
+    expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* db - READ sap.capire.bookshop.Books/)
   })
 
   test('NonRecordingSpans are handled correctly', async () => {
@@ -69,14 +77,14 @@ describe('tracing', () => {
 
   test('cds.spawn is traced', async () => {
     await POST('/odata/v4/admin/test_spawn', {}, admin)
-    await sleep(30)
+    await wait(30)
     // 2: action + spawned action
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
   })
 
   test('emit is traced', async () => {
     await POST('/odata/v4/admin/test_emit', {}, admin)
-    await sleep(100)
+    await wait(100)
     // 1: local-messaging remains in same context
     expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(1)
   })
@@ -106,7 +114,7 @@ describe('tracing', () => {
 
   test('custom spans are supported', async () => {
     await GET('/odata/v4/catalog/ListOfBooks', {}, admin)
-    await sleep(100)
+    await wait(100)
     expect(log.output.match(/my custom span/g).length).to.equal(1)
   })
 
