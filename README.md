@@ -4,6 +4,11 @@
 
 
 
+> [!WARNING]
+> [OpenTelemetry SDK 2.0](https://github.com/open-telemetry/opentelemetry-js/releases/tag/v2.0.0) is not yet supported.
+
+
+
 ## About This Project
 
 `@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
