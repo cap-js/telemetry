@@ -477,7 +477,7 @@ Default:
     ```
 
 
-### High Resolution Timestamps (beta) {#high-resolution-timestamps}
+### High Resolution Timestamps (beta)
 
 By default, the start time of a span is taken from `Date.now()` and, hence, has only millisecond resolution.
 Via `cds.requires.telemetry.tracing.hrtime = true`, you can instruct the plugin to specify the start and end times of spans, which it does with nanosecond resolution.
@@ -500,7 +500,7 @@ Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUI
 
 
 
-## Custom Spans (beta) {#custom-spans}
+## Custom Spans (beta)
 
 Custom spans can be added to the trace hierarchy via [`tracer.startActiveSpan()`](https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan).
 For this, you need to create your own tracer via [TraceAPI.getTracer()](https://open-telemetry.github.io/opentelemetry-js/classes/_opentelemetry_api.TraceAPI.html#getTracer).
