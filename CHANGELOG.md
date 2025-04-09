@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Skip instrumentation of HANA driver, if it does it itself
+
 ### Changed
 
 - By default, `@cap-js/hana`'s promisification of the driver API is wrapped
