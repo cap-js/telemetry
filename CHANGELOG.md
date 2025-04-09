@@ -12,6 +12,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- By default, `@cap-js/hana`'s promisification of the driver API is wrapped
+  + Disable via config `cds.requires.telemetry.tracing._hana_prom = false`
+
 ### Fixed
 
 - User-provided instances of SAP Cloud Logging should have either tag `cloud-logging` or `Cloud Logging`
