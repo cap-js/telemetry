@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Skip instrumentation of HANA driver, if it does it itself
+- `telemetry-to-otlp`: Automatically switch to `gRPC` (from default `http/protobuf`) when exporting to an endpoint with port `4317`
 
 ### Changed
 
