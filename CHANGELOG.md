@@ -18,7 +18,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- `NonRecordingSpan`s do not have `attributes`
+
 ### Removed
+
+- Inofficial instrumentation of legacy OData server
 
 ## Version 1.2.4 - 2025-04-09
 
