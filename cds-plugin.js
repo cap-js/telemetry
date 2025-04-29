@@ -13,10 +13,17 @@
     try {
       pkg = require(`${module}/package.json`)
     } catch {
-      const pkg_json = require.resolve(module).split(module)[0] + module + '/package.json'
-      pkg = JSON.parse(require('fs').readFileSync(pkg_json, 'utf-8'))
+      try {
+        const path = require.resolve(module).split(module)[0] + module + '/package.json'
+        pkg = JSON.parse(require('fs').readFileSync(path, 'utf-8'))
+      } catch {
+        // ignore
+      }
     }
-    if (!pkg) cds.log('telemetry').warn(`Unable to determine version of ${module}`)
+    if (!pkg) {
+      cds.log('telemetry').warn(`Unable to determine version of ${module}`)
+      return
+    }
     return pkg.version
   }
 
