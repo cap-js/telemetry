@@ -8,12 +8,25 @@
 
   if (!!process.env.NO_TELEMETRY && process.env.NO_TELEMETRY !== 'false') return
 
+  const _version_of = module => {
+    let pkg
+    try {
+      pkg = require(`${module}/package.json`)
+    } catch {
+      const pkg_json = require.resolve(module).split(module)[0] + module + '/package.json'
+      pkg = JSON.parse(require('fs').readFileSync(pkg_json, 'utf-8'))
+    }
+    if (!pkg) cds.log('telemetry').warn(`Unable to determine version of ${module}`)
+    return pkg.version
+  }
+
   // check versions of @opentelemetry dependencies
   const { dependencies } = require(require('path').join(cds.root, 'package'))
   let violations = []
   for (const each in dependencies) {
     if (!each.match(/^@opentelemetry\//)) continue
-    const { version } = require(`${each}/package.json`)
+    const version = _version_of(each)
+    if (!version) continue
     const [major, minor] = version.split('.')
     if (major >= 2 || minor >= 200) violations.push(`${each}@${version}`)
   }
