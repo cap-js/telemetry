@@ -8,7 +8,7 @@
   },
   "author": "SAP SE (https://www.sap.com)",
   "homepage": "https://cap.cloud.sap/",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "Apache-2.0",
   "main": "cds-plugin.js",
   "files": [
     "lib",
