@@ -21,7 +21,9 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm i -g @sap/cds-dk
+      - run: npm i -g @sap/cds-dk@${{ matrix.cds-version }}
+      - run: npm i
+      - run: npm i @sap/cds@${{ matrix.cds-version }}
       - run: npm i
       - run: cds v
       - run: npm run lint
