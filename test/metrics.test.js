@@ -28,9 +28,13 @@ describe('metrics', () => {
 
         await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
         
-        await wait(2000)
+        await wait(100)
 
-        expect(log.output).not.to.be.undefined
+        expect(log.output).to.match(/outbox\.cold_entries/i)
+        expect(log.output).to.match(/outbox\.remaining_entries/i)
+        expect(log.output).to.match(/outbox\.min_storage_time_in_seconds/i)
+        expect(log.output).to.match(/outbox\.med_storage_time_in_seconds/i)
+        expect(log.output).to.match(/outbox\.max_storage_time_in_seconds/i)
       })
   })
 })
