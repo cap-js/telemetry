@@ -5,7 +5,10 @@
     "@cap-js/sqlite": "*",
     "@opentelemetry/host-metrics": "*",
     "@opentelemetry/instrumentation-runtime-node": "*",
-    "@sap/cds-mtxs": "*"
+    "@sap/cds-mtxs": "*",
+    "@sap-cloud-sdk/connectivity": "^4",
+    "@sap-cloud-sdk/http-client": "^4",
+    "@sap-cloud-sdk/resilience": "^4"
   },
   "cds": {
     "requires": {
@@ -42,6 +45,7 @@
         "_kind": "file-based-messaging",
         "file": "../msg-box"
       },
+      "outbox": true,
       "_outbox": {
         "kind": "persistent-outbox"
       },
@@ -63,6 +67,13 @@
               ]
             }
           }
+        }
+      },
+      "ExternalService": {
+        "kind": "odata",
+        "model": "srv/external/ExternalService",
+        "outbox": {
+          "kind": "persistent-outbox"
         }
       }
     },
