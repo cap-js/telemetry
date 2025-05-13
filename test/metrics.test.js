@@ -3,7 +3,7 @@ process.env.HOST_METRICS_LOG_SYSTEM = 'true'
 process.env.cds_requires_telemetry_metrics_config = JSON.stringify({ exportIntervalMillis: 100 })
 
 const cds = require('@sap/cds')
-const { expect, GET } = cds.test().in(__dirname + '/bookshop')
+const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks')
 const log = cds.test.log()
 
 const wait = require('node:timers/promises').setTimeout
@@ -21,5 +21,20 @@ describe('metrics', () => {
 
     expect(log.output).to.match(/process/i)
     expect(log.output).not.to.match(/network/i)
+  })
+
+  describe('outbox', () => {
+      test('metrics are collected', async () => {
+
+        await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
+        
+        await wait(100)
+
+        expect(log.output).to.match(/outbox\.cold_entries/i)
+        expect(log.output).to.match(/outbox\.remaining_entries/i)
+        expect(log.output).to.match(/outbox\.min_storage_time_in_seconds/i)
+        expect(log.output).to.match(/outbox\.med_storage_time_in_seconds/i)
+        expect(log.output).to.match(/outbox\.max_storage_time_in_seconds/i)
+      })
   })
 })
