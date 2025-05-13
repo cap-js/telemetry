@@ -27,10 +27,7 @@
     "@opentelemetry/sdk-metrics": "^1.27",
     "@opentelemetry/sdk-trace-base": "^1.27",
     "@opentelemetry/sdk-trace-node": "^1.27",
-    "@opentelemetry/semantic-conventions": "^1.27",
-    "@sap-cloud-sdk/connectivity": "^3",
-    "@sap-cloud-sdk/http-client": "^3",
-    "@sap-cloud-sdk/resilience": "^3"
+    "@opentelemetry/semantic-conventions": "^1.27"
   },
   "peerDependencies": {
     "@sap/cds": ">=8"
@@ -158,10 +155,6 @@
             "exporter": "env"
           }
         }
-      },
-      "ExternalService": {
-        "kind": "odata",
-        "model": "srv/external/ExternalService"
       }
     }
   }
