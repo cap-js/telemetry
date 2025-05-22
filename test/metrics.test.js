@@ -35,6 +35,8 @@ describe('metrics', () => {
         expect(log.output).to.match(/outbox\.min_storage_time_in_seconds/i)
         expect(log.output).to.match(/outbox\.med_storage_time_in_seconds/i)
         expect(log.output).to.match(/outbox\.max_storage_time_in_seconds/i)
+        expect(log.output).to.match(/outbox\.incoming_messages/i)
+        expect(log.output).to.match(/outbox\.outgoing_messages/i)
       })
   })
 })
