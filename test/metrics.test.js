@@ -1,42 +1,123 @@
 // process.env.HOST_METRICS_RETAIN_SYSTEM = 'true' //> with this the test would fail
-process.env.HOST_METRICS_LOG_SYSTEM = 'true'
-process.env.cds_requires_telemetry_metrics_config = JSON.stringify({ exportIntervalMillis: 100 })
+process.env.HOST_METRICS_LOG_SYSTEM = "true";
+process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
+  exportIntervalMillis: 100,
+});
 
-const cds = require('@sap/cds')
-const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks')
-const log = cds.test.log()
+const cds = require("@sap/cds");
+const { beforeEach } = require("node:test");
+const { expect, GET } = cds.test(__dirname + "/bookshop", "--with-mocks");
+const log = cds.test.log();
 
-const wait = require('node:timers/promises').setTimeout
+const wait = require("node:timers/promises").setTimeout;
 
-describe('metrics', () => {
-  const admin = { auth: { username: 'alice' } }
+describe("metrics", () => {
+  const admin = { auth: { username: "alice" } };
 
-  beforeEach(log.clear)
+  beforeEach(log.clear);
 
-  test('system metrics are not collected by default', async () => {
-    const { status } = await GET('/odata/v4/admin/Books', admin)
-    expect(status).to.equal(200)
+  test("system metrics are not collected by default", async () => {
+    const { status } = await GET("/odata/v4/admin/Books", admin);
+    expect(status).to.equal(200);
 
-    await wait(100)
+    await wait(100);
 
-    expect(log.output).to.match(/process/i)
-    expect(log.output).not.to.match(/network/i)
-  })
+    expect(log.output).to.match(/process/i);
+    expect(log.output).not.to.match(/network/i);
+  });
 
-  describe('outbox', () => {
-      test('metrics are collected', async () => {
+  describe("outbox", () => {
+    const metricValue = (metric) => {
+      const regx = new RegExp(
+        `outbox\\.${metric}[\\s\\S]*?value:\\s*(\\d+)`,
+        "gi"
+      );
+      const matches = [...log.output.matchAll(regx)];
+      return matches.length > 0
+        ? parseInt(matches[matches.length - 1][1])
+        : null;
+    };
 
-        await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
-        
-        await wait(100)
+    test("metrics are collected", async () => {
+      await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
-        expect(log.output).to.match(/outbox\.cold_entries/i)
-        expect(log.output).to.match(/outbox\.remaining_entries/i)
-        expect(log.output).to.match(/outbox\.min_storage_time_in_seconds/i)
-        expect(log.output).to.match(/outbox\.med_storage_time_in_seconds/i)
-        expect(log.output).to.match(/outbox\.max_storage_time_in_seconds/i)
-        expect(log.output).to.match(/outbox\.incoming_messages/i)
-        expect(log.output).to.match(/outbox\.outgoing_messages/i)
-      })
-  })
-})
+      await wait(150); // Wait for metrics to be collected
+
+      expect(metricValue("cold_entries")).to.equal(0);
+      expect(metricValue("remaining_entries")).to.equal(0);
+      expect(metricValue("incoming_messages")).to.equal(1);
+      expect(metricValue("outgoing_messages")).to.equal(1);
+      expect(metricValue("min_storage_time_in_seconds")).to.equal(0);
+      expect(metricValue("med_storage_time_in_seconds")).to.equal(0);
+      expect(metricValue("max_storage_time_in_seconds")).to.equal(0);
+    });
+
+    describe("target service requires retries", () => {
+      let currentRetryCount = 0;
+      let unboxedService;
+
+      beforeAll(async () => {
+        unboxedService = await cds.connect.to("ExternalService");
+
+        unboxedService.before("call", (req) => {
+          if ((currentRetryCount += 1) <= 2) return req.error({ status: 503 });
+        });
+      });
+
+      afterAll(async () => {
+        unboxedService.handlers.before = unboxedService.handlers.before.filter(
+          (handler) => handler.before !== "call"
+        );
+      });
+
+      beforeEach(() => {
+        currentRetryCount = 0;
+      });
+
+      test("metrics on retried messages", async () => {
+        await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
+
+        await wait(100); // Wait for metrics to be collected
+        expect(currentRetryCount).to.equal(1);
+
+        expect(metricValue("cold_entries")).to.equal(0);
+        expect(metricValue("remaining_entries")).to.equal(1);
+        expect(metricValue("incoming_messages")).to.equal(1);
+        expect(metricValue("outgoing_messages")).to.equal(1);
+        expect(metricValue("min_storage_time_in_seconds")).to.equal(0);
+        expect(metricValue("med_storage_time_in_seconds")).to.equal(0);
+        expect(metricValue("max_storage_time_in_seconds")).to.equal(0);
+
+        // Wait for the first retry to be initiated
+        while (currentRetryCount < 2) await wait(250);
+        await wait(200); // Wait for retry to be processed and metrics to be collected
+
+        expect(metricValue("cold_entries")).to.equal(0);
+        expect(metricValue("remaining_entries")).to.equal(1);
+        expect(metricValue("incoming_messages")).to.equal(1);
+        expect(metricValue("outgoing_messages")).to.equal(2);
+        expect(
+          metricValue("min_storage_time_in_seconds")
+        ).to.be.greaterThanOrEqual(1);
+        expect(
+          metricValue("med_storage_time_in_seconds")
+        ).to.be.greaterThanOrEqual(1);
+        expect(
+          metricValue("max_storage_time_in_seconds")
+        ).to.be.greaterThanOrEqual(1);
+
+        // Wait for the second retry to be initiated
+        while (currentRetryCount < 3) await wait(250);
+        await wait(500); // Wait for retry to be processed and metrics to be collected
+
+        expect(metricValue("cold_entries")).to.equal(0);
+        expect(metricValue("remaining_entries")).to.equal(0);
+        expect(metricValue("incoming_messages")).to.equal(1);
+        expect(metricValue("outgoing_messages")).to.equal(3);
+        expect(metricValue("min_storage_time_in_seconds")).to.equal(0);
+        expect(metricValue("med_storage_time_in_seconds")).to.equal(0);
+        expect(metricValue("max_storage_time_in_seconds")).to.equal(0);
+      });
+    });
+  });
+});
