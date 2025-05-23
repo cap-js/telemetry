@@ -45,9 +45,15 @@
         "_kind": "file-based-messaging",
         "file": "../msg-box"
       },
-      "outbox": true,
       "_outbox": {
         "kind": "persistent-outbox"
+      },
+      "outbox": {
+        "kind": "persistent-outbox"
+      },
+      "ExternalService": {
+        "kind": "odata",
+        "model": "srv/external/ExternalService"
       },
       "[multitenancy]": {
         "multitenancy": true,
@@ -67,13 +73,6 @@
               ]
             }
           }
-        }
-      },
-      "ExternalService": {
-        "kind": "odata",
-        "model": "srv/external/ExternalService",
-        "outbox": {
-          "kind": "persistent-outbox"
         }
       }
     },
