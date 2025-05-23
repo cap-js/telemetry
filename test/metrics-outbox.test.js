@@ -5,7 +5,6 @@ process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
 process.env.cds_requires_outbox = true;
 
 const cds = require("@sap/cds");
-const { beforeEach } = require("node:test");
 const { setTimeout: wait } = require("node:timers/promises");
 
 const { expect, GET } = cds.test(__dirname + "/bookshop", "--with-mocks");
