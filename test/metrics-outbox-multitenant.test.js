@@ -9,7 +9,6 @@ const { setTimeout: wait } = require("node:timers/promises");
 
 const { expect, GET, axios } = cds.test(
   __dirname + "/bookshop",
-  // "--in-memory?",
   "--profile",
   "multitenancy",
   "--with-mocks"
