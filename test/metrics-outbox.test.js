@@ -2,6 +2,7 @@ process.env.HOST_METRICS_LOG_SYSTEM = "true";
 process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
   exportIntervalMillis: 100,
 });
+process.env.cds_requires_outbox = true;
 
 const cds = require("@sap/cds");
 const { beforeEach } = require("node:test");
@@ -80,7 +81,7 @@ describe("outbox metrics for single tenant service", () => {
     test("storage time increases before message can be delivered", async () => {
       await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
-      await wait(100); // ... for metrics to be collected
+      await wait(150); // ... for metrics to be collected
       expect(currentRetryCount).to.eq(1);
 
       expect(metricValue("cold_entries")).to.eq(totalCold);
@@ -140,7 +141,7 @@ describe("outbox metrics for single tenant service", () => {
     test("cold entry is observed", async () => {
       await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
-      await wait(100); // ... for metrics to be collected
+      await wait(150); // ... for metrics to be collected
 
       expect(metricValue("cold_entries")).to.eq(totalCold);
       expect(metricValue("remaining_entries")).to.eq(0);
