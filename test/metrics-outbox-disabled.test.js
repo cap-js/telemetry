@@ -13,12 +13,6 @@ const { setTimeout: wait } = require("node:timers/promises");
 const { expect, GET } = cds.test(__dirname + "/bookshop", "--with-mocks");
 const log = cds.test.log();
 
-function metricValue(metric) {
-  const regx = new RegExp(`outbox\\.${metric}[\\s\\S]*?value:\\s*(\\d+)`, "gi");
-  const matches = [...log.output.matchAll(regx)];
-  return matches.length > 0 ? parseInt(matches[matches.length - 1][1]) : null;
-}
-
 describe("outbox metrics is disabled", () => {
   const admin = { auth: { username: "alice" } };
   beforeAll(async () => {
@@ -41,12 +35,12 @@ describe("outbox metrics is disabled", () => {
 
     await wait(150); // Wait for metrics to be collected
 
-    expect(metricValue("cold_entries")).to.eq(null);
-    expect(metricValue("remaining_entries")).to.eq(null);
-    expect(metricValue("incoming_messages")).to.eq(null);
-    expect(metricValue("outgoing_messages")).to.eq(null);
-    expect(metricValue("min_storage_time_in_seconds")).to.eq(null);
-    expect(metricValue("med_storage_time_in_seconds")).to.eq(null);
-    expect(metricValue("max_storage_time_in_seconds")).to.eq(null);
+    expect(log.output.match(/outbox\.cold_entries/)).to.eq(null);
+    expect(log.output.match(/outbox\.remaining_entries/)).to.eq(null);
+    expect(log.output.match(/outbox\.incoming_messages/)).to.eq(null);
+    expect(log.output.match(/outbox\.outgoing_messages/)).to.eq(null);
+    expect(log.output.match(/outbox\.min_storage_time_in_seconds/)).to.eq(null);
+    expect(log.output.match(/outbox\.med_storage_time_in_seconds/)).to.eq(null);
+    expect(log.output.match(/outbox\.max_storage_time_in_seconds/)).to.eq(null);
   });
 });
