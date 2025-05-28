@@ -8,9 +8,7 @@ const env = {
 process.env.cds_requires_messaging = JSON.stringify(env)
 
 const CHECK = (log, expect) => {
-  // 2: no outbox -> consumer gets new root context
-  // REVISIT: for some reason, the emit done in the on succeeded callback gets a new root context when running in jest
-  expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(3) //> actually 2
+  expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(4)
 }
 
 describe(`tracing messaging - ${CASE}`, () => {
