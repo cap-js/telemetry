@@ -1,11 +1,13 @@
 name: CI
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, release]
+    branches: [main]
   pull_request:
-    branches: [main, release]
+    branches: [main]
 
 jobs:
   lint:
