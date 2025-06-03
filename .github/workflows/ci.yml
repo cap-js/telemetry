@@ -8,7 +8,13 @@ on:
     branches: [main, release]
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm i
+      - run: npm run lint
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -26,5 +32,4 @@ jobs:
       - run: if [ ${{ matrix.cds-version }} -eq 8 ]; then npm i -f @sap/cds@8 @cap-js/sqlite@1; fi
       - run: npm i
       - run: cds v
-      - run: npm run lint
       - run: npm run test
