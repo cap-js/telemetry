@@ -1,6 +1,7 @@
 {
   "name": "bookshop",
   "dependencies": {
+    "@cap-js/sqlite": "*",
     "@cap-js/telemetry": "*",
     "@opentelemetry/host-metrics": "*",
     "@opentelemetry/instrumentation-runtime-node": "*",
