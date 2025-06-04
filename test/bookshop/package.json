@@ -45,7 +45,7 @@
       "_outbox": {
         "kind": "persistent-outbox"
       },
-      "queue": false,
+      "_queue": false,
       "[multitenancy]": {
         "multitenancy": true,
         "auth": {
@@ -75,5 +75,8 @@
     "fiori": {
       "draft_deletion_timeout": false
     }
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^8"
   }
 }
