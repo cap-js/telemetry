@@ -45,6 +45,7 @@
       "_outbox": {
         "kind": "persistent-outbox"
       },
+      "queue": false,
       "[multitenancy]": {
         "multitenancy": true,
         "auth": {
