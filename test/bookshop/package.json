@@ -3,7 +3,8 @@
   "dependencies": {
     "@cap-js/telemetry": "*",
     "@opentelemetry/host-metrics": "*",
-    "@opentelemetry/instrumentation-runtime-node": "*"
+    "@opentelemetry/instrumentation-runtime-node": "*",
+    "@sap/cds-mtxs": "*"
   },
   "cds": {
     "requires": {
