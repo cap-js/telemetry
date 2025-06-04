@@ -2,10 +2,8 @@
   "name": "bookshop",
   "dependencies": {
     "@cap-js/telemetry": "*",
-    "@cap-js/sqlite": "*",
     "@opentelemetry/host-metrics": "*",
-    "@opentelemetry/instrumentation-runtime-node": "*",
-    "@sap/cds-mtxs": "*"
+    "@opentelemetry/instrumentation-runtime-node": "*"
   },
   "cds": {
     "requires": {
@@ -45,7 +43,6 @@
       "_outbox": {
         "kind": "persistent-outbox"
       },
-      "_queue": false,
       "[multitenancy]": {
         "multitenancy": true,
         "auth": {
@@ -75,8 +72,5 @@
     "fiori": {
       "draft_deletion_timeout": false
     }
-  },
-  "devDependencies": {
-    "@sap/cds-dk": "^8"
   }
 }
