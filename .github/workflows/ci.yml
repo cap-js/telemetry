@@ -32,6 +32,5 @@ jobs:
       - run: npm i -g @sap/cds-dk@${{ matrix.cds-version }}
       - run: npm i
       - run: if [ ${{ matrix.cds-version }} -eq 8 ]; then npm i -f @sap/cds@8 @cap-js/sqlite@1; fi
-      - run: npm i
       - run: cds v
       - run: npm run test
