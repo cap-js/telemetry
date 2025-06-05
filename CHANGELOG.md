@@ -10,6 +10,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Support for `@sap/cds^9`
 
+### Fixed
+
+- Remove stack from log message, if present
+
 ## Version 1.3.1 - 2025-04-30
 
 ### Fixed
