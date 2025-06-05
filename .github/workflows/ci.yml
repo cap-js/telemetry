@@ -1,27 +1,36 @@
 name: CI
+permissions:
+  contents: read
 
 on:
   workflow_dispatch:
   push:
-    branches: [main, release]
+    branches: [main]
   pull_request:
-    branches: [main, release]
+    branches: [main]
 
 jobs:
-  build:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - run: npm i
+      - run: npm run lint
+  test:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         node-version: [22.x, 20.x]
+        cds-version: [9, 8]
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm i -g @sap/cds-dk
+      - run: npm i -g @sap/cds-dk@${{ matrix.cds-version }}
       - run: npm i
+      - run: if [ ${{ matrix.cds-version }} -eq 8 ]; then npm i -f @sap/cds@8 @cap-js/sqlite@1 @sap/cds-mtxs@2; fi
       - run: cds v
-      - run: npm run lint
       - run: npm run test
