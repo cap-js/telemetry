@@ -50,7 +50,10 @@ describe('logging', () => {
       attributes: {
         'log.type': 'LogRecord',
         'exception.message': "Cannot read properties of undefined (reading 'exist')",
-        'exception.stacktrace': s => s.match(/^TypeError: .+(\n\s+at .+){6}$/),
+        'exception.stacktrace': s =>
+          cds.version.split('.')[0] < 9
+            ? s.match(/^TypeError: .+(\n\s+at .+){6}$/)
+            : s.match(/^TypeError: .+(\n\s+at .+){5}$/),
         'exception.type': 'TypeError',
         foo: 'bar'
       }

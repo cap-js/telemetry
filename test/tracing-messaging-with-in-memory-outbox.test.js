@@ -1,8 +1,8 @@
-const CASE = 'with_outbox'
+const CASE = 'with_in_memory_outbox'
 
 const env = {
   kind: 'file-based-messaging',
-  outbox: true,
+  outbox: { kind: 'in-memory-outbox' },
   file: `../${CASE}`
 }
 process.env.cds_requires_messaging = JSON.stringify(env)
