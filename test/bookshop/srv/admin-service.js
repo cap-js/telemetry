@@ -18,6 +18,7 @@ module.exports = class AdminService extends cds.ApplicationService {
         err.foo = 'bar'
         cds.log('AdminService').error('Oh no!', err)
       }
+      cds.log('AdminService').error({ message: 'Error-like oh no!', foo: 'bar' }, new Error('dummy'))
     })
 
     this.on('test_spawn', () => {
