@@ -1,10 +1,10 @@
 name: Release
 
-on:
-  workflow_dispatch:
-
 permissions:
   contents: write
+
+on:
+  workflow_dispatch:
 
 jobs:
   publish-npm:
