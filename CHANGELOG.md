@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.4.1 - 2025-06-25
+
+### Fixed
+
+- Missing SQL-related attributes with `cds.requires.telemetry.tracing._hana_prom = true`
+
 ## Version 1.4.0 - 2025-06-05
 
 ### Added
