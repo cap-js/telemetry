@@ -17,9 +17,9 @@ module.exports = {
     },
     {
       // name: "@cap-js/sqlite - stmt.all SELECT json_insert('{}','$.\"createdAt\"',createdAt,'$.…",
-      name: s => s.match(/@cap-js\/\w+ - stmt.all /),
+      name: s => s.match(/@cap-js\/\w+ - stmt\.all /) || s.match(/@cap-js\/\w+ - exec /),
       attributes: {
-        'code.function': 'all',
+        'code.function': s => s === 'all' || 'exec',
         'db.system': s => s === 'sqlite' || 'hanadb',
         'db.name': 'db',
         'db.connection_string': s => s === ':memory:' || s.match(/jdbc/),
