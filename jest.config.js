@@ -9,6 +9,9 @@ if (process.env.HANA_DRIVER) {
 
   const credentials = JSON.parse(process.env.CAPJS_TELEMETRY_TEST_BOOKSHOP_DB_CREDENTIALS)
   process.env.cds_requires_db = JSON.stringify({ kind: 'hana', credentials })
+
+  if (process.env.HANA_PROM)
+    process.env.cds_requires_telemetry_tracing = JSON.stringify({ _hana_prom: process.env.HANA_PROM === 'true' })
 }
 
 module.exports = config
