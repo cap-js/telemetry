@@ -20,9 +20,9 @@ jobs:
         hana-driver: [hdb, hana-client]
         hana-prom: [true, false]
     env:
+      HANA_CREDS: ${{ secrets.HANA_CREDS }}
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
-      CAPJS_TELEMETRY_TEST_BOOKSHOP_DB_CREDENTIALS: ${{ secrets.CAPJS_TELEMETRY_TEST_BOOKSHOP_DB_CREDENTIALS }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
