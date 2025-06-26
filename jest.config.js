@@ -3,7 +3,7 @@ const config = {
   testMatch: ['**/*.test.js']
 }
 
-if (process.env.HANA_DRIVER) {
+if (process.env.CI && process.env.HANA_DRIVER) {
   config.testTimeout *= 10
   config.testMatch = ['**/tracing-attributes.test.js']
 
