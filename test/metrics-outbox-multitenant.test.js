@@ -5,7 +5,6 @@ process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
 process.env.cds_requires_outbox = true;
 
 const cds = require("@sap/cds");
-const { beforeEach } = require("node:test");
 const { setTimeout: wait } = require("node:timers/promises");
 
 const { expect, GET, axios } = cds.test(
@@ -59,7 +58,9 @@ describe("outbox metrics for multi tenant service", () => {
     await mts.subscribe(T2);
   });
 
-  beforeEach(log.clear);
+  beforeEach(() => {
+    log.clear()
+  });
 
   test("metrics are collected per tenant", async () => {
     await Promise.all([
@@ -99,17 +100,18 @@ describe("outbox metrics for multi tenant service", () => {
       });
     });
 
-    afterAll(async () => {
+    afterAll(() => {
       unboxedService.handlers.before = unboxedService.handlers.before.filter(
         (handler) => handler.before !== "call"
       );
     });
 
     beforeEach(() => {
-      currentRetryCount = 0;
+      currentRetryCount = { [T1]: 0, [T2]: 0 };
     });
 
     test("storage time increases before message can be delivered", async () => {
+      const timeOfInitialCall = Date.now()
       await Promise.all([
         GET("/odata/v4/proxy/proxyCallToExternalService", user[T1]),
         GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
@@ -141,6 +143,14 @@ describe("outbox metrics for multi tenant service", () => {
       await wait(150); // ... for the retry to be processed and metrics to be collected
       expect(currentRetryCount[T1]).to.eq(2);
       expect(currentRetryCount[T2]).to.eq(2);
+
+      // Wait until at least 1 second has passed since the initial call
+      const timeAfterFirstRetry = Date.now()
+      if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
+        await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall));
+      }
+      
+      await wait(150) // ... for metrics to be collected again
 
       expect(metricValue(T1, "cold_entries")).to.eq(totalCold[T1]);
       expect(metricValue(T1, "incoming_messages")).to.eq(totalInc[T1]);

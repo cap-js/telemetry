@@ -97,11 +97,13 @@ describe("outbox metrics for single tenant service", () => {
       await wait(150); // ... for the retry to be processed and metrics to be collected
       expect(currentRetryCount).to.eq(2);
 
-      // Prevent flakiness due to timing issues
+      // Wait until at least 1 second has passed since the initial call
       const timeAfterFirstRetry = Date.now()
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall));
       }
+      
+      await wait(150) // ... for metrics to be collected again
 
       expect(metricValue("cold_entries")).to.eq(totalCold);
       expect(metricValue("remaining_entries")).to.eq(1);
