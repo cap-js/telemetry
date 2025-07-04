@@ -78,7 +78,7 @@ describe("outbox metrics for single tenant service", () => {
     });
 
     test("storage time increases before message can be delivered", async () => {
-      const timeOfInitialCall = Date.now()
+      const timeOfInitialCall = Date.now();
       await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
       await wait(150); // ... for metrics to be collected
@@ -98,12 +98,12 @@ describe("outbox metrics for single tenant service", () => {
       expect(currentRetryCount).to.eq(2);
 
       // Wait until at least 1 second has passed since the initial call
-      const timeAfterFirstRetry = Date.now()
+      const timeAfterFirstRetry = Date.now();
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall));
       }
-      
-      await wait(150) // ... for metrics to be collected again
+
+      await wait(150); // ... for metrics to be collected again
 
       expect(metricValue("cold_entries")).to.eq(totalCold);
       expect(metricValue("remaining_entries")).to.eq(1);
@@ -128,7 +128,7 @@ describe("outbox metrics for single tenant service", () => {
     });
   });
 
-  describe("given a taget service that fails unrecoverably", () => {
+  describe("given a target service that fails unrecoverably", () => {
     let unboxedService;
 
     beforeAll(async () => {
