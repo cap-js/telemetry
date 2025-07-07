@@ -40,16 +40,16 @@ describe("outbox metrics for multi tenant service", () => {
 
   beforeAll(async () => {
     const proxyService = await cds.connect.to("ProxyService");
-    const externalService = await cds.connect.to("ExternalService");
-    const outboxedService = cds.outboxed(externalService);
+    const unboxedService = await cds.connect.to("ExternalService");
+    const outboxedService = cds.outboxed(unboxedService);
 
     proxyService.on("proxyCallToExternalService", async (req) => {
-      await outboxedService.send("call", {});
       totalInc[req.tenant] += 1;
+      await outboxedService.send("call", {});
       return req.reply("OK");
     });
 
-    externalService.before("*", () => {
+    unboxedService.before("*", () => {
       totalOut[cds.context.tenant] += 1;
     });
 
@@ -68,7 +68,7 @@ describe("outbox metrics for multi tenant service", () => {
       GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
     ]);
 
-    await wait(150); // Wait for metrics to be collected
+    await wait(200); // Wait for metrics to be collected
 
     expect(metricValue(T1, "cold_entries")).to.eq(totalCold[T1]);
     expect(metricValue(T1, "incoming_messages")).to.eq(totalInc[T1]);
@@ -96,7 +96,7 @@ describe("outbox metrics for multi tenant service", () => {
 
       unboxedService.before("call", (req) => {
         if ((currentRetryCount[cds.context.tenant] += 1) <= 2)
-          return req.error({ status: 503 });
+          return req.reject({ status: 503 });
       });
     });
 
@@ -106,10 +106,6 @@ describe("outbox metrics for multi tenant service", () => {
       );
     });
 
-    beforeEach(() => {
-      currentRetryCount = { [T1]: 0, [T2]: 0 };
-    });
-
     test("storage time increases before message can be delivered", async () => {
       const timeOfInitialCall = Date.now()
       await Promise.all([
@@ -117,7 +113,7 @@ describe("outbox metrics for multi tenant service", () => {
         GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
       ]);
 
-      await wait(150); // ... for metrics to be collected
+      await wait(200); // ... for metrics to be collected
       expect(currentRetryCount[T1]).to.eq(1);
       expect(currentRetryCount[T2]).to.eq(1);
 
@@ -201,7 +197,7 @@ describe("outbox metrics for multi tenant service", () => {
 
       unboxedService.before("call", (req) => {
         totalCold[cds.context.tenant] += 1;
-        return req.error({ status: 418, unrecoverable: true });
+        return req.reject({ status: 418, unrecoverable: true });
       });
     });
 

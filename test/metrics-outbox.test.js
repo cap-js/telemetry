@@ -63,7 +63,7 @@ describe("outbox metrics for single tenant service", () => {
       unboxedService = await cds.connect.to("ExternalService");
 
       unboxedService.before("call", (req) => {
-        if ((currentRetryCount += 1) <= 2) return req.error({ status: 503 });
+        if ((currentRetryCount += 1) <= 2) return req.reject({ status: 503 });
       });
     });
 
@@ -136,7 +136,7 @@ describe("outbox metrics for single tenant service", () => {
 
       unboxedService.before("call", (req) => {
         totalCold += 1;
-        return req.error({ status: 418, unrecoverable: true });
+        return req.reject({ status: 418, unrecoverable: true });
       });
     });
 
