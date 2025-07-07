@@ -68,7 +68,7 @@ describe("outbox metrics for multi tenant service", () => {
       GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
     ]);
 
-    await wait(200); // Wait for metrics to be collected
+    await wait(150); // Wait for metrics to be collected
 
     expect(metricValue(T1, "cold_entries")).to.eq(totalCold[T1]);
     expect(metricValue(T1, "incoming_messages")).to.eq(totalInc[T1]);
@@ -113,7 +113,7 @@ describe("outbox metrics for multi tenant service", () => {
         GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
       ]);
 
-      await wait(200); // ... for metrics to be collected
+      await wait(150); // ... for metrics to be collected
       expect(currentRetryCount[T1]).to.eq(1);
       expect(currentRetryCount[T2]).to.eq(1);
 
