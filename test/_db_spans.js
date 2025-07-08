@@ -4,7 +4,7 @@ module.exports = {
       // name: "@cap-js/sqlite - prepare SELECT json_insert('{}','$.\"createdAt\"',createdAt,'$.\"…",
       name: s => s.match(/@cap-js\/\w+ - prepare /),
       attributes: {
-        'code.function': 'prepare',
+        'code.function.name': 'prepare',
         'db.system.name': s => s === 'sqlite' || 'hanadb',
         'db.namespace': 'db',
         'db.connection_string': s => s === ':memory:' || s.match(/jdbc/),
@@ -19,7 +19,7 @@ module.exports = {
       // name: "@cap-js/sqlite - stmt.all SELECT json_insert('{}','$.\"createdAt\"',createdAt,'$.…",
       name: s => s.match(/@cap-js\/\w+ - stmt\.all /) || s.match(/@cap-js\/\w+ - exec /),
       attributes: {
-        'code.function': s => s === 'all' || 'exec',
+        'code.function.name': s => s === 'all' || 'exec',
         'db.system.name': s => s === 'sqlite' || 'hanadb',
         'db.namespace': 'db',
         'db.connection_string': s => s === ':memory:' || s.match(/jdbc/),
