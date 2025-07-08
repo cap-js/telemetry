@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      max-parallel: 1
+      #max-parallel: 1
       matrix:
         hana-driver: [hdb, hana-client]
         hana-prom: [true, false]
