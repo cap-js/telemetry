@@ -1,7 +1,7 @@
 import { promisify } from 'node:util'
 const sleep = promisify(setTimeout)
 
-import { join } from 'node:path'
+import { join as path_join } from 'node:path'
 import { writeFileSync } from 'node:fs'
 
 import { fetch_token } from './token.js'
@@ -22,7 +22,7 @@ const i_options = {
   })
 }
 const i_res = await fetch(i_url, i_options)
-// console.log(i_res.status, i_res.statusText)
+console.log(i_res.status, i_res.statusText)
 const i_loc = i_res.headers.get('location')
 const service_instance_id = i_loc.split('/')[3]
 
@@ -44,7 +44,7 @@ const b_options = {
   })
 }
 const b_res = await fetch(b_url, b_options)
-// console.log(b_res.status, b_res.statusText)
+console.log(b_res.status, b_res.statusText)
 const b_loc = b_res.headers.get('location')
 const service_binding_id = b_loc.split('/')[3]
 
@@ -58,8 +58,8 @@ for (let i = 0; i < 60; i++) {
 const res = await fetch(b_url + '/' + service_binding_id, { method: 'GET', headers })
 const { credentials } = await res.json()
 
-const cdsrc = join(process.cwd(), 'test', 'bookshop', '.cdsrc.json')
+const cdsrc = path_join(process.cwd(), 'test', 'bookshop', '.cdsrc.json')
 writeFileSync(cdsrc, JSON.stringify({ requires: { db: { kind: 'hana', credentials } } }))
 
-const vcap = join(process.cwd(), 'test', 'bookshop', 'vcap.json')
+const vcap = path_join(process.cwd(), 'test', 'bookshop', 'vcap.json')
 writeFileSync(vcap, JSON.stringify({ VCAP_SERVICES: { hana: [{ label: 'hana', credentials }] } }))
