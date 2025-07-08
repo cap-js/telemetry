@@ -12,7 +12,8 @@ const headers = { authorization: `Bearer ${token}`, 'content-type': 'application
 const url = 'https://service-manager.cfapps.eu10.hana.ondemand.com'
 
 const i_url = url + '/v1/service_instances'
-const i_name = `telemetry_ci_${process.env.GITHUB_RUN_ID || Math.random().toString(36).substring(2, 15)}`
+// prettier-ignore
+const i_name = `telemetry_ci_${process.env.GITHUB_RUN_ID}_${process.env.HANA_DRIVER.substring(0,3)}_${process.env.HANA_PROM.substring(0,1)}`
 const i_options = {
   method: 'POST',
   headers,
