@@ -7,6 +7,7 @@ import { writeFileSync } from 'node:fs'
 import { fetch_token } from './token.js'
 
 const token = await fetch_token()
+console.log(token.substring(0, 10) + '...')
 const headers = { authorization: `Bearer ${token}`, 'content-type': 'application/json' }
 
 const url = 'https://service-manager.cfapps.eu10.hana.ondemand.com'
