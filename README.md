@@ -176,7 +176,7 @@ Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`
 
 ## Predefined Kinds
 
-There are three predefined kinds as follows:
+There are five predefined kinds as follows:
 
 
 ### `telemetry-to-console`
@@ -502,8 +502,8 @@ Please note that `process.env.VCAP_APPLICATION` and `process.env.CF_INSTANCE_GUI
 
 ## Custom Spans (beta)
 
-Custom spans can be added to the trace hierarchy via [`tracer.startActiveSpan()`](https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api.Tracer.html#startActiveSpan).
-For this, you need to create your own tracer via [TraceAPI.getTracer()](https://open-telemetry.github.io/opentelemetry-js/classes/_opentelemetry_api.TraceAPI.html#getTracer).
+Custom spans can be added to the trace hierarchy via [`tracer.startActiveSpan()`](https://open-telemetry.github.io/opentelemetry-js/interfaces/_opentelemetry_api._opentelemetry_api.Tracer.html#startactivespan).
+For this, you need to create your own tracer via [TraceAPI.getTracer()](https://open-telemetry.github.io/opentelemetry-js/classes/_opentelemetry_api._opentelemetry_api.TraceAPI.html#gettracer).
 
 
 
