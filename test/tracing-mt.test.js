@@ -1,4 +1,5 @@
 const cds = require('@sap/cds')
+// prettier-ignore
 const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'multitenancy')
 const log = cds.test.log()
 
