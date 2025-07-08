@@ -26,10 +26,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
+      - run: node .github/scripts/setup.js
       - run: npm i -g @sap/cds-dk
       - run: npm add @cap-js/hana
       - run: npm add hdb
       - run: npm add @sap/hana-client
       - run: npm i
       - run: cds v
+      - run: cd test/bookshop && cds deploy
       - run: npm run test
