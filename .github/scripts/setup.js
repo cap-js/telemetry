@@ -59,4 +59,7 @@ const res = await fetch(b_url + '/' + service_binding_id, { method: 'GET', heade
 const { credentials } = await res.json()
 
 const cdsrc = join(process.cwd(), 'test', 'bookshop', '.cdsrc.json')
-writeFileSync(cdsrc, JSON.stringify({ requires: { db: { kind: 'hana', credentials } } }, null, 2))
+writeFileSync(cdsrc, JSON.stringify({ requires: { db: { kind: 'hana', credentials } } }))
+
+const vcap = join(process.cwd(), 'test', 'bookshop', 'vcap.json')
+writeFileSync(vcap, JSON.stringify({ VCAP_SERVICES: { hana: [{ label: 'hana', credentials }] } }))
