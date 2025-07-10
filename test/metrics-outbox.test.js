@@ -21,7 +21,6 @@ function metricValue(metric) {
 }
 
 describe("queue metrics for single tenant service", () => {
-  if (cds.version.split(".")[0] < 9) return;
 
   let totalCold = 0;
   let totalInc = 0;
@@ -48,6 +47,8 @@ describe("queue metrics for single tenant service", () => {
   beforeEach(log.clear);
 
   test("metrics are collected", async () => {
+    if (cds.version.split('.')[0] < 9) return
+
     await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
     await wait(150); // Wait for metrics to be collected
@@ -84,6 +85,8 @@ describe("queue metrics for single tenant service", () => {
     });
 
     test("storage time increases before message can be delivered", async () => {
+      if (cds.version.split('.')[0] < 9) return
+
       const timeOfInitialCall = Date.now();
       await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
@@ -153,6 +156,8 @@ describe("queue metrics for single tenant service", () => {
     });
 
     test("cold entry is observed", async () => {
+      if (cds.version.split('.')[0] < 9) return
+      
       await GET("/odata/v4/proxy/proxyCallToExternalService", admin);
 
       await wait(150); // ... for metrics to be collected

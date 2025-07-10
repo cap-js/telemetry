@@ -22,7 +22,6 @@ function metricValue(tenant, metric) {
 }
 
 describe('queue metrics for multi tenant service', () => {
-  if (cds.version.split('.')[0] < 9) return
 
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
@@ -61,6 +60,8 @@ describe('queue metrics for multi tenant service', () => {
   })
 
   test('metrics are collected per tenant', async () => {
+    if (cds.version.split('.')[0] < 9) return
+
     await Promise.all([
       GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
       GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
@@ -86,6 +87,8 @@ describe('queue metrics for multi tenant service', () => {
   })
 
   describe('given a target service that requires retries', () => {
+    if (cds.version.split('.')[0] < 9) return
+
     let currentRetryCount = { [T1]: 0, [T2]: 0 }
     let unboxedService
 
@@ -102,6 +105,8 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     test('storage time increases before message can be delivered', async () => {
+      if (cds.version.split('.')[0] < 9) return
+      
       const timeOfInitialCall = Date.now()
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
@@ -201,6 +206,8 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     test('cold entry is observed', async () => {
+      if (cds.version.split('.')[0] < 9) return
+
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
