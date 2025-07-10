@@ -81,8 +81,5 @@
     "fiori": {
       "draft_deletion_timeout": false
     }
-  },
-  "devDependencies": {
-    "@sap/cds-dk": ">=8"
   }
 }
