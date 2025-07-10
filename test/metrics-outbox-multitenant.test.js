@@ -1,4 +1,8 @@
 process.env.HOST_METRICS_LOG_SYSTEM = 'true'
+process.env.cds_requires_telemetry_metrics_exporter = JSON.stringify({
+  module: "../test/metrics-exporter",
+  class: "TestMetricsExporter",
+});
 process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
   exportIntervalMillis: 100
 })
