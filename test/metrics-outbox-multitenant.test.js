@@ -2,7 +2,7 @@ process.env.HOST_METRICS_LOG_SYSTEM = 'true'
 process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
   exportIntervalMillis: 100
 })
-process.env.cds_requires_outbox = true
+process.env.cds_requires_queue = true
 
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
@@ -12,12 +12,12 @@ axios.defaults.validateStatus = () => true
 const log = cds.test.log()
 
 function metricValue(tenant, metric) {
-  const regx = new RegExp(`outbox\\.${metric}.*tenant "${tenant}"[\\s\\S]*?value:\\s*(\\d+)`, 'gi')
+  const regx = new RegExp(`queue\\.${metric}.*tenant "${tenant}"[\\s\\S]*?value:\\s*(\\d+)`, 'gi')
   const matches = [...log.output.matchAll(regx)]
   return matches.length > 0 ? parseInt(matches[matches.length - 1][1]) : null
 }
 
-describe('outbox metrics for multi tenant service', () => {
+describe('queue metrics for multi tenant service', () => {
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
 
@@ -33,11 +33,11 @@ describe('outbox metrics for multi tenant service', () => {
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
     const unboxedService = await cds.connect.to('ExternalService')
-    const outboxedService = cds.outboxed(unboxedService)
+    const queuedService = cds.outboxed(unboxedService)
 
     proxyService.on('proxyCallToExternalService', async req => {
       totalInc[req.tenant] += 1
-      await outboxedService.send('call', {})
+      await queuedService.send('call', {})
       return req.reply('OK')
     })
 
@@ -135,7 +135,7 @@ describe('outbox metrics for multi tenant service', () => {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
       }
 
-      await wait(150) // ... for metrics to be collected again
+      await wait(200) // ... for metrics to be collected again
 
       expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
