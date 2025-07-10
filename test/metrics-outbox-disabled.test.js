@@ -14,6 +14,8 @@ const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks')
 const log = cds.test.log()
 
 describe('queue metrics is disabled', () => {
+  if (cds.version.split('.')[0] < 9) return
+
   const admin = { auth: { username: 'alice' } }
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')

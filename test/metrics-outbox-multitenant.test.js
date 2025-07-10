@@ -18,6 +18,8 @@ function metricValue(tenant, metric) {
 }
 
 describe('queue metrics for multi tenant service', () => {
+  if (cds.version.split('.')[0] < 9) return
+
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
 

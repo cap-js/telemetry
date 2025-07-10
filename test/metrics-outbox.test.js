@@ -17,6 +17,8 @@ function metricValue(metric) {
 }
 
 describe('queue metrics for single tenant service', () => {
+  if (cds.version.split('.')[0] < 9) return
+  
   let totalCold = 0
   let totalInc = 0
   let totalOut = 0
