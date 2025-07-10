@@ -2,7 +2,7 @@ process.env.HOST_METRICS_LOG_SYSTEM = 'true'
 process.env.cds_requires_telemetry_metrics_config = JSON.stringify({
   exportIntervalMillis: 100
 })
-process.env.cds_requires_queue = true
+process.env.cds_requires_outbox = true
 
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')

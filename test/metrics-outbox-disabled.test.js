@@ -1,5 +1,5 @@
 process.env.HOST_METRICS_LOG_SYSTEM = 'true'
-process.env.cds_requires_queue = true
+process.env.cds_requires_outbox = true
 process.env.cds_requires_telemetry = JSON.stringify({
   metrics: {
     _queue: false,
