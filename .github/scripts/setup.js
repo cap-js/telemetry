@@ -27,7 +27,6 @@ const i_options = {
   })
 }
 const i_res = await fetch(i_url, i_options)
-// console.log(i_res.status, i_res.statusText)
 const i_loc = i_res.headers.get('location')
 const service_instance_id = i_loc.split('/')[3]
 
@@ -49,7 +48,6 @@ const b_options = {
   })
 }
 const b_res = await fetch(b_url, b_options)
-// console.log(b_res.status, b_res.statusText)
 const b_loc = b_res.headers.get('location')
 const service_binding_id = b_loc.split('/')[3]
 

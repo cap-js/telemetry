@@ -15,12 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      #max-parallel: 1
       matrix:
         hana-driver: [hdb, hana-client]
         hana-prom: [true, false]
     env:
-      #HANA_CREDS: ${{ secrets.HANA_CREDS }}
       SM_CLIENT_ID: ${{ secrets.SM_CLIENT_ID }}
       SM_CLIENT_SECRET: ${{ secrets.SM_CLIENT_SECRET }}
       HANA_DRIVER: ${{ matrix.hana-driver }}
