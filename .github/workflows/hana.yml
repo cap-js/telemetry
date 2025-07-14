@@ -28,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
+      - run: node .github/scripts/cleanup.js
       - run: node .github/scripts/setup.js
       - run: npm i -g @sap/cds-dk
       - run: npm add @cap-js/hana
