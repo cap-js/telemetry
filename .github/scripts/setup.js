@@ -1,7 +1,3 @@
-// process.env.GITHUB_RUN_ID ??= Math.random().toString(36).substring(2, 15)
-// process.env.HANA_DRIVER ??= 'hdb'
-// process.env.HANA_PROM ??= 'true'
-
 import { promisify } from 'node:util'
 const sleep = promisify(setTimeout)
 
@@ -16,8 +12,7 @@ const headers = { authorization: `Bearer ${token}`, 'content-type': 'application
 const url = 'https://service-manager.cfapps.eu10.hana.ondemand.com'
 
 const i_url = url + '/v1/service_instances'
-// prettier-ignore
-const i_name = `telemetry_ci_${process.env.GITHUB_RUN_ID}_${process.env.HANA_DRIVER.substring(0,3)}_${process.env.HANA_PROM.substring(0,1)}`
+const i_name = `telemetry_ci_${Math.random().toString(36).substring(2, 15)}`
 const i_options = {
   method: 'POST',
   headers,
@@ -62,7 +57,7 @@ const res = await fetch(b_url + '/' + service_binding_id, { method: 'GET', heade
 const { credentials } = await res.json()
 
 const cdsrc = path_join(process.cwd(), 'test', 'bookshop', '.cdsrc.json')
-writeFileSync(cdsrc, JSON.stringify({ requires: { db: { kind: 'hana', credentials } } }))
+writeFileSync(cdsrc, JSON.stringify({ requires: { db: { kind: 'hana', credentials } } }, null, 2))
 
 const vcap = path_join(process.cwd(), 'test', 'bookshop', 'vcap.json')
-writeFileSync(vcap, JSON.stringify({ VCAP_SERVICES: { hana: [{ label: 'hana', tags: ['hana'], credentials }] } }))
+writeFileSync(vcap, JSON.stringify({ VCAP_SERVICES: { hana: [{ tags: ['hana'], credentials }] } }, null, 2))

@@ -139,3 +139,4 @@ package-lock.json
 .prettierrc.js
 
 test/msg-box
+test/bookshop/gen
