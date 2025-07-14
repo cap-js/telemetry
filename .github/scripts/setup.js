@@ -1,3 +1,7 @@
+// process.env.GITHUB_RUN_ID ??= Math.random().toString(36).substring(2, 15)
+// process.env.HANA_DRIVER ??= 'hdb'
+// process.env.HANA_PROM ??= 'true'
+
 import { promisify } from 'node:util'
 const sleep = promisify(setTimeout)
 
@@ -23,7 +27,7 @@ const i_options = {
   })
 }
 const i_res = await fetch(i_url, i_options)
-console.log(i_res.status, i_res.statusText)
+// console.log(i_res.status, i_res.statusText)
 const i_loc = i_res.headers.get('location')
 const service_instance_id = i_loc.split('/')[3]
 
@@ -45,7 +49,7 @@ const b_options = {
   })
 }
 const b_res = await fetch(b_url, b_options)
-console.log(b_res.status, b_res.statusText)
+// console.log(b_res.status, b_res.statusText)
 const b_loc = b_res.headers.get('location')
 const service_binding_id = b_loc.split('/')[3]
 
@@ -63,4 +67,4 @@ const cdsrc = path_join(process.cwd(), 'test', 'bookshop', '.cdsrc.json')
 writeFileSync(cdsrc, JSON.stringify({ requires: { db: { kind: 'hana', credentials } } }))
 
 const vcap = path_join(process.cwd(), 'test', 'bookshop', 'vcap.json')
-writeFileSync(vcap, JSON.stringify({ VCAP_SERVICES: { hana: [{ label: 'hana', credentials }] } }))
+writeFileSync(vcap, JSON.stringify({ VCAP_SERVICES: { hana: [{ label: 'hana', tags: ['hana'], credentials }] } }))
