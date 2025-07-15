@@ -113,15 +113,6 @@ as well as observations of [CAPs Persistent Queue](https://cap.cloud.sap/docs/no
 
 #### Host Metrics
 
-##### Example `host metrics` outputs:
-
-```
-[telemetry] - host metrics:
-  Process Cpu time in seconds: { user: 1691.832, system: 218.223 }
-  Process Cpu usage time 0-1: { user: 82.07801878654074, system: 10.586932682237526 }
-  Process Memory usage in bytes: 141049856
-```
-
 Currently, there is no public config option to influence which metrics `@opentelemetry/host-metrics` collects.
 However, it is possible to instruct the meter provider during initialization, which metrics shall be ignored.
 By default, this is done for all `system.*` metrics collected by `@opentelemetry/host-metrics`.
@@ -131,7 +122,19 @@ As these so-called *views* must be passed into the constructor, the above only a
 To avoid spamming the console, only `process.*` metrics are printed by default, regardless of whether the `system.*` metrics are ignored or not.
 Printing the `system.*` metrics (if not ignored) in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
 
+##### Example `host metrics` outputs:
+
+```
+[telemetry] - host metrics:
+  Process Cpu time in seconds: { user: 1691.832, system: 218.223 }
+  Process Cpu usage time 0-1: { user: 82.07801878654074, system: 10.586932682237526 }
+  Process Memory usage in bytes: 141049856
+```
+
 #### Database Pool
+
+The collection of `db.pool` metrics, can be disabled by setting `cds.requires.telemetry.metrics._db_pool` to `false`.
+Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
 
 ##### Example `db.pool` outputs:
 
@@ -141,18 +144,7 @@ Printing the `system.*` metrics (if not ignored) in the built-in console exporte
       1/1 |       1/1 |       0
 ```
 
-The collection of `db.pool` metrics, can be disabled by setting `cds.requires.telemetry.metrics._db_pool` to `false`.
-Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
-
 #### Queue
-
-##### Example `queue` outputs:
-
-```
-[telemetry] - queue:
-     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing
-        2 |        32 |                2 |               16 |              128 |      256 |      512 
-```
 
 To capture measurements about the CAP Node.js _app instances_ persistent queue, interactions with and the current status of the relevant database table - `cds.outbox.Messages` - are observed.
 Observation for a specific queued service starts, once a message targeting that service is queued for the first time. 
@@ -161,6 +153,14 @@ All observations of storage times are measured in seconds.
 The collection of `queue` metrics, can be disabled by setting `cds.requires.telemetry.metrics._queue` to `false`.
 Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
 Please also note, that `queue` metrics are currently only available when using `@sap/cds >= 9`. 
+
+##### Example `queue` outputs:
+
+```
+[telemetry] - queue:
+     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing
+        2 |        32 |                2 |               16 |              128 |      256 |      512 
+```
 
 #### Custom Metrics
 
