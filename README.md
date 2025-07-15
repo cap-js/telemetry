@@ -111,10 +111,9 @@ These include generic [`@opentelemetry/host-metrics`](https://www.npmjs.com/pack
 metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`,
 as well as observations of [CAPs Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
 
-<details>
-<summary><b>Example Metric Outputs</b></summary>
+#### Host Metrics
 
-**`host metrics` outputs:**
+**Example `host metrics` outputs:**
 
 ```
 [telemetry] - host metrics:
@@ -122,25 +121,6 @@ as well as observations of [CAPs Persistent Queue](https://cap.cloud.sap/docs/no
   Process Cpu usage time 0-1: { user: 82.07801878654074, system: 10.586932682237526 }
   Process Memory usage in bytes: 141049856
 ```
-
-**`db.pool` outputs:**
-
-```
-[telemetry] - db.pool:
-     size | available | pending
-      1/1 |       1/1 |       0
-```
-
-**`queue` outputs:**
-
-```
-[telemetry] - queue:
-     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing`
-        2 |        32 |                2 |               16 |              128 |      256 |      512 
-```
-
-</details>
-<br/>
 
 Currently, there is no public config option to influence which metrics `@opentelemetry/host-metrics` collects.
 However, it is possible to instruct the meter provider during initialization, which metrics shall be ignored.
@@ -151,9 +131,38 @@ As these so-called *views* must be passed into the constructor, the above only a
 To avoid spamming the console, only `process.*` metrics are printed by default, regardless of whether the `system.*` metrics are ignored or not.
 Printing the `system.*` metrics (if not ignored) in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
 
-The collection of `db.pool` and `queue` metrics, can for now be disabled by setting `cds.requires.telemetry.metrics._db_pool` and `cds.requires.telemetry.metrics._queue` to false.
-Please note, that the specific name and structure of these options should be considered `beta` and may well be subject to future change. 
-Please also note, that `queue` metrics are currently only enabled in combination with `@sap/cds^9`. 
+#### Database Pool
+
+**Example `db.pool` outputs:**
+
+```
+[telemetry] - db.pool:
+     size | available | pending
+      1/1 |       1/1 |       0
+```
+
+The collection of `db.pool` metrics, can be disabled by setting `cds.requires.telemetry.metrics._db_pool` to `false`.
+Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
+
+#### Queue
+
+**Example `queue` outputs:**
+
+```
+[telemetry] - queue:
+     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing`
+        2 |        32 |                2 |               16 |              128 |      256 |      512 
+```
+
+To capture measurements about the CAP Node.js _app instances_ persistent queue, interactions with and the current status of the relevant database table - `cds.outbox.Messages` - are observed.
+Observation for a specific queued service starts, once a message targeting that service is queued for the first time. 
+All observations of storage times are measured in seconds. 
+
+The collection of `queue` metrics, can be disabled by setting `cds.requires.telemetry.metrics._queue` to `false`.
+Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
+Please also note, that `queue` metrics are currently only available when using `@sap/cds >= 9`. 
+
+#### Custom Metrics
 
 Finally, custom metrics can be added as shown in the following example (tenant-aware request counting):
 ```js
