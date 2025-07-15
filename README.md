@@ -151,8 +151,9 @@ As these so-called *views* must be passed into the constructor, the above only a
 To avoid spamming the console, only `process.*` metrics are printed by default, regardless of whether the `system.*` metrics are ignored or not.
 Printing the `system.*` metrics (if not ignored) in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
 
-The collection of `db.pool` and `queue` metrics, can be be disabled by setting `cds.requires.telemetry.metrics._db_pool` and `cds.requires.telemetry.metrics._queue` to false.
-Please note that `queue` metrics are currently only enabled in combination with `@sap/cds^9`. 
+The collection of `db.pool` and `queue` metrics, can for now be disabled by setting `cds.requires.telemetry.metrics._db_pool` and `cds.requires.telemetry.metrics._queue` to false.
+Please note, that the specific name and structure of these options should be considered `beta` and may well be subject to future change. 
+Please also note, that `queue` metrics are currently only enabled in combination with `@sap/cds^9`. 
 
 Finally, custom metrics can be added as shown in the following example (tenant-aware request counting):
 ```js
