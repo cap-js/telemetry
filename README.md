@@ -113,7 +113,7 @@ as well as observations of [CAPs Persistent Queue](https://cap.cloud.sap/docs/no
 
 #### Host Metrics
 
-**Example `host metrics` outputs:**
+##### Example `host metrics` outputs:
 
 ```
 [telemetry] - host metrics:
@@ -133,7 +133,7 @@ Printing the `system.*` metrics (if not ignored) in the built-in console exporte
 
 #### Database Pool
 
-**Example `db.pool` outputs:**
+##### Example `db.pool` outputs:
 
 ```
 [telemetry] - db.pool:
@@ -146,11 +146,11 @@ Please note, that the specific name and structure of this option should be consi
 
 #### Queue
 
-**Example `queue` outputs:**
+##### Example `queue` outputs:
 
 ```
 [telemetry] - queue:
-     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing`
+     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing
         2 |        32 |                2 |               16 |              128 |      256 |      512 
 ```
 
