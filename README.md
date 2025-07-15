@@ -106,16 +106,41 @@ In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no Ope
 
 Metrics are "measurements captured at runtime", which help you understand your app's health and performance.
 
-Out of the box, `@cap-js/telemetry` offers metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`.
+The `@cap-js/telemetry` enables the observation of some metrics out of the box. 
+These include generic [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) (if the package is found in the app's dependencies), 
+metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`,
+as well as observations of [CAPs Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
 
-Example db pool metrics printed to the console:
+<details>
+<summary><b>Example Metric Outputs</b></summary>
+
+**`host metrics` outputs:**
+
+```
+[telemetry] - host metrics:
+  Process Cpu time in seconds: { user: 1691.832, system: 218.223 }
+  Process Cpu usage time 0-1: { user: 82.07801878654074, system: 10.586932682237526 }
+  Process Memory usage in bytes: 141049856
+```
+
+**`db.pool` outputs:**
+
 ```
 [telemetry] - db.pool:
      size | available | pending
       1/1 |       1/1 |       0
 ```
 
-Additionally, `@cap-js/telemetry` instantiates and starts [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) if it is found in the app's dependencies.
+**`queue` outputs:**
+
+```
+[telemetry] - queue:
+     cold | remaining | min storage time | med storage time | max storage time | incoming | outgoing`
+        2 |        32 |                2 |               16 |              128 |      256 |      512 
+```
+
+</details>
+<br/>
 
 Currently, there is no public config option to influence which metrics `@opentelemetry/host-metrics` collects.
 However, it is possible to instruct the meter provider during initialization, which metrics shall be ignored.
@@ -126,13 +151,8 @@ As these so-called *views* must be passed into the constructor, the above only a
 To avoid spamming the console, only `process.*` metrics are printed by default, regardless of whether the `system.*` metrics are ignored or not.
 Printing the `system.*` metrics (if not ignored) in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
 
-Example host metrics printed to the console:
-```
-[telemetry] - host metrics:
-  Process Cpu time in seconds: { user: 1691.832, system: 218.223 }
-  Process Cpu usage time 0-1: { user: 82.07801878654074, system: 10.586932682237526 }
-  Process Memory usage in bytes: 141049856
-```
+The collection of `db.pool` and `queue` metrics, can be be disabled by setting `cds.requires.telemetry.metrics._db_pool` and `cds.requires.telemetry.metrics._queue` to false.
+Please note that `queue` metrics are currently only enabled in combination with `@sap/cds^9`. 
 
 Finally, custom metrics can be added as shown in the following example (tenant-aware request counting):
 ```js
