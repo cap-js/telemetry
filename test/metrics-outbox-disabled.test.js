@@ -1,4 +1,3 @@
-process.env.HOST_METRICS_LOG_SYSTEM = "true";
 process.env.cds_requires_outbox = true;
 process.env.cds_requires_telemetry_metrics = JSON.stringify({
   config: { exportIntervalMillis: 100 },
