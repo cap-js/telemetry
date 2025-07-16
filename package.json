@@ -87,7 +87,8 @@
             "config": {
               "exportIntervalMillis": 60000
             },
-            "_db_pool": true
+            "_db_pool": true,
+            "_queue": true
           }
         },
         "telemetry-to-console": {
