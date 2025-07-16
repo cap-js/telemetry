@@ -109,7 +109,7 @@ Metrics are "measurements captured at runtime", which help you understand your a
 The `@cap-js/telemetry` enables the observation of some metrics out of the box. 
 These include generic [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) (if the package is found in the app's dependencies), 
 metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`,
-as well as observations of [CAPs Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
+as well as metrics regarding [CAP's Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
 
 #### Host Metrics
 
@@ -136,7 +136,7 @@ Printing the `system.*` metrics (if not ignored) in the built-in console exporte
 The collection of `db.pool` metrics, can be disabled by setting `cds.requires.telemetry.metrics._db_pool` to `false`.
 Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
 
-##### Example `db.pool` outputs:
+##### Example `db.pool` output:
 
 ```
 [telemetry] - db.pool:
@@ -146,15 +146,16 @@ Please note, that the specific name and structure of this option should be consi
 
 #### Queue
 
-To capture measurements about the CAP Node.js _app instances_ persistent queue, interactions with and the current status of the relevant database table - `cds.outbox.Messages` - are observed.
-Observation for a specific queued service starts, once a message targeting that service is queued for the first time. 
-All observations of storage times are measured in seconds. 
+To capture measurements about CAP's persistent queue, interactions with and the current status of the relevant database table - `cds.outbox.Messages` - are observed.
+The interaction-based metrics `incoming` and `outgoing` are observed per app instance, whereas the table-based metrics `cold`, `remaining` and `* storage times` are observed per database (but by each app instance, nevertheless).
+Observation for a specific queued service starts, once a message targeting that service is queued for the first time.
+All observations of storage times are measured in seconds.
 
 The collection of `queue` metrics, can be disabled by setting `cds.requires.telemetry.metrics._queue` to `false`.
 Please note, that the specific name and structure of this option should be considered `beta` and may well be subject to future change.
-Please also note, that `queue` metrics are currently only available when using `@sap/cds >= 9`. 
+Further, `queue` metrics are only available when using `@sap/cds >= 9`.
 
-##### Example `queue` outputs:
+##### Example `queue` output:
 
 ```
 [telemetry] - queue:
