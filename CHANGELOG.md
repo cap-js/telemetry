@@ -9,7 +9,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Adopt stable semantic conventions
-- Observation of [Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue) metrics
+- Observation of [Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue) metrics (beta)
+  + Disable via config `cds.requires.telemetry.metrics._queue = false`
 
 ## Version 1.4.1 - 2025-06-27
 
