@@ -58,7 +58,7 @@ describe("queue metrics for multi tenant service", () => {
     const queuedService = cds.outboxed(unboxedService);
 
     proxyService.on("proxyCallToExternalService", async (req) => {
-      totalInc[req.tenant] += 1;
+      totalInc[cds.context.tenant] += 1;
       await queuedService.send("call", {});
       return req.reply("OK");
     });
