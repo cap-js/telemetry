@@ -20,14 +20,14 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
-    "@opentelemetry/core": "^1.27",
+    "@opentelemetry/core": "^1.30",
     "@opentelemetry/instrumentation": "^0.57",
     "@opentelemetry/instrumentation-http": "^0.57",
-    "@opentelemetry/resources": "^1.27",
-    "@opentelemetry/sdk-metrics": "^1.27",
-    "@opentelemetry/sdk-trace-base": "^1.27",
-    "@opentelemetry/sdk-trace-node": "^1.27",
-    "@opentelemetry/semantic-conventions": "^1.34"
+    "@opentelemetry/resources": "^1.30",
+    "@opentelemetry/sdk-metrics": "^1.30",
+    "@opentelemetry/sdk-trace-base": "^1.30",
+    "@opentelemetry/sdk-trace-node": "^1.30",
+    "@opentelemetry/semantic-conventions": "^1.36"
   },
   "peerDependencies": {
     "@sap/cds": ">=8"
@@ -43,7 +43,7 @@
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.57.0",
     "@opentelemetry/exporter-trace-otlp-proto": "^0.57.0",
     "@opentelemetry/host-metrics": "^0.36.0",
-    "@opentelemetry/instrumentation-runtime-node": "^0.16.0",
+    "@opentelemetry/instrumentation-runtime-node": "^0.17.0",
     "@sap/cds-mtxs": ">=2",
     "axios": "^1.6.7",
     "chai": "^4.4.1",
