@@ -11,8 +11,7 @@
   "license": "Apache-2.0",
   "main": "cds-plugin.js",
   "files": [
-    "lib",
-    "CHANGELOG.md"
+    "lib"
   ],
   "scripts": {
     "lint": "npx eslint .",
