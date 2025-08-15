@@ -39,7 +39,7 @@ describe('SAP Passport', () => {
   })
 
   test('gets set once for simple queries', async () => {
-    const { status } = await GET('/odata/v4/catalog/Books', admin)
+    const { status } = await GET('/odata/v4/admin/Books', admin)
     expect(status).to.equal(200)
     console.info('_count:', _count)
     console.info('_passports:', _passports)
@@ -50,7 +50,7 @@ describe('SAP Passport', () => {
   })
 
   test('gets set twice for prepared statements', async () => {
-    const { status } = await GET("/odata/v4/catalog/Books?$filter=title eq 'hurz'", admin)
+    const { status } = await GET("/odata/v4/admin/Books?$filter=title eq 'hurz'", admin)
     expect(status).to.equal(200)
     console.info('_count:', _count)
     console.info('_passports:', _passports)
