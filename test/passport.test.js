@@ -16,6 +16,7 @@ describe('SAP Passport', () => {
       srv.acquire = async function () {
         const dbc = await acquire.apply(this, arguments)
         const { set } = dbc._native
+        console.warn('>>> PATCH SET')
         dbc._native.set = function (obj) {
           if ('SAP_PASSPORT' in obj) {
             _passports.push(obj.SAP_PASSPORT)
