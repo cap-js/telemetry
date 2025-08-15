@@ -2,7 +2,7 @@ process.env.SAP_PASSPORT = 'true'
 
 const cds = require('@sap/cds')
 const { expect, GET } = cds.test().in(__dirname + '/bookshop')
-const log = cds.test.log()
+// const log = cds.test.log()
 
 describe('SAP Passport', () => {
   if (cds.env.requires.db.kind === 'sqlite') return test.skip('n/a for SQLite', () => {})
@@ -31,7 +31,7 @@ describe('SAP Passport', () => {
 
   const admin = { auth: { username: 'alice' } }
 
-  beforeEach(log.clear)
+  // beforeEach(log.clear)
   beforeEach(() => {
     _passports = []
     _count = 0
@@ -40,6 +40,8 @@ describe('SAP Passport', () => {
   test('gets set once for simple queries', async () => {
     const { status } = await GET('/odata/v4/catalog/Books', admin)
     expect(status).to.equal(200)
+    console.warn(_count)
+    console.warn(_passports)
     expect(_passports).to.equal([])
     expect(_count).to.equal(2)
     expect(_passports[0]).to.equal('') //> the reset
@@ -49,8 +51,10 @@ describe('SAP Passport', () => {
   test('gets set twice for prepared statements', async () => {
     const { status } = await GET("/odata/v4/catalog/Books?$filter=title eq 'hurz'", admin)
     expect(status).to.equal(200)
-    expect(_count).to.equal(3)
+    console.warn(_count)
+    console.warn(_passports)
     expect(_passports).to.equal([])
+    expect(_count).to.equal(3)
     expect(_passports[0]).to.equal('') //> the reset
     expect(_passports[1]).to.match(/^2A54482A/)
     expect(_passports[2]).to.match(/^2A54482A/)
