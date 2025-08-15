@@ -13,16 +13,23 @@ describe('SAP Passport', () => {
     if (srv.options.kind === 'hana' && !_patched) {
       _patched = true
       const { acquire } = srv
+      console.warn('>>> PATCH acquire', _patched)
       srv.acquire = async function () {
         const dbc = await acquire.apply(this, arguments)
         const { set } = dbc._native
-        console.warn('>>> PATCH SET')
-        dbc._native.set = function (obj) {
-          if ('SAP_PASSPORT' in obj) {
-            _passports.push(obj.SAP_PASSPORT)
-            _count++
-          }
-          return set.apply(this, arguments)
+        console.warn('>>> PATCH set', _patched)
+        console.warn('>>> set._patched', set._patched)
+        if (!set._patched) {
+          dbc._native.set = Object.assign(
+            function (obj) {
+              if ('SAP_PASSPORT' in obj) {
+                _passports.push(obj.SAP_PASSPORT)
+                _count++
+              }
+              return set.apply(this, arguments)
+            },
+            { _patched: true }
+          )
         }
         return dbc
       }
