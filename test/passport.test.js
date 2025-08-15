@@ -17,6 +17,7 @@ describe('SAP Passport', () => {
         const {
           _native: { set }
         } = dbc
+        console.warn('>>> PATCH SET')
         dbc._native.set = function (obj) {
           if ('SAP_PASSPORT' in obj) {
             console.info('SAP_PASSPORT:', obj.SAP_PASSPORT)
