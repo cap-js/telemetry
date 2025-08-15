@@ -19,6 +19,7 @@ describe('SAP Passport', () => {
         } = dbc
         dbc._native.set = function (obj) {
           if ('SAP_PASSPORT' in obj) {
+            console.info('SAP_PASSPORT:', obj.SAP_PASSPORT)
             _passports.push(obj.SAP_PASSPORT)
             _count++
           }
