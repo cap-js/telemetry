@@ -140,3 +140,4 @@ package-lock.json
 
 test/msg-box
 test/bookshop/gen
+test/bookshop/.cdsrc.json
