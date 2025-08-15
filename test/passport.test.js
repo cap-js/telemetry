@@ -37,7 +37,7 @@ describe('SAP Passport', () => {
     _count = 0
   })
 
-  test('gets set for simple queries', async () => {
+  test('gets set once for simple queries', async () => {
     const { status } = await GET('/odata/v4/catalog/Books', admin)
     expect(status).to.equal(200)
     expect(_count).to.equal(2)
@@ -45,7 +45,7 @@ describe('SAP Passport', () => {
     expect(_passports[1]).to.match(/^2A54482A/)
   })
 
-  test('gets set for prepared statements', async () => {
+  test('gets set twice for prepared statements', async () => {
     const { status } = await GET("/odata/v4/catalog/Books?$filter=title eq 'hurz'", admin)
     expect(status).to.equal(200)
     expect(_count).to.equal(3)
