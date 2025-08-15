@@ -8,28 +8,21 @@ describe('SAP Passport', () => {
 
   const admin = { auth: { username: 'alice' } }
 
-  let _patched
-  cds.on('connect', srv => {
-    if (srv.options.kind === 'hana' && !_patched) {
-      _patched = true
-      const { acquire } = srv
-      console.warn('>>> PATCH acquire', _patched)
-      srv.acquire = async function () {
+  cds.on('connect', async service => {
+    if (service.kind === 'hana') {
+      const { acquire } = service
+      service.acquire = async function () {
         const dbc = await acquire.apply(this, arguments)
-        const { set } = dbc._native
-        console.warn('>>> PATCH set', _patched)
-        console.warn('>>> set._patched', set._patched)
-        if (!set._patched) {
-          dbc._native.set = Object.assign(
-            function (obj) {
-              if ('SAP_PASSPORT' in obj) {
-                _passports.push(obj.SAP_PASSPORT)
-                _count++
-              }
-              return set.apply(this, arguments)
-            },
-            { _patched: true }
-          )
+        if (!dbc._native.set._patched) {
+          const { set } = dbc._native
+          dbc._native.set = function (obj) {
+            if ('SAP_PASSPORT' in obj) {
+              _passports.push(obj.SAP_PASSPORT)
+              _count++
+            }
+            return set.apply(this, arguments)
+          }
+          dbc._native.set._patched = true
         }
         return dbc
       }
