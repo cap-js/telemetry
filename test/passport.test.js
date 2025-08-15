@@ -36,22 +36,16 @@ describe('SAP Passport', () => {
   })
 
   test('gets set once for simple queries', async () => {
-    const { status } = await GET('/odata/v4/admin/Books', admin)
+    const { status } = await GET('/odata/v4/admin/Books?$select=ID,title', admin)
     expect(status).to.equal(200)
-    console.info('_count:', _count)
-    console.info('_passports:', _passports)
-    // expect(_passports).to.equal([])
     expect(_count).to.equal(2)
     expect(_passports[0]).to.equal('') //> the reset
     expect(_passports[1]).to.match(/^2A54482A/)
   })
 
   test('gets set twice for prepared statements', async () => {
-    const { status } = await GET("/odata/v4/admin/Books?$filter=title eq 'hurz'", admin)
+    const { status } = await GET("/odata/v4/admin/Books?$select=ID,title&$filter=title eq 'hurz'", admin)
     expect(status).to.equal(200)
-    console.info('_count:', _count)
-    console.info('_passports:', _passports)
-    // expect(_passports).to.equal([])
     expect(_count).to.equal(3)
     expect(_passports[0]).to.equal('') //> the reset
     expect(_passports[1]).to.match(/^2A54482A/)
