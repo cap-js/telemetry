@@ -35,4 +35,5 @@ jobs:
       - run: npm i
       - run: cds v
       - run: cd test/bookshop && cds deploy -2 hana --vcap-file vcap.json
-      - run: npm run test
+      #- run: npm run test
+      - run: npx jest
