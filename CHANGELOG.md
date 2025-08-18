@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.5.2 - 2025-08-15
+## Version 1.5.2 - 2025-08-18
 
 ### Fixed
 
