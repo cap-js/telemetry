@@ -74,31 +74,48 @@ describe("queue metrics for multi tenant service", () => {
 
   beforeEach(() => (consoleDirLogs.length = 0));
 
-  test("metrics are collected per tenant", async () => {
-    if (cds.version.split(".")[0] < 9) return;
+  describe("given the target service succeeds immediately", () => {
+    let unboxedService;
 
-    await Promise.all([
-      GET("/odata/v4/proxy/proxyCallToExternalService", user[T1]),
-      GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
-    ]);
+    beforeAll(async () => {
+      unboxedService = await cds.connect.to("ExternalService");
 
-    await wait(150); // Wait for metrics to be collected
+      unboxedService.on("call", (req) => {
+        return req.reply("OK");
+      });
+    });
 
-    expect(metricValue(T1, "cold_entries")).to.eq(totalCold[T1]);
-    expect(metricValue(T1, "incoming_messages")).to.eq(totalInc[T1]);
-    expect(metricValue(T1, "outgoing_messages")).to.eq(totalOut[T1]);
-    expect(metricValue(T1, "remaining_entries")).to.eq(0);
-    expect(metricValue(T1, "min_storage_time_in_seconds")).to.eq(0);
-    expect(metricValue(T1, "med_storage_time_in_seconds")).to.eq(0);
-    expect(metricValue(T1, "max_storage_time_in_seconds")).to.eq(0);
+    afterAll(async () => {
+      unboxedService.handlers.before = unboxedService.handlers.before.filter(
+        (handler) => handler.on !== "call"
+      );
+    });
+    test("metrics are collected per tenant", async () => {
+      if (cds.version.split(".")[0] < 9) return;
 
-    expect(metricValue(T2, "cold_entries")).to.eq(totalCold[T2]);
-    expect(metricValue(T2, "incoming_messages")).to.eq(totalInc[T2]);
-    expect(metricValue(T2, "outgoing_messages")).to.eq(totalOut[T2]);
-    expect(metricValue(T2, "remaining_entries")).to.eq(0);
-    expect(metricValue(T2, "min_storage_time_in_seconds")).to.eq(0);
-    expect(metricValue(T2, "med_storage_time_in_seconds")).to.eq(0);
-    expect(metricValue(T2, "max_storage_time_in_seconds")).to.eq(0);
+      await Promise.all([
+        GET("/odata/v4/proxy/proxyCallToExternalService", user[T1]),
+        GET("/odata/v4/proxy/proxyCallToExternalService", user[T2]),
+      ]);
+
+      await wait(150); // Wait for metrics to be collected
+
+      expect(metricValue(T1, "cold_entries")).to.eq(totalCold[T1]);
+      expect(metricValue(T1, "incoming_messages")).to.eq(totalInc[T1]);
+      expect(metricValue(T1, "outgoing_messages")).to.eq(totalOut[T1]);
+      expect(metricValue(T1, "remaining_entries")).to.eq(0);
+      expect(metricValue(T1, "min_storage_time_in_seconds")).to.eq(0);
+      expect(metricValue(T1, "med_storage_time_in_seconds")).to.eq(0);
+      expect(metricValue(T1, "max_storage_time_in_seconds")).to.eq(0);
+
+      expect(metricValue(T2, "cold_entries")).to.eq(totalCold[T2]);
+      expect(metricValue(T2, "incoming_messages")).to.eq(totalInc[T2]);
+      expect(metricValue(T2, "outgoing_messages")).to.eq(totalOut[T2]);
+      expect(metricValue(T2, "remaining_entries")).to.eq(0);
+      expect(metricValue(T2, "min_storage_time_in_seconds")).to.eq(0);
+      expect(metricValue(T2, "med_storage_time_in_seconds")).to.eq(0);
+      expect(metricValue(T2, "max_storage_time_in_seconds")).to.eq(0);
+    });
   });
 
   describe("given a target service that requires retries", () => {
