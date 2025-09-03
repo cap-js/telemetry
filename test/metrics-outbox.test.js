@@ -40,7 +40,7 @@ describe("queue metrics for single tenant service", () => {
   beforeAll(async () => {
     const proxyService = await cds.connect.to("ProxyService");
     const externalService = await cds.connect.to("ExternalService");
-    const queuedService = cds.outboxed(externalService);
+    const queuedService = cds.queued(externalService);
 
     proxyService.on("proxyCallToExternalService", async (req) => {
       await queuedService.send("call", {});
