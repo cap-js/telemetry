@@ -55,7 +55,7 @@ describe("queue metrics for multi tenant service", () => {
   beforeAll(async () => {
     const proxyService = await cds.connect.to("ProxyService");
     const unboxedService = await cds.connect.to("ExternalService");
-    const queuedService = cds.queued(unboxedService);
+    const queuedService = cds.outboxed(unboxedService);
 
     proxyService.on("proxyCallToExternalService", async (req) => {
       totalInc[cds.context.tenant] += 1;
