@@ -3,7 +3,7 @@
   if (!(cds.cli?.command in { '': 1, serve: 1, run: 1 })) return
 
   // REVISIT: workaround for cds.cli.command bug
-  if (process.env.TELEMETRY_SKIP_BUILD && process.argv.includes('build')) return
+  if (process.argv.includes('build')) return
 
   // cds add XXX currently also has cli.command === ''
   const i = process.argv.indexOf('add')
