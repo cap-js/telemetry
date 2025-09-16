@@ -145,6 +145,13 @@ describe('queue metrics for multi tenant service', () => {
     test('metrics are collected per tenant', async () => {
       if (cds.version.split('.')[0] < 9) return
 
+      // Get baseline metrics before test execution
+      await wait(150) // Wait for any previous test metrics to be collected
+      const baselineIncomingT1 = metricValue(T1, 'incoming_messages') || 0
+      const baselineIncomingT2 = metricValue(T2, 'incoming_messages') || 0
+      const baselineOutgoingT1 = metricValue(T1, 'outgoing_messages') || 0
+      const baselineOutgoingT2 = metricValue(T2, 'outgoing_messages') || 0
+
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
@@ -153,16 +160,16 @@ describe('queue metrics for multi tenant service', () => {
       await wait(150) // Wait for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
-      expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
-      expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'incoming_messages')).to.eq(baselineIncomingT1 + totalInc[T1])
+      expect(metricValue(T1, 'outgoing_messages')).to.eq(baselineOutgoingT1 + totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
       expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
-      expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
-      expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'incoming_messages')).to.eq(baselineIncomingT2 + totalInc[T2])
+      expect(metricValue(T2, 'outgoing_messages')).to.eq(baselineOutgoingT2 + totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
@@ -245,16 +252,16 @@ describe('queue metrics for multi tenant service', () => {
       await wait(200) // ... for metrics to be collected again
 
       expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
-      expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
-      expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'incoming_messages')).to.eq(baselineIncomingT1 + totalInc[T1])
+      expect(metricValue(T1, 'outgoing_messages')).to.eq(baselineOutgoingT1 + totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(1)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.be.gte(1)
 
       expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
-      expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
-      expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'incoming_messages')).to.eq(baselineIncomingT2 + totalInc[T2])
+      expect(metricValue(T2, 'outgoing_messages')).to.eq(baselineOutgoingT2 + totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(1)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.be.gte(1)
@@ -304,6 +311,13 @@ describe('queue metrics for multi tenant service', () => {
     test('cold entry is observed', async () => {
       if (cds.version.split('.')[0] < 9) return
 
+      // Get baseline metrics before test execution
+      await wait(150) // Wait for any previous test metrics to be collected
+      const baselineIncomingT1 = metricValue(T1, 'incoming_messages') || 0
+      const baselineIncomingT2 = metricValue(T2, 'incoming_messages') || 0
+      const baselineOutgoingT1 = metricValue(T1, 'outgoing_messages') || 0
+      const baselineOutgoingT2 = metricValue(T2, 'outgoing_messages') || 0
+
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
@@ -312,16 +326,16 @@ describe('queue metrics for multi tenant service', () => {
       await wait(150) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
-      expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
-      expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'incoming_messages')).to.eq(baselineIncomingT1 + totalInc[T1])
+      expect(metricValue(T1, 'outgoing_messages')).to.eq(baselineOutgoingT1 + totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
       expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
-      expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
-      expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'incoming_messages')).to.eq(baselineIncomingT2 + totalInc[T2])
+      expect(metricValue(T2, 'outgoing_messages')).to.eq(baselineOutgoingT2 + totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
