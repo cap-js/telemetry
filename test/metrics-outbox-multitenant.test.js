@@ -69,6 +69,34 @@ describe('queue metrics for multi tenant service', () => {
 
   beforeEach(() => (consoleDirLogs.length = 0))
 
+  afterAll(async () => {
+    // Clear any pending metrics timers and shutdown telemetry
+    try {
+      const telemetry = cds.services.telemetry
+      if (telemetry && telemetry._metricReader) {
+        await telemetry._metricReader.shutdown()
+      }
+    } catch {
+      // Ignore telemetry shutdown errors
+    }
+    
+    // Unsubscribe tenants to prevent hanging connections
+    try {
+      const mts = await cds.connect.to('cds.xt.DeploymentService')
+      await mts.unsubscribe(T1)
+      await mts.unsubscribe(T2)
+    } catch {
+      // Ignore unsubscribe errors
+    }
+    
+    // Force cleanup of any remaining async operations
+    try {
+      await cds.shutdown()
+    } catch {
+      // Ignore shutdown errors
+    }
+  })
+
   describe('given the target service succeeds immediately', () => {
     let unboxedService
 
@@ -81,7 +109,7 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     afterAll(async () => {
-      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.on !== 'call')
+      unboxedService.handlers.on = unboxedService.handlers.on.filter(handler => handler.event !== 'call')
     })
     test('metrics are collected per tenant', async () => {
       if (cds.version.split('.')[0] < 9) return
@@ -126,7 +154,7 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     afterAll(() => {
-      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.before !== 'call')
+      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.event !== 'call')
     })
 
     test('storage time increases before message can be delivered', async () => {
@@ -227,7 +255,7 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     afterAll(async () => {
-      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.before !== 'call')
+      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.event !== 'call')
     })
 
     test('cold entry is observed', async () => {
