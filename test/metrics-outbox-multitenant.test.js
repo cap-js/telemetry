@@ -46,6 +46,11 @@ describe('queue metrics for multi tenant service', () => {
   let totalCold = { [T1]: 0, [T2]: 0 }
   let totalInc = { [T1]: 0, [T2]: 0 }
   let totalOut = { [T1]: 0, [T2]: 0 }
+  
+  // Baseline metrics to account for state from previous tests
+  let baselineCold = { [T1]: 0, [T2]: 0 }
+  let baselineInc = { [T1]: 0, [T2]: 0 }
+  let baselineOut = { [T1]: 0, [T2]: 0 }
 
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
@@ -67,7 +72,33 @@ describe('queue metrics for multi tenant service', () => {
     await mts.subscribe(T2)
   })
 
-  beforeEach(() => (consoleDirLogs.length = 0))
+  beforeEach(async () => {
+    consoleDirLogs.length = 0
+    
+    // Reset counters to prevent state leakage between tests
+    totalCold = { [T1]: 0, [T2]: 0 }
+    totalInc = { [T1]: 0, [T2]: 0 }
+    totalOut = { [T1]: 0, [T2]: 0 }
+    
+    // Clear any existing queue entries to prevent metrics leakage between tests
+    try {
+      if (cds.db && cds.model.definitions['cds.outbox.Messages']) {
+        await DELETE.from('cds.outbox.Messages')
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+    
+    // Force metrics collection to ensure clean state
+    try {
+      const telemetry = cds.services.telemetry
+      if (telemetry && telemetry._metricReader) {
+        await telemetry._metricReader.forceFlush()
+      }
+    } catch {
+      // Ignore flush errors
+    }
+  })
 
   afterAll(async () => {
     // Clear any pending metrics timers and shutdown telemetry
@@ -153,12 +184,24 @@ describe('queue metrics for multi tenant service', () => {
       })
     })
 
+    beforeEach(() => {
+      // Reset retry counter for each test
+      currentRetryCount = { [T1]: 0, [T2]: 0 }
+    })
+
     afterAll(() => {
       unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.event !== 'call')
     })
 
     test('storage time increases before message can be delivered', async () => {
       if (cds.version.split('.')[0] < 9) return
+
+      // Get baseline metrics before test execution
+      await wait(150) // Wait for any previous test metrics to be collected
+      const baselineIncomingT1 = metricValue(T1, 'incoming_messages') || 0
+      const baselineIncomingT2 = metricValue(T2, 'incoming_messages') || 0
+      const baselineOutgoingT1 = metricValue(T1, 'outgoing_messages') || 0
+      const baselineOutgoingT2 = metricValue(T2, 'outgoing_messages') || 0
 
       const timeOfInitialCall = Date.now()
       await Promise.all([
@@ -171,16 +214,16 @@ describe('queue metrics for multi tenant service', () => {
       expect(currentRetryCount[T2]).to.eq(1)
 
       expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
-      expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
-      expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'incoming_messages')).to.eq(baselineIncomingT1 + totalInc[T1])
+      expect(metricValue(T1, 'outgoing_messages')).to.eq(baselineOutgoingT1 + totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(1)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
       expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
-      expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
-      expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'incoming_messages')).to.eq(baselineIncomingT2 + totalInc[T2])
+      expect(metricValue(T2, 'outgoing_messages')).to.eq(baselineOutgoingT2 + totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(1)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
