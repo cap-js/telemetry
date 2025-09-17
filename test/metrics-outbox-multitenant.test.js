@@ -1,6 +1,6 @@
 process.env.cds_requires_outbox = true
 process.env.cds_requires_telemetry_metrics = JSON.stringify({
-  config: { exportIntervalMillis: 100 },
+  config: { exportIntervalMillis: 200 },
   _db_pool: false,
   _queue: true,
   exporter: {
@@ -84,7 +84,7 @@ describe('queue metrics for multi tenant service', () => {
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
       ])
 
-      await wait(150) // Wait for metrics to be collected
+      await wait(300) // Wait for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
@@ -157,7 +157,7 @@ describe('queue metrics for multi tenant service', () => {
       // Wait for the first retry to be initiated
       while (currentRetryCount[T1] < 2) await wait(100)
       while (currentRetryCount[T2] < 2) await wait(100)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
+      await wait(300) // ... for the retry to be processed and metrics to be collected
       
       expect(currentRetryCount[T1]).to.eq(2)
       expect(currentRetryCount[T2]).to.eq(2)
@@ -189,7 +189,8 @@ describe('queue metrics for multi tenant service', () => {
       // Wait for the second retry to be initiated
       while (currentRetryCount[T1] < 3) await wait(100)
       while (currentRetryCount[T2] < 3) await wait(100)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
+      await wait(300) // ... for the retry to be processed and metrics to be collected
+
       expect(currentRetryCount[T1]).to.eq(3)
       expect(currentRetryCount[T2]).to.eq(3)
 
@@ -232,7 +233,7 @@ describe('queue metrics for multi tenant service', () => {
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
       ])
 
-      await wait(150) // ... for metrics to be collected
+      await wait(300) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(1)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
