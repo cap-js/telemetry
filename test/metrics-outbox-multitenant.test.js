@@ -67,7 +67,11 @@ describe('queue metrics for multi tenant service', () => {
     await mts.subscribe(T2)
   })
 
-  beforeEach(() => (consoleDirLogs.length = 0))
+  beforeEach(async () => {
+    await cds.tx({ tenant: T1 }, async (tx) => await tx.run(DELETE.from('cds.outbox.Messages')))
+    await cds.tx({ tenant: T2 }, async (tx) => await tx.run(DELETE.from('cds.outbox.Messages')))
+    consoleDirLogs.length = 0
+  })
 
   describe('given the target service succeeds immediately', () => {
     let unboxedService
@@ -75,14 +79,14 @@ describe('queue metrics for multi tenant service', () => {
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
 
-      unboxedService.on('call', req => {
-        return req.reply('OK')
-      })
+      // Register handler to avoid error due to unhandled action
+      unboxedService.on('call', req => req.reply('OK'))
     })
 
     afterAll(async () => {
-      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.on !== 'call')
+      unboxedService.handlers.on = unboxedService.handlers.on.filter(handler => handler.on === 'call')
     })
+
     test('metrics are collected per tenant', async () => {
       if (cds.version.split('.')[0] < 9) return
 

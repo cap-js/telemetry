@@ -53,7 +53,10 @@ describe('queue metrics for single tenant service', () => {
     })
   })
 
-  beforeEach(() => (consoleDirLogs.length = 0))
+  beforeEach(async () => {
+    await DELETE.from('cds.outbox.Messages')
+    consoleDirLogs.length = 0
+  })
 
   describe('given the target service succeeds immediately', () => {
     let unboxedService
@@ -61,13 +64,12 @@ describe('queue metrics for single tenant service', () => {
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
 
-      unboxedService.on('call', req => {
-        return req.reply('OK')
-      })
+      // Register handler to avoid error due to unhandled action
+      unboxedService.on('call', req => req.reply('OK'))
     })
 
     afterAll(async () => {
-      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.on !== 'call')
+      unboxedService.handlers.on = unboxedService.handlers.on.filter(handler => handler.on === 'call')
     })
 
     test('metrics are collected', async () => {
