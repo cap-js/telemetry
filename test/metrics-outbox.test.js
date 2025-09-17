@@ -39,8 +39,8 @@ describe('queue metrics for single tenant service', () => {
 
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
-    const externalService = await cds.connect.to('ExternalService')
-    const queuedService = cds.outboxed(externalService)
+    const unboxedService = await cds.connect.to('ExternalService')
+    const queuedService = cds.outboxed(unboxedService)
 
     proxyService.on('proxyCallToExternalService', async req => {
       await queuedService.send('call', {})
@@ -48,7 +48,10 @@ describe('queue metrics for single tenant service', () => {
       return req.reply('OK')
     })
 
-    externalService.before('*', () => {
+    // Register handler to avoid error due to unhandled action
+    unboxedService.on('call', req => req.reply('OK'))
+
+    unboxedService.before('*', () => {
       totalOut += 1
     })
   })
@@ -59,18 +62,6 @@ describe('queue metrics for single tenant service', () => {
   })
 
   describe('given the target service succeeds immediately', () => {
-    let unboxedService
-
-    beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
-
-      // Register handler to avoid error due to unhandled action
-      unboxedService.on('call', req => req.reply('OK'))
-    })
-
-    afterAll(async () => {
-      unboxedService.handlers.on = unboxedService.handlers.on.filter(handler => handler.on === 'call')
-    })
 
     test('metrics are collected', async () => {
       if (cds.version.split('.')[0] < 9) return

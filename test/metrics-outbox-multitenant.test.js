@@ -58,6 +58,9 @@ describe('queue metrics for multi tenant service', () => {
       return req.reply('OK')
     })
 
+    // Register handler to avoid error due to unhandled action
+    unboxedService.on('call', req => req.reply('OK'))
+
     unboxedService.before('*', () => {
       totalOut[cds.context.tenant] += 1
     })
@@ -74,19 +77,6 @@ describe('queue metrics for multi tenant service', () => {
   })
 
   describe('given the target service succeeds immediately', () => {
-    let unboxedService
-
-    beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
-
-      // Register handler to avoid error due to unhandled action
-      unboxedService.on('call', req => req.reply('OK'))
-    })
-
-    afterAll(async () => {
-      unboxedService.handlers.on = unboxedService.handlers.on.filter(handler => handler.on === 'call')
-    })
-
     test('metrics are collected per tenant', async () => {
       if (cds.version.split('.')[0] < 9) return
 
