@@ -133,7 +133,7 @@ describe('queue metrics for multi tenant service', () => {
 
       while (currentRetryCount[T1] < 1) await wait(100)
       while (currentRetryCount[T2] < 1) await wait(100)
-      await wait(150) // ... for metrics to be collected
+      await wait(300) // ... for metrics to be collected
 
       expect(currentRetryCount[T1]).to.eq(1)
       expect(currentRetryCount[T2]).to.eq(1)
@@ -168,7 +168,7 @@ describe('queue metrics for multi tenant service', () => {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
       }
 
-      await wait(200) // ... for metrics to be collected again
+      await wait(300) // ... for metrics to be collected again
 
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
