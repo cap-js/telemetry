@@ -131,7 +131,10 @@ describe('queue metrics for multi tenant service', () => {
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
       ])
 
+      while (currentRetryCount[T1] < 1) await wait(100)
+      while (currentRetryCount[T2] < 1) await wait(100)
       await wait(150) // ... for metrics to be collected
+
       expect(currentRetryCount[T1]).to.eq(1)
       expect(currentRetryCount[T2]).to.eq(1)
 
@@ -155,6 +158,7 @@ describe('queue metrics for multi tenant service', () => {
       while (currentRetryCount[T1] < 2) await wait(100)
       while (currentRetryCount[T2] < 2) await wait(100)
       await wait(150) // ... for the retry to be processed and metrics to be collected
+      
       expect(currentRetryCount[T1]).to.eq(2)
       expect(currentRetryCount[T2]).to.eq(2)
 
