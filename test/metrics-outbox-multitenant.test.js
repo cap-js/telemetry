@@ -43,7 +43,6 @@ describe('queue metrics for multi tenant service', () => {
     [T2]: { auth: { username: `user_${T2}` } }
   }
 
-  let totalCold = { [T1]: 0, [T2]: 0 }
   let totalInc = { [T1]: 0, [T2]: 0 }
   let totalOut = { [T1]: 0, [T2]: 0 }
 
@@ -87,7 +86,7 @@ describe('queue metrics for multi tenant service', () => {
 
       await wait(150) // Wait for metrics to be collected
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
@@ -95,7 +94,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
@@ -136,7 +135,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(currentRetryCount[T1]).to.eq(1)
       expect(currentRetryCount[T2]).to.eq(1)
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(1)
@@ -144,7 +143,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(1)
@@ -167,7 +166,7 @@ describe('queue metrics for multi tenant service', () => {
 
       await wait(200) // ... for metrics to be collected again
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(1)
@@ -175,7 +174,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.be.gte(1)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(1)
@@ -190,7 +189,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(currentRetryCount[T1]).to.eq(3)
       expect(currentRetryCount[T2]).to.eq(3)
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
@@ -198,7 +197,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
@@ -214,10 +213,7 @@ describe('queue metrics for multi tenant service', () => {
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
 
-      unboxedService.before('call', req => {
-        totalCold[cds.context.tenant] += 1
-        return req.reject({ status: 418, unrecoverable: true })
-      })
+      unboxedService.before('call', req =>  req.reject({ status: 418, unrecoverable: true }))
     })
 
     afterAll(async () => {
@@ -234,7 +230,7 @@ describe('queue metrics for multi tenant service', () => {
 
       await wait(150) // ... for metrics to be collected
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(1)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
@@ -242,7 +238,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(1)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)

@@ -31,7 +31,6 @@ function metricValue(metric) {
 }
 
 describe('queue metrics for single tenant service', () => {
-  let totalCold = 0
   let totalInc = 0
   let totalOut = 0
 
@@ -70,7 +69,7 @@ describe('queue metrics for single tenant service', () => {
 
       await wait(150) // Wait for metrics to be collected
 
-      expect(metricValue('cold_entries')).to.eq(totalCold)
+      expect(metricValue('cold_entries')).to.eq(0)
       expect(metricValue('remaining_entries')).to.eq(0)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
@@ -109,7 +108,7 @@ describe('queue metrics for single tenant service', () => {
       await wait(150) // ... for metrics to be collected
       expect(currentRetryCount).to.eq(1)
 
-      expect(metricValue('cold_entries')).to.eq(totalCold)
+      expect(metricValue('cold_entries')).to.eq(0)
       expect(metricValue('remaining_entries')).to.eq(1)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
@@ -130,7 +129,7 @@ describe('queue metrics for single tenant service', () => {
 
       await wait(150) // ... for metrics to be collected again
 
-      expect(metricValue('cold_entries')).to.eq(totalCold)
+      expect(metricValue('cold_entries')).to.eq(0)
       expect(metricValue('remaining_entries')).to.eq(1)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
@@ -143,7 +142,7 @@ describe('queue metrics for single tenant service', () => {
       await wait(150) // ... for the retry to be processed and metrics to be collected
       expect(currentRetryCount).to.eq(3)
 
-      expect(metricValue('cold_entries')).to.eq(totalCold)
+      expect(metricValue('cold_entries')).to.eq(0)
       expect(metricValue('remaining_entries')).to.eq(0)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
@@ -160,7 +159,6 @@ describe('queue metrics for single tenant service', () => {
       unboxedService = await cds.connect.to('ExternalService')
 
       unboxedService.before('call', req => {
-        totalCold += 1
         return req.reject({ status: 418, unrecoverable: true })
       })
     })
@@ -176,7 +174,7 @@ describe('queue metrics for single tenant service', () => {
 
       await wait(150) // ... for metrics to be collected
 
-      expect(metricValue('cold_entries')).to.eq(totalCold)
+      expect(metricValue('cold_entries')).to.eq(1)
       expect(metricValue('remaining_entries')).to.eq(0)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
