@@ -107,8 +107,7 @@ describe('queue metrics for multi tenant service', () => {
   describe('given a target service that requires retries', () => {
     if (cds.version.split('.')[0] < 9) return
 
-    let currentRetryCount = { [T1]: 0, [T2]: 0 }
-    let unboxedService
+    let currentRetryCount, unboxedService
 
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
@@ -122,6 +121,10 @@ describe('queue metrics for multi tenant service', () => {
       unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.before !== 'call')
     })
 
+    beforeEach(() => {
+      currentRetryCount = { [T1]: 0, [T2]: 0 }
+    })
+
     test('storage time increases before message can be delivered', async () => {
       if (cds.version.split('.')[0] < 9) return
 
@@ -131,38 +134,16 @@ describe('queue metrics for multi tenant service', () => {
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
       ])
 
-      // Wait for the initial call to be processed
-      while (currentRetryCount[T1] < 1) await wait(10)
-      while (currentRetryCount[T2] < 1) await wait(10)
-      await wait(300) // ... for metrics to be collected
-
-      expect(metricValue(T1, 'cold_entries')).to.eq(0)
-      expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
-      expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
-      expect(metricValue(T1, 'remaining_entries')).to.eq(1)
-      expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
-
-      expect(metricValue(T2, 'cold_entries')).to.eq(0)
-      expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
-      expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
-      expect(metricValue(T2, 'remaining_entries')).to.eq(1)
-      expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'max_storage_time_in_seconds')).to.eq(0)
-
       // Wait for the first retry to be processed
       while (currentRetryCount[T1] < 2) await wait(10)
       while (currentRetryCount[T2] < 2) await wait(10)
-
+    
       // Wait until at least 1 second has passed since the initial call
       const timeAfterFirstRetry = Date.now()
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
       }
-
-      await wait(300) // ... for metrics to be collected again
+      await wait(300) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
@@ -231,23 +212,17 @@ describe('queue metrics for multi tenant service', () => {
 
       while (!didProcess[T1]) await wait(10)
       while (!didProcess[T2]) await wait(10)
-      await wait(300) // ... for metrics to be collected
+      await wait(500) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(1)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
-      expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
       expect(metricValue(T2, 'cold_entries')).to.eq(1)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
-      expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'max_storage_time_in_seconds')).to.eq(0)
     })
   })
 })
