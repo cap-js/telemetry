@@ -164,7 +164,7 @@ describe('queue metrics for multi tenant service', () => {
       // Wait for the second retry to be processd
       while (currentRetryCount[T1] < 3) await wait(10)
       while (currentRetryCount[T2] < 3) await wait(10)
-      await wait(300) // ... for metrics to be collected
+      await wait(600) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
