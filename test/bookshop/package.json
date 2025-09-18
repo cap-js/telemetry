@@ -49,7 +49,6 @@
         "kind": "persistent-outbox"
       },
       "queue": {
-        "kind": "persistent-queue",
         "legacyLocking": false
       },
       "ExternalService": {
