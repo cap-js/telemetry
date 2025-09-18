@@ -1,6 +1,6 @@
 process.env.cds_requires_outbox = true
 process.env.cds_requires_telemetry_metrics = JSON.stringify({
-  config: { exportIntervalMillis: 200 },
+  config: { exportIntervalMillis: 250 },
   _db_pool: false,
   _queue: true,
   exporter: {
@@ -206,10 +206,15 @@ describe('queue metrics for multi tenant service', () => {
   describe('given a taget service that fails unrecoverably', () => {
     let unboxedService
 
+    const didProcess = { [T1]: false, [T2]: false }
+
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
 
-      unboxedService.before('call', req =>  req.reject({ status: 418, unrecoverable: true }))
+      unboxedService.before('call', req =>  {
+        didProcess[cds.context.tenant] = true
+        return req.reject({ status: 418, unrecoverable: true })
+      })
     })
 
     afterAll(async () => {
@@ -224,6 +229,8 @@ describe('queue metrics for multi tenant service', () => {
         GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
       ])
 
+      while (!didProcess[T1]) await wait(10)
+      while (!didProcess[T2]) await wait(10)
       await wait(300) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(1)
