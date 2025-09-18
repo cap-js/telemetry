@@ -70,8 +70,8 @@ describe('queue metrics for multi tenant service', () => {
   })
 
   beforeEach(async () => {
-    await cds.tx({ tenant: T1 }, async (tx) => await tx.run(DELETE.from('cds.outbox.Messages')))
-    await cds.tx({ tenant: T2 }, async (tx) => await tx.run(DELETE.from('cds.outbox.Messages')))
+    await cds.tx({ tenant: T1 }, () => DELETE.from('cds.outbox.Messages'))
+    await cds.tx({ tenant: T2 }, () => DELETE.from('cds.outbox.Messages'))
     consoleDirLogs.length = 0
   })
 
