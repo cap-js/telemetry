@@ -4,8 +4,8 @@ runs:
   using: "composite"
   steps:
     - name: Cleanup old instances
-      run: node ${{ github.action_path }}/../scripts/hana-hdi-container/cleanup.js
+      run: node ${{ github.action_path }}/../../scripts/hana-hdi-container/cleanup.js
       shell: bash
     - name: Setup new instance
-      run: node ${{ github.action_path }}/../scripts/hana-hdi-container/setup.js
+      run: node ${{ github.action_path }}/../../scripts/hana-hdi-container/setup.js
       shell: bash
