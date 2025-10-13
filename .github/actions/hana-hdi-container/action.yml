@@ -1,0 +1,11 @@
+name: "HANA HDI Container Management"
+description: "Manages HANA HDI containers by cleaning up old instances and setting up new ones"
+runs:
+  using: "composite"
+  steps:
+    - name: Cleanup old instances
+      run: node ${{ github.action_path }}/../scripts/hana-hdi-container/cleanup.js
+      shell: bash
+    - name: Setup new instance
+      run: node ${{ github.action_path }}/../scripts/hana-hdi-container/setup.js
+      shell: bash
