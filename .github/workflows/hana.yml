@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
-      - uses: cap-js/.github/.github/actions/hana-hdi-container@main
+      - uses: cap-js/.github/.github/actions/hana-hdi-container@github-action-for-hana-hdi-container
         env:
           SM_CLIENT_ID: ${{ secrets.SM_CLIENT_ID }}
           SM_CLIENT_SECRET: ${{ secrets.SM_CLIENT_SECRET }}
