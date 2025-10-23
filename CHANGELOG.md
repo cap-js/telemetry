@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.5.4 - 2025-10-23
+
+### Fixed
+
+- Handle pre-initialized `LoggerProvider`
+
 ## Version 1.5.3 - 2025-09-01
 
 ### Fixed
