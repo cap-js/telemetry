@@ -48,6 +48,9 @@
       "_outbox": {
         "kind": "persistent-outbox"
       },
+      "queue": {
+        "legacyLocking": false
+      },
       "ExternalService": {
         "kind": "odata",
         "model": "srv/external/ExternalService"
