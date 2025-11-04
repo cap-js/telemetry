@@ -27,10 +27,10 @@ jobs:
       - uses: cap-js/.github/.github/actions/hana-hdi-container
         with:
           instance-prefix: "telemetry"
-          cleanup-age-hours: "1"
           service-plan-id: "fa787a6e-4e35-461a-ac5d-4189a2cf8084"
           auth-url: "https://cdx-stakeholder-tests.authentication.eu10.hana.ondemand.com/oauth/token"
           service-manager-url: "https://service-manager.cfapps.eu10.hana.ondemand.com"
+          cleanup-age-hours: "1"
         env:
           SM_CLIENT_ID: ${{ secrets.SM_CLIENT_ID }}
           SM_CLIENT_SECRET: ${{ secrets.SM_CLIENT_SECRET }}
