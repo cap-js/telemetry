@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v2
       - uses: cap-js/.github/.github/actions/hana-hdi-container@fix-hana-hdi-container
         with:
-          instance-prefix: telemetry
+          instance-prefix: "telemetry"
           service-manager-url: ${{ secrets.SM_URL }}
           hana-plan-id: ${{ secrets.HANA_PLAN_ID }}
           service-manager-auth-url: ${{ secrets.SM_AUTH_URL }}
