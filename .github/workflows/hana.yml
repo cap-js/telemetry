@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
-      - uses: cap-js/.github/.github/actions/hana-hdi-container@main
+      - uses: cap-js/.github/.github/actions/hana-hdi-container@fix-hana-hdi-container
         with:
           instance-prefix: "telemetry"
           service-plan-id: "fa787a6e-4e35-461a-ac5d-4189a2cf8084"
