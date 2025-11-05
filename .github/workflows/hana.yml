@@ -27,7 +27,7 @@ jobs:
       - uses: cap-js/.github/.github/actions/hana-hdi-container@fix-hana-hdi-container
         with:
           instance-prefix: telemetry
-          config-path: test
+          config-path: test/bookshop
           service-manager-url: ${{ secrets.SM_URL }}
           hana-plan-id: ${{ secrets.HANA_PLAN_ID }}
           service-manager-auth-url: ${{ secrets.SM_AUTH_URL }}
