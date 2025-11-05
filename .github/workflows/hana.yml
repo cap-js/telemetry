@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
-      - uses: cap-js/.github/.github/actions/hana-hdi-container@fix-hana-hdi-container
+      - uses: cap-js/.github/.github/actions/hana-hdi-container@main
         with:
           instance-prefix: telemetry
           config-path: test/bookshop
