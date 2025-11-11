@@ -183,4 +183,25 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('max_storage_time_in_seconds')).to.eq(0)
     })
   })
+
+  describe('given someone tries to interact with the persistent outox table directly', () => {
+    describe('app should not crash', () => {
+
+      test('when a messages targeting an unknwon service is added to the persistent outbox', async () => {  
+        try {
+          await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'unknown-service' })
+        } catch {
+          expect.fail('Did not expect an error here')
+        }
+      })
+
+      test.skip('when a message targetin an unqueued service is added to the persistent outbox', async () => {
+        try {
+          await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'CatalogService' })
+        } catch {
+          expect.fail('Did not expect an error here')
+        }
+      })
+    })
+  })
 })
