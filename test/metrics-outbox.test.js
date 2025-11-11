@@ -19,6 +19,7 @@ const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks')
+const debugLog = cds.log('telemetry').debug = jest.fn(() => {})
 
 function metricValue(metric) {
   const mostRecentMetricLog = consoleDirLogs.findLast(
@@ -58,6 +59,7 @@ describe('queue metrics for single tenant service', () => {
   beforeEach(async () => {
     await DELETE.from('cds.outbox.Messages')
     consoleDirLogs.length = 0
+    debugLog.mockClear()
   })
 
   describe('given the target service succeeds immediately', () => {
@@ -193,14 +195,18 @@ describe('queue metrics for single tenant service', () => {
         } catch {
           expect.fail('Did not expect an error here')
         }
+
+        expect(debugLog.mock.calls.some(log => log[0].match(/unknown service/i))).to.be.true
       })
 
-      test.skip('when a message targetin an unqueued service is added to the persistent outbox', async () => {
+      test('when a message targetin an unqueued service is added to the persistent outbox', async () => {
         try {
           await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'CatalogService' })
         } catch {
           expect.fail('Did not expect an error here')
         }
+
+        expect(debugLog.mock.calls.some(log => log[0].match(/unqueued service/i))).to.be.true
       })
     })
   })
