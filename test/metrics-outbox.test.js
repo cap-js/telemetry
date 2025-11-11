@@ -201,7 +201,7 @@ describe('queue metrics for single tenant service', () => {
         expect(debugLog.mock.calls.some(log => log[0].match(/unknown service/i))).to.be.true
       })
 
-      test('when a message targeting an unqueued service is added to the persistent outbox', async () => {
+      test('when a message targeting an unqueued service is added to the persistent outbox table manually', async () => {
         if (cds.version.split('.')[0] < 9) return
         
         try {
