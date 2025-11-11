@@ -189,7 +189,7 @@ describe('queue metrics for single tenant service', () => {
   describe('given someone tries to interact with the persistent outox table directly', () => {
     describe('app should not crash', () => {
 
-      test('when a messages targeting an unknwon service is added to the persistent outbox', async () => {  
+      test('when a message targeting an unknown service is added to the persistent outbox table manually', async () => {  
         if (cds.version.split('.')[0] < 9) return
 
         try {
