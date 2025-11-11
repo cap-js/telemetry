@@ -190,6 +190,8 @@ describe('queue metrics for single tenant service', () => {
     describe('app should not crash', () => {
 
       test('when a messages targeting an unknwon service is added to the persistent outbox', async () => {  
+        if (cds.version.split('.')[0] < 9) return
+
         try {
           await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'unknown-service' })
         } catch {
@@ -199,7 +201,9 @@ describe('queue metrics for single tenant service', () => {
         expect(debugLog.mock.calls.some(log => log[0].match(/unknown service/i))).to.be.true
       })
 
-      test('when a message targetin an unqueued service is added to the persistent outbox', async () => {
+      test('when a message targeting an unqueued service is added to the persistent outbox', async () => {
+        if (cds.version.split('.')[0] < 9) return
+        
         try {
           await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'CatalogService' })
         } catch {
