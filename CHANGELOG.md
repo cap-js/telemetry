@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.6.0 - 2025-11-XX
+
+### Added
+
+- Provide custom resource attributes via `cds.requires.telemetry.resource`
+
 ## Version 1.5.3 - 2025-09-01
 
 ### Fixed
