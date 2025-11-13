@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- Provide custom resource attributes via `cds.requires.telemetry.resourc.attributes`
+- Provide custom resource attributes via `cds.requires.telemetry.resource.attributes`
 
 ### Fixed
 
