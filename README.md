@@ -367,6 +367,23 @@ For example, it is possible to specify the `temporalityPreference` setting of th
 ```
 
 
+### Resource Attributes
+
+Resource attributes describe the entity producing telemetry.
+See [Resources](https://opentelemetry.io/docs/concepts/resources) and [Resource semantic conventions](https://opentelemetry.io/docs/specs/semconv/resource) for more details.
+
+`@cap-js/telemetry` automatically derives resource attributes from the app's info (`package.json`) as well as the app's environment ().
+You can configure additional attributes or also overwrite the derived attributes via `cds.requires.telemetry.resource.attributes = { <key>: <value>, ... }`
+
+Example:
+```json
+{
+  "service.version": "1.2.3",
+  "my.custom.attribute": "foo"
+}
+```
+
+
 ### Instrumentations
 
 Configure via `cds.requires.telemetry.instrumentations = { <name>: { module, class, config? } }`
