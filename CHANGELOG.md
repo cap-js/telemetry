@@ -10,6 +10,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Provide custom resource attributes via `cds.requires.telemetry.resource`
 
+### Fixed
+
+- Resolving of `OTEL_LOG_LEVEL`
+
+## Version 1.5.4 - 2025-10-27
+
+### Fixed
+
+- Handle pre-initialized `LoggerProvider`
+
 ## Version 1.5.3 - 2025-09-01
 
 ### Fixed
