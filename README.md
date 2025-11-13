@@ -34,6 +34,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
+  - [Resource Attributes](#resource-attributes)
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
