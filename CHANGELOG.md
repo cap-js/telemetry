@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 - Resolving of `OTEL_LOG_LEVEL`
+- Skip registration of queue metrics collection for unknown service
 
 ## Version 1.5.4 - 2025-10-27
 
