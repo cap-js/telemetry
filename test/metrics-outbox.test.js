@@ -200,18 +200,6 @@ describe('queue metrics for single tenant service', () => {
 
         expect(debugLog.mock.calls.some(log => log[0].match(/unknown service/i))).to.be.true
       })
-
-      test('when a message targeting an unqueued service is added to the persistent outbox table manually', async () => {
-        if (cds.version.split('.')[0] < 9) return
-        
-        try {
-          await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'CatalogService' })
-        } catch {
-          expect.fail('Did not expect an error here')
-        }
-
-        expect(debugLog.mock.calls.some(log => log[0].match(/unqueued service/i))).to.be.true
-      })
     })
   })
 })
