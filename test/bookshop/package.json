@@ -76,6 +76,24 @@
         }
       }
     },
+    "[outbox-metrics-tests]": {
+      "requires": {
+        "queue": true,
+        "telemetry": {
+          "metrics": {
+            "config": {
+              "exportIntervalMillis": 100
+            },
+            "_db_pool": false,
+            "_queue": true,
+            "exporter": {
+              "module": "@opentelemetry/sdk-metrics",
+              "class": "ConsoleMetricExporter"
+            }
+          }
+        }
+      }
+    },
     "log": {
       "cls_custom_fields": [
         "tenant_id"
