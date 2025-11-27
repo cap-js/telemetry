@@ -27,6 +27,7 @@ function metricValue(metric) {
 describe('queue metrics for single tenant service', () => {
   let totalInc = 0
   let totalOut = 0
+  let totalFailed = 0
 
   const admin = { auth: { username: 'alice' } }
 
@@ -68,6 +69,7 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('remaining_entries')).to.eq(0)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
+      expect(metricValue('processing_failures')).to.eq(totalFailed)
       expect(metricValue('min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('max_storage_time_in_seconds')).to.eq(0)
@@ -82,7 +84,10 @@ describe('queue metrics for single tenant service', () => {
       unboxedService = await cds.connect.to('ExternalService')
 
       unboxedService.before('call', req => {
-        if ((currentRetryCount += 1) <= 2) return req.reject({ status: 503 })
+        if ((currentRetryCount += 1) <= 2) {
+          totalFailed += 1
+          return req.reject({ status: 503 })
+        }
       })
     })
 
@@ -100,14 +105,14 @@ describe('queue metrics for single tenant service', () => {
       const timeOfInitialCall = Date.now()
       await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
 
-      await wait(150) // ... for metrics to be collected
+      await wait(500) // ... for metrics to be collected
       expect(currentRetryCount).to.eq(1)
 
       expect(metricValue('cold_entries')).to.eq(0)
       expect(metricValue('remaining_entries')).to.eq(1)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
-      expect(metricValue('processing_failures')).to.eq(1)
+      expect(metricValue('processing_failures')).to.eq(totalFailed)
       expect(metricValue('min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('max_storage_time_in_seconds')).to.eq(0)
@@ -129,7 +134,7 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('remaining_entries')).to.eq(1)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
-      expect(metricValue('processing_failures')).to.eq(2)
+      expect(metricValue('processing_failures')).to.eq(totalFailed)
       expect(metricValue('min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue('med_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue('max_storage_time_in_seconds')).to.be.gte(1)
@@ -143,7 +148,7 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('remaining_entries')).to.eq(0)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
-      expect(metricValue('processing_failures')).to.eq(2)
+      expect(metricValue('processing_failures')).to.eq(totalFailed)
       expect(metricValue('min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('max_storage_time_in_seconds')).to.eq(0)
@@ -157,6 +162,7 @@ describe('queue metrics for single tenant service', () => {
       unboxedService = await cds.connect.to('ExternalService')
 
       unboxedService.before('call', req => {
+        totalFailed += 1
         return req.reject({ status: 418, unrecoverable: true })
       })
     })
@@ -176,7 +182,7 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('remaining_entries')).to.eq(0)
       expect(metricValue('incoming_messages')).to.eq(totalInc)
       expect(metricValue('outgoing_messages')).to.eq(totalOut)
-      expect(metricValue('processing_failures')).to.eq(1)
+      expect(metricValue('processing_failures')).to.eq(totalFailed)
       expect(metricValue('min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue('max_storage_time_in_seconds')).to.eq(0)
@@ -191,8 +197,8 @@ describe('queue metrics for single tenant service', () => {
 
         try {
           await INSERT.into('cds.outbox.Messages').entries({ ID: cds.utils.uuid(), target: 'unknown-service' })
-        } catch {
-          expect.fail('Did not expect an error here')
+        } catch (e) {
+          expect.fail(`Did not expect an error here: ${e.message}`)
         }
 
         expect(debugLog.mock.calls.some(log => log[0].match(/unknown service/i))).to.be.true
