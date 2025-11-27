@@ -76,7 +76,7 @@
         }
       }
     },
-    "[outbox-metrics-tests]": {
+    "[metrics-outbox]": {
       "requires": {
         "queue": true,
         "telemetry": {
@@ -86,6 +86,24 @@
             },
             "_db_pool": false,
             "_queue": true,
+            "exporter": {
+              "module": "@opentelemetry/sdk-metrics",
+              "class": "ConsoleMetricExporter"
+            }
+          }
+        }
+      }
+    },
+    "[metrics-outbox-disabled]": {
+      "requires": {
+        "queue": true,
+        "telemetry": {
+          "metrics": {
+            "config": {
+              "exportIntervalMillis": 250
+            },
+            "_db_pool": false,
+            "_queue": false,
             "exporter": {
               "module": "@opentelemetry/sdk-metrics",
               "class": "ConsoleMetricExporter"

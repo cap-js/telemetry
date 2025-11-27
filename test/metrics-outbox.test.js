@@ -10,7 +10,7 @@ const { setTimeout: wait } = require('node:timers/promises')
 const { expect, GET } = cds.test(
   __dirname + '/bookshop', 
   '--with-mocks', 
-  '--profile', 'outbox-metrics-tests'
+  '--profile', 'metrics-outbox'
 )
 const debugLog = cds.log('telemetry').debug = jest.fn(() => {})
 
@@ -63,7 +63,7 @@ describe('queue metrics for single tenant service', () => {
 
       await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
 
-      await wait(150) // Wait for metrics to be collected
+      await wait(300) // Wait for metrics to be collected
 
       expect(metricValue('cold_entries')).to.eq(0)
       expect(metricValue('remaining_entries')).to.eq(0)
@@ -176,7 +176,7 @@ describe('queue metrics for single tenant service', () => {
 
       await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
 
-      await wait(150) // ... for metrics to be collected
+      await wait(300) // ... for metrics to be collected
 
       expect(metricValue('cold_entries')).to.eq(1)
       expect(metricValue('remaining_entries')).to.eq(0)
