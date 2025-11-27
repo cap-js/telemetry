@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.6.0 - 2025-11-XX
+
+### Added
+
+- Provide custom resource attributes via `cds.requires.telemetry.resource.attributes`
+
+### Fixed
+
+- Resolving of `OTEL_LOG_LEVEL`
+- Skip registration of queue metrics collection for unknown service
+
+## Version 1.5.4 - 2025-10-27
+
+### Fixed
+
+- Handle pre-initialized `LoggerProvider`
+
 ## Version 1.5.3 - 2025-09-01
 
 ### Fixed
