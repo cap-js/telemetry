@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Provide custom resource attributes via `cds.requires.telemetry.resource.attributes`
+- Added new queue statistic `queue.processing_failed` that tracks the number of failed attempts at processing tasks per instance, per tenant, per service
 
 ### Fixed
 

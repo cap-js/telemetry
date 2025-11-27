@@ -1,14 +1,3 @@
-process.env.cds_requires_outbox = true
-process.env.cds_requires_telemetry_metrics = JSON.stringify({
-  config: { exportIntervalMillis: 250 },
-  _db_pool: false,
-  _queue: true,
-  exporter: {
-    module: '@opentelemetry/sdk-metrics',
-    class: 'ConsoleMetricExporter'
-  }
-})
-
 // Mock console.dir to capture logs ConsoleMetricExporter writes
 const consoleDirLogs = []
 jest.spyOn(console, 'dir').mockImplementation((...args) => {
@@ -18,7 +7,11 @@ jest.spyOn(console, 'dir').mockImplementation((...args) => {
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
-const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--profile', 'multitenancy', '--with-mocks')
+const { expect, GET, axios } = cds.test(
+  __dirname + '/bookshop', 
+  '--with-mocks',
+  '--profile', 'metrics-outbox, multitenancy'
+)
 axios.defaults.validateStatus = () => true
 
 function metricValue(tenant, metric) {
