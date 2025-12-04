@@ -106,7 +106,7 @@
         },
         "telemetry-to-dynatrace": {
           "vcap": {
-            "label": "dynatrace"
+            "tag": "dynatrace"
           },
           "tracing": {
             "exporter": {
@@ -124,7 +124,7 @@
         },
         "telemetry-to-cloud-logging": {
           "vcap": {
-            "label": "cloud-logging"
+            "tag": "Cloud Logging"
           },
           "tracing": {
             "exporter": {
