@@ -106,7 +106,7 @@
         },
         "telemetry-to-dynatrace": {
           "vcap": {
-            "label": "dynatrace"
+            "tag": "dynatrace"
           },
           "tracing": {
             "exporter": {
