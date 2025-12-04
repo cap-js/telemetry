@@ -294,7 +294,7 @@ If you are binding your app to SAP Cloud Logging via a [user-provided service in
 
 > Tip: To add the required tag to an existing user-provided service, you can use: 
 > ```
-> cf update-user-provided-service {service-name} -t "cloud-logging"
+> cf update-user-provided-service {service-name} -t "Cloud Logging"
 > ```
 > For detailed information about binding resolution in CAP, consult [the relevant documentation](https://cap.cloud.sap/docs/node.js/cds-connect#vcap_services).
 
