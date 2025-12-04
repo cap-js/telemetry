@@ -124,7 +124,7 @@
         },
         "telemetry-to-cloud-logging": {
           "vcap": {
-            "label": "cloud-logging"
+            "tag": "Cloud Logging"
           },
           "tracing": {
             "exporter": {
