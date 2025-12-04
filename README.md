@@ -291,7 +291,10 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 
 If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has either tag `cloud-logging` or `Cloud Logging`.
 
-> Tip: You can use `cf update-user-provided-service {service-name} -t "cloud-logging"` to add the tag to an existing user provided service. 
+> Tip: To add the required tag to an existing user-provided service, you can use: 
+> ```
+> cf update-user-provided-service {service-name} -t "cloud-logging"
+> ```
 
 ### `telemetry-to-jaeger`
 
