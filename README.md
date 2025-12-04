@@ -223,6 +223,7 @@ This is the default kind in both development and production.
 
 Exports traces and metrics to Dynatrace.
 Hence, a Dynatrace instance is required and the app must be bound to that Dynatrace instance.
+Please note, that for the binding to be resolved, the bound service instance needs to use the tag `dynatrace`, regardless of whether it is a user-provided service instance or not.
 
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
@@ -289,12 +290,13 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 }
 ```
 
-If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has either tag `cloud-logging` or `Cloud Logging`.
+If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has the tag `Cloud Logging`.
 
 > Tip: To add the required tag to an existing user-provided service, you can use: 
 > ```
 > cf update-user-provided-service {service-name} -t "cloud-logging"
 > ```
+> For detailed information about binding resolution in CAP, consult [the relevant documentation](https://cap.cloud.sap/docs/node.js/cds-connect#vcap_services).
 
 ### `telemetry-to-jaeger`
 
