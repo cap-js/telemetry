@@ -51,9 +51,13 @@
       "queue": {
         "legacyLocking": false
       },
-      "ExternalService": {
+      "ExternalServiceOne": {
         "kind": "odata",
-        "model": "srv/external/ExternalService"
+        "model": "srv/external/ExternalServiceOne"
+      },
+      "ExternalServiceTwo": {
+        "kind": "odata",
+        "model": "srv/external/ExternalServiceTwo"
       },
       "[multitenancy]": {
         "multitenancy": true,
@@ -120,5 +124,8 @@
     "fiori": {
       "draft_deletion_timeout": false
     }
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^9"
   }
 }
