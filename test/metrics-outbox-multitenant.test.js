@@ -42,21 +42,18 @@ describe('queue metrics for multi tenant service', () => {
 
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
-    const unboxedService = await cds.connect.to('ExternalService')
-    const queuedService = cds.outboxed(unboxedService)
+    const externalServiceOne = await cds.connect.to('ExternalServiceOne')
+    const externalServiceOneQ = cds.outboxed(externalServiceOne)
 
-    proxyService.on('proxyCallToExternalService', async req => {
+    proxyService.on('proxyCallToExternalServiceOne', async req => {
       totalInc[cds.context.tenant] += 1
-      await queuedService.send('call', {})
+      await externalServiceOneQ.send('call', {})
       return req.reply('OK')
     })
 
     // Register handler to avoid error due to unhandled action
-    unboxedService.on('call', req => req.reply('OK'))
-
-    unboxedService.before('*', () => {
-      totalOut[cds.context.tenant] += 1
-    })
+    externalServiceOne.on('call', req => req.reply('OK'))
+    externalServiceOne.before('*', () => { totalOut[cds.context.tenant] += 1 })
 
     const mts = await cds.connect.to('cds.xt.DeploymentService')
     await mts.subscribe(T1)
@@ -74,8 +71,8 @@ describe('queue metrics for multi tenant service', () => {
       if (cds.version.split('.')[0] < 9) return
 
       await Promise.all([
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
       await wait(300) // Wait for metrics to be collected
@@ -102,7 +99,7 @@ describe('queue metrics for multi tenant service', () => {
     let currentRetryCount, unboxedService
 
     beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
+      unboxedService = await cds.connect.to('ExternalServiceOne')
 
       unboxedService.before('call', req => {
         if ((currentRetryCount[cds.context.tenant] += 1) <= 2) {
@@ -125,8 +122,8 @@ describe('queue metrics for multi tenant service', () => {
 
       const timeOfInitialCall = Date.now()
       await Promise.all([
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
       // Wait for the first retry to be processed
@@ -189,7 +186,7 @@ describe('queue metrics for multi tenant service', () => {
     const didProcess = { [T1]: false, [T2]: false }
 
     beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
+      unboxedService = await cds.connect.to('ExternalServiceOne')
 
       unboxedService.before('call', req =>  {
         didProcess[cds.context.tenant] = true
@@ -206,8 +203,8 @@ describe('queue metrics for multi tenant service', () => {
       if (cds.version.split('.')[0] < 9) return
 
       await Promise.all([
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
       while (!didProcess[T1]) await wait(10)

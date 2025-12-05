@@ -27,15 +27,15 @@ describe('queue metrics is disabled', () => {
   const admin = { auth: { username: 'alice' } }
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
-    const externalService = await cds.connect.to('ExternalService')
-    const queuedService = cds.outboxed(externalService)
+    const externalServiceOne = await cds.connect.to('ExternalServiceOne')
+    const externalServiceOneQ = cds.outboxed(externalServiceOne)
 
-    proxyService.on('proxyCallToExternalService', async req => {
-      await queuedService.send('call', {})
+    proxyService.on('proxyCallToExternalServiceOne', async req => {
+      await externalServiceOneQ.send('call', {})
       return req.reply('OK')
     })
 
-    externalService.before('*', () => {})
+    externalServiceOne.before('*', () => {})
   })
 
   beforeEach(() => (consoleDirLogs.length = 0))
@@ -43,7 +43,7 @@ describe('queue metrics is disabled', () => {
   test('metrics are not collected', async () => {
     if (cds.version.split('.')[0] < 9) return
 
-    await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
+    await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
     await wait(150) // Wait for metrics to be collected
 
