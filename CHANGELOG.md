@@ -9,11 +9,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Provide custom resource attributes via `cds.requires.telemetry.resource.attributes`
+- Added new queue statistic `queue.processing_failed` that tracks the number of failed attempts at processing tasks per instance, per tenant, per service
 
 ### Fixed
 
 - Resolving of `OTEL_LOG_LEVEL`
 - Skip registration of queue metrics collection for unknown service
+- `queue.med_storage_time_in_seconds` is now correctly calculated per service and ignoring cold entries
+- `queue.min_storage_time_in_seconds` and `queue.max_storage_time_in_seconds` are no longer switched up
 
 ## Version 1.5.4 - 2025-10-27
 
