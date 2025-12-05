@@ -77,8 +77,7 @@ describe('queue metrics for single tenant service', () => {
   })
 
   describe('given a target service that requires retries', () => {
-    let currentRetryCount = 0
-    let unboxedService
+    let currentRetryCount, unboxedService
 
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')

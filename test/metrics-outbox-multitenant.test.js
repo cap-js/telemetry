@@ -38,6 +38,7 @@ describe('queue metrics for multi tenant service', () => {
 
   let totalInc = { [T1]: 0, [T2]: 0 }
   let totalOut = { [T1]: 0, [T2]: 0 }
+  let totalFailed = { [T1]: 0, [T2]: 0 }
 
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
@@ -98,15 +99,16 @@ describe('queue metrics for multi tenant service', () => {
   })
 
   describe('given a target service that requires retries', () => {
-    if (cds.version.split('.')[0] < 9) return
-
     let currentRetryCount, unboxedService
 
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
 
       unboxedService.before('call', req => {
-        if ((currentRetryCount[cds.context.tenant] += 1) <= 2) return req.reject({ status: 503 })
+        if ((currentRetryCount[cds.context.tenant] += 1) <= 2) {
+          totalFailed[cds.context.tenant] += 1
+          return req.reject({ status: 503 })
+        }
       })
     })
 
@@ -141,6 +143,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'processing_failures')).to.eq(totalFailed[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(1)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.be.gte(1)
@@ -149,6 +152,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'processing_failures')).to.eq(totalFailed[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(1)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.be.gte(1)
@@ -162,6 +166,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'processing_failures')).to.eq(totalFailed[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
@@ -170,6 +175,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'processing_failures')).to.eq(totalFailed[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
@@ -187,6 +193,7 @@ describe('queue metrics for multi tenant service', () => {
 
       unboxedService.before('call', req =>  {
         didProcess[cds.context.tenant] = true
+        totalFailed[cds.context.tenant] += 1
         return req.reject({ status: 418, unrecoverable: true })
       })
     })
@@ -210,11 +217,13 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'cold_entries')).to.eq(1)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'processing_failures')).to.eq(totalFailed[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
 
       expect(metricValue(T2, 'cold_entries')).to.eq(1)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'processing_failures')).to.eq(totalFailed[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
     })
   })
