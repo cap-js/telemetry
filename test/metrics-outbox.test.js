@@ -263,7 +263,7 @@ describe("queue metrics for single tenant service", () => {
 
     test("cold entry is observed", async () => {
       await GET("/odata/v4/proxy/proxyCallToExternalServiceOne", admin);
-      await GET("/odata/v4/proxy/proxyCallToExternalServiceOne", admin);
+      await GET("/odata/v4/proxy/proxyCallToExternalServiceTwo", admin);
 
       await wait(300); // ... for metrics to be collected
 
