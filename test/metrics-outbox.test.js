@@ -205,7 +205,7 @@ describe('queue metrics for single tenant service', () => {
 
       // Wait for the second retry to be initiated
       while (currentRetryCount[E1] < 3) await wait(100)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
+      await wait(300) // ... for the retry to be processed and metrics to be collected
       expect(currentRetryCount[E1]).to.eq(3)
       expect(currentRetryCount[E2]).to.eq(3)
 
