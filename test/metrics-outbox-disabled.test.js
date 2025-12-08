@@ -7,11 +7,7 @@ jest.spyOn(console, 'dir').mockImplementation((...args) => {
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
-const { expect, GET } = cds.test(
-  __dirname + '/bookshop', 
-  '--with-mocks',
-  '--profile', 'metrics-outbox-disabled'
-)
+const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox-disabled')
 
 function metricValue(metric) {
   const mostRecentMetricLog = consoleDirLogs.findLast(

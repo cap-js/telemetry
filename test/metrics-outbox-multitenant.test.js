@@ -8,9 +8,10 @@ const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
 const { expect, GET, axios } = cds.test(
-  __dirname + '/bookshop', 
+  __dirname + '/bookshop',
   '--with-mocks',
-  '--profile', 'metrics-outbox, multitenancy'
+  '--profile',
+  'metrics-outbox, multitenancy'
 )
 axios.defaults.validateStatus = () => true
 
@@ -53,7 +54,9 @@ describe('queue metrics for multi tenant service', () => {
 
     // Register handler to avoid error due to unhandled action
     externalServiceOne.on('call', req => req.reply('OK'))
-    externalServiceOne.before('*', () => { totalOut[cds.context.tenant] += 1 })
+    externalServiceOne.before('*', () => {
+      totalOut[cds.context.tenant] += 1
+    })
 
     const mts = await cds.connect.to('cds.xt.DeploymentService')
     await mts.subscribe(T1)
@@ -129,7 +132,7 @@ describe('queue metrics for multi tenant service', () => {
       // Wait for the first retry to be processed
       while (currentRetryCount[T1] < 2) await wait(10)
       while (currentRetryCount[T2] < 2) await wait(10)
-    
+
       // Wait until at least 1 second has passed since the initial call
       const timeAfterFirstRetry = Date.now()
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
@@ -188,7 +191,7 @@ describe('queue metrics for multi tenant service', () => {
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalServiceOne')
 
-      unboxedService.before('call', req =>  {
+      unboxedService.before('call', req => {
         didProcess[cds.context.tenant] = true
         totalFailed[cds.context.tenant] += 1
         return req.reject({ status: 418, unrecoverable: true })
