@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Skip registration of queue metrics collection for unknown service
 - `queue.med_storage_time_in_seconds` is now correctly calculated per service and ignoring cold entries
 - `queue.min_storage_time_in_seconds` and `queue.max_storage_time_in_seconds` are no longer switched up
+- Trace propagation in production by ensuring `https` gets wrapped
 
 ## Version 1.5.4 - 2025-10-27
 
