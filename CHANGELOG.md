@@ -11,6 +11,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Provide custom resource attributes via `cds.requires.telemetry.resource.attributes`
 - Added new queue statistic `queue.processing_failed` that tracks the number of failed attempts at processing tasks per instance, per tenant, per service
 
+### Changed
+
+- `W3CBaggagePropagator` added to the default list of propagators (`cds.requires.telemetry.tracing.propagators`)
+
 ### Fixed
 
 - Resolving of `OTEL_LOG_LEVEL`
