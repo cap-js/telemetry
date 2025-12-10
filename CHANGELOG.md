@@ -13,6 +13,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for optimized queue runner (in `@sap/cds^9.6`)
 - Support for `@cap-js/hana`'s built-in pool
 
+### Changed
+
+- `W3CBaggagePropagator` added to the list of default propagators (`cds.requires.telemetry.tracing.propagators`)
+
 ### Fixed
 
 - Resolving of `OTEL_LOG_LEVEL`

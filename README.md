@@ -422,7 +422,7 @@ Configure via `cds.requires.telemetry.tracing.propagators = [<name> | { module, 
 
 Default:
 ```json
-["W3CTraceContextPropagator"]
+["W3CTraceContextPropagator", "W3CBaggagePropagator"]
 ```
 
 
