@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
-- `W3CBaggagePropagator` added to the default list of propagators (`cds.requires.telemetry.tracing.propagators`)
+- `W3CBaggagePropagator` added to the list of default propagators (`cds.requires.telemetry.tracing.propagators`)
 
 ### Fixed
 
