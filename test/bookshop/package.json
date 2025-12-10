@@ -48,9 +48,16 @@
       "_outbox": {
         "kind": "persistent-outbox"
       },
-      "ExternalService": {
+      "queue": {
+        "legacyLocking": false
+      },
+      "ExternalServiceOne": {
         "kind": "odata",
-        "model": "srv/external/ExternalService"
+        "model": "srv/external/ExternalServiceOne"
+      },
+      "ExternalServiceTwo": {
+        "kind": "odata",
+        "model": "srv/external/ExternalServiceTwo"
       },
       "[multitenancy]": {
         "multitenancy": true,
@@ -68,6 +75,42 @@
               "roles": [
                 "admin"
               ]
+            }
+          }
+        }
+      }
+    },
+    "[metrics-outbox]": {
+      "requires": {
+        "queue": true,
+        "telemetry": {
+          "metrics": {
+            "config": {
+              "exportIntervalMillis": 100
+            },
+            "_db_pool": false,
+            "_queue": true,
+            "exporter": {
+              "module": "@opentelemetry/sdk-metrics",
+              "class": "ConsoleMetricExporter"
+            }
+          }
+        }
+      }
+    },
+    "[metrics-outbox-disabled]": {
+      "requires": {
+        "queue": true,
+        "telemetry": {
+          "metrics": {
+            "config": {
+              "exportIntervalMillis": 250
+            },
+            "_db_pool": false,
+            "_queue": false,
+            "exporter": {
+              "module": "@opentelemetry/sdk-metrics",
+              "class": "ConsoleMetricExporter"
             }
           }
         }

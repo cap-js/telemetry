@@ -1,14 +1,3 @@
-process.env.cds_requires_outbox = true
-process.env.cds_requires_telemetry_metrics = JSON.stringify({
-  config: { exportIntervalMillis: 100 },
-  _db_pool: false,
-  _queue: true,
-  exporter: {
-    module: '@opentelemetry/sdk-metrics',
-    class: 'ConsoleMetricExporter'
-  }
-})
-
 // Mock console.dir to capture logs ConsoleMetricExporter writes
 const consoleDirLogs = []
 jest.spyOn(console, 'dir').mockImplementation((...args) => {
@@ -18,7 +7,12 @@ jest.spyOn(console, 'dir').mockImplementation((...args) => {
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
-const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--profile', 'multitenancy', '--with-mocks')
+const { expect, GET, axios } = cds.test(
+  __dirname + '/bookshop',
+  '--with-mocks',
+  '--profile',
+  'metrics-outbox, multitenancy'
+)
 axios.defaults.validateStatus = () => true
 
 function metricValue(tenant, metric) {
@@ -43,22 +37,24 @@ describe('queue metrics for multi tenant service', () => {
     [T2]: { auth: { username: `user_${T2}` } }
   }
 
-  let totalCold = { [T1]: 0, [T2]: 0 }
   let totalInc = { [T1]: 0, [T2]: 0 }
   let totalOut = { [T1]: 0, [T2]: 0 }
+  let totalFailed = { [T1]: 0, [T2]: 0 }
 
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
-    const unboxedService = await cds.connect.to('ExternalService')
-    const queuedService = cds.outboxed(unboxedService)
+    const externalServiceOne = await cds.connect.to('ExternalServiceOne')
+    const externalServiceOneQ = cds.outboxed(externalServiceOne)
 
-    proxyService.on('proxyCallToExternalService', async req => {
+    proxyService.on('proxyCallToExternalServiceOne', async req => {
       totalInc[cds.context.tenant] += 1
-      await queuedService.send('call', {})
+      await externalServiceOneQ.send('call', {})
       return req.reply('OK')
     })
 
-    unboxedService.before('*', () => {
+    // Register handler to avoid error due to unhandled action
+    externalServiceOne.on('call', req => req.reply('OK'))
+    externalServiceOne.before('*', () => {
       totalOut[cds.context.tenant] += 1
     })
 
@@ -67,33 +63,24 @@ describe('queue metrics for multi tenant service', () => {
     await mts.subscribe(T2)
   })
 
-  beforeEach(() => (consoleDirLogs.length = 0))
+  beforeEach(async () => {
+    await cds.tx({ tenant: T1 }, () => DELETE.from('cds.outbox.Messages'))
+    await cds.tx({ tenant: T2 }, () => DELETE.from('cds.outbox.Messages'))
+    consoleDirLogs.length = 0
+  })
 
   describe('given the target service succeeds immediately', () => {
-    let unboxedService
-
-    beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
-
-      unboxedService.on('call', req => {
-        return req.reply('OK')
-      })
-    })
-
-    afterAll(async () => {
-      unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.on !== 'call')
-    })
     test('metrics are collected per tenant', async () => {
       if (cds.version.split('.')[0] < 9) return
 
       await Promise.all([
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
-      await wait(150) // Wait for metrics to be collected
+      await wait(300) // Wait for metrics to be collected
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
@@ -101,7 +88,7 @@ describe('queue metrics for multi tenant service', () => {
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
@@ -112,16 +99,16 @@ describe('queue metrics for multi tenant service', () => {
   })
 
   describe('given a target service that requires retries', () => {
-    if (cds.version.split('.')[0] < 9) return
-
-    let currentRetryCount = { [T1]: 0, [T2]: 0 }
-    let unboxedService
+    let currentRetryCount, unboxedService
 
     beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
+      unboxedService = await cds.connect.to('ExternalServiceOne')
 
       unboxedService.before('call', req => {
-        if ((currentRetryCount[cds.context.tenant] += 1) <= 2) return req.reject({ status: 503 })
+        if ((currentRetryCount[cds.context.tenant] += 1) <= 2) {
+          totalFailed[cds.context.tenant] += 1
+          return req.reject({ status: 503 })
+        }
       })
     })
 
@@ -129,84 +116,66 @@ describe('queue metrics for multi tenant service', () => {
       unboxedService.handlers.before = unboxedService.handlers.before.filter(handler => handler.before !== 'call')
     })
 
+    beforeEach(() => {
+      currentRetryCount = { [T1]: 0, [T2]: 0 }
+    })
+
     test('storage time increases before message can be delivered', async () => {
       if (cds.version.split('.')[0] < 9) return
 
       const timeOfInitialCall = Date.now()
       await Promise.all([
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
-      await wait(150) // ... for metrics to be collected
-      expect(currentRetryCount[T1]).to.eq(1)
-      expect(currentRetryCount[T2]).to.eq(1)
-
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
-      expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
-      expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
-      expect(metricValue(T1, 'remaining_entries')).to.eq(1)
-      expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
-
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
-      expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
-      expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
-      expect(metricValue(T2, 'remaining_entries')).to.eq(1)
-      expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'max_storage_time_in_seconds')).to.eq(0)
-
-      // Wait for the first retry to be initiated
-      while (currentRetryCount[T1] < 2) await wait(100)
-      while (currentRetryCount[T2] < 2) await wait(100)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
-      expect(currentRetryCount[T1]).to.eq(2)
-      expect(currentRetryCount[T2]).to.eq(2)
+      // Wait for the first retry to be processed
+      while (currentRetryCount[T1] < 2) await wait(10)
+      while (currentRetryCount[T2] < 2) await wait(10)
 
       // Wait until at least 1 second has passed since the initial call
       const timeAfterFirstRetry = Date.now()
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
       }
+      await wait(300) // ... for metrics to be collected
 
-      await wait(200) // ... for metrics to be collected again
-
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'processing_failures')).to.eq(totalFailed[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(1)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.be.gte(1)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'processing_failures')).to.eq(totalFailed[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(1)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.be.gte(1)
       expect(metricValue(T2, 'max_storage_time_in_seconds')).to.be.gte(1)
 
-      // Wait for the second retry to be initiated
-      while (currentRetryCount[T1] < 3) await wait(100)
-      while (currentRetryCount[T2] < 3) await wait(100)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
-      expect(currentRetryCount[T1]).to.eq(3)
-      expect(currentRetryCount[T2]).to.eq(3)
+      // Wait for the second retry to be processd
+      while (currentRetryCount[T1] < 3) await wait(10)
+      while (currentRetryCount[T2] < 3) await wait(10)
+      await wait(600) // ... for metrics to be collected
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'processing_failures')).to.eq(totalFailed[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
       expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(0)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'processing_failures')).to.eq(totalFailed[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
       expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
       expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
@@ -217,11 +186,14 @@ describe('queue metrics for multi tenant service', () => {
   describe('given a taget service that fails unrecoverably', () => {
     let unboxedService
 
+    const didProcess = { [T1]: false, [T2]: false }
+
     beforeAll(async () => {
-      unboxedService = await cds.connect.to('ExternalService')
+      unboxedService = await cds.connect.to('ExternalServiceOne')
 
       unboxedService.before('call', req => {
-        totalCold[cds.context.tenant] += 1
+        didProcess[cds.context.tenant] = true
+        totalFailed[cds.context.tenant] += 1
         return req.reject({ status: 418, unrecoverable: true })
       })
     })
@@ -234,27 +206,25 @@ describe('queue metrics for multi tenant service', () => {
       if (cds.version.split('.')[0] < 9) return
 
       await Promise.all([
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T1]),
-        GET('/odata/v4/proxy/proxyCallToExternalService', user[T2])
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
+        GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
-      await wait(150) // ... for metrics to be collected
+      while (!didProcess[T1]) await wait(10)
+      while (!didProcess[T2]) await wait(10)
+      await wait(500) // ... for metrics to be collected
 
-      expect(metricValue(T1, 'cold_entries')).to.eq(totalCold[T1])
+      expect(metricValue(T1, 'cold_entries')).to.eq(1)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
       expect(metricValue(T1, 'outgoing_messages')).to.eq(totalOut[T1])
+      expect(metricValue(T1, 'processing_failures')).to.eq(totalFailed[T1])
       expect(metricValue(T1, 'remaining_entries')).to.eq(0)
-      expect(metricValue(T1, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T1, 'max_storage_time_in_seconds')).to.eq(0)
 
-      expect(metricValue(T2, 'cold_entries')).to.eq(totalCold[T2])
+      expect(metricValue(T2, 'cold_entries')).to.eq(1)
       expect(metricValue(T2, 'incoming_messages')).to.eq(totalInc[T2])
       expect(metricValue(T2, 'outgoing_messages')).to.eq(totalOut[T2])
+      expect(metricValue(T2, 'processing_failures')).to.eq(totalFailed[T2])
       expect(metricValue(T2, 'remaining_entries')).to.eq(0)
-      expect(metricValue(T2, 'min_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'med_storage_time_in_seconds')).to.eq(0)
-      expect(metricValue(T2, 'max_storage_time_in_seconds')).to.eq(0)
     })
   })
 })

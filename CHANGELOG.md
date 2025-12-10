@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.6.0 - 2025-11-XX
+
+### Added
+
+- Provide custom resource attributes via `cds.requires.telemetry.resource.attributes`
+- Added new queue statistic `queue.processing_failed` that tracks the number of failed attempts at processing tasks per instance, per tenant, per service
+- Support for optimized queue runner (in `@sap/cds^9.6`)
+- Support for `@cap-js/hana`'s built-in pool
+
+### Fixed
+
+- Resolving of `OTEL_LOG_LEVEL`
+- Skip registration of queue metrics collection for unknown service
+- `queue.med_storage_time_in_seconds` is now correctly calculated per service and ignoring cold entries
+- `queue.min_storage_time_in_seconds` and `queue.max_storage_time_in_seconds` are no longer switched up
+- Trace propagation in production by ensuring `https` gets wrapped
+
+## Version 1.5.4 - 2025-10-27
+
+### Fixed
+
+- Handle pre-initialized `LoggerProvider`
+
 ## Version 1.5.3 - 2025-09-01
 
 ### Fixed
