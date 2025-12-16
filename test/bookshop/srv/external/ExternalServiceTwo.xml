@@ -7,7 +7,7 @@
     <edmx:Include Alias="Core" Namespace="Org.OData.Core.V1"/>
   </edmx:Reference>
   <edmx:DataServices>
-    <Schema Namespace="ExternalService" xmlns="http://docs.oasis-open.org/odata/ns/edm">
+    <Schema Namespace="ExternalServiceTwo" xmlns="http://docs.oasis-open.org/odata/ns/edm">
       <Annotation Term="Core.Links">
         <Collection>
           <Record>
@@ -17,7 +17,7 @@
         </Collection>
       </Annotation>
       <EntityContainer Name="EntityContainer">
-        <FunctionImport Name="call" Function="ExternalService.call"/>
+        <FunctionImport Name="call" Function="ExternalServiceTwo.call"/>
       </EntityContainer>
       <Function Name="call" IsBound="false" IsComposable="false">
         <ReturnType Type="Edm.String"/>
