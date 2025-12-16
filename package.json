@@ -20,8 +20,8 @@
   "dependencies": {
     "@opentelemetry/api": "^1.9",
     "@opentelemetry/core": "^1.30",
-    "@opentelemetry/instrumentation": "^0.57",
-    "@opentelemetry/instrumentation-http": "^0.57",
+    "@opentelemetry/instrumentation": "^0.208",
+    "@opentelemetry/instrumentation-http": "^0.208",
     "@opentelemetry/resources": "^1.30",
     "@opentelemetry/sdk-metrics": "^1.30",
     "@opentelemetry/sdk-trace-base": "^1.30",
