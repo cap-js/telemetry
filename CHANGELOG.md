@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.6.0 - 2025-11-XX
+## Version 1.6.0 - 2025-12-16
 
 ### Added
 
@@ -12,6 +12,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Added new queue statistic `queue.processing_failed` that tracks the number of failed attempts at processing tasks per instance, per tenant, per service
 - Support for optimized queue runner (in `@sap/cds^9.6`)
 - Support for `@cap-js/hana`'s built-in pool
+
+### Changed
+
+- `W3CBaggagePropagator` added to the list of default propagators (`cds.requires.telemetry.tracing.propagators`)
 
 ### Fixed
 
