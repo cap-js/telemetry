@@ -35,7 +35,6 @@
     "@cap-js/cds-test": "^0.4",
     "@cap-js/sqlite": "^2",
     "@cap-js/telemetry": "file:.",
-    "@dynatrace/oneagent-sdk": "^1.5.0",
     "@grpc/grpc-js": "^1.9.14",
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.57.0",
     "@opentelemetry/exporter-metrics-otlp-proto": "^0.57.0",
