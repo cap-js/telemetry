@@ -86,7 +86,7 @@ describe('queue metrics for single tenant service', () => {
     test('metrics are collected', async () => {
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
-      await wait(300) // Wait for metrics to be collected
+      await wait(150) // Wait for metrics to be collected
 
       expect(metricValue('cold_entries', E1)).to.eq(0)
       expect(metricValue('remaining_entries', E1)).to.eq(0)
@@ -99,7 +99,7 @@ describe('queue metrics for single tenant service', () => {
 
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
 
-      await wait(300) // Wait for metrics to be collected
+      await wait(150) // Wait for metrics to be collected
 
       expect(metricValue('cold_entries', E2)).to.eq(0)
       expect(metricValue('remaining_entries', E2)).to.eq(0)
@@ -149,7 +149,7 @@ describe('queue metrics for single tenant service', () => {
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
 
-      await wait(300) // ... for metrics to be collected
+      await wait(150) // ... for metrics to be collected
       expect(currentRetryCount[E1]).to.eq(1)
 
       expect(metricValue('cold_entries', E1)).to.eq(0)
@@ -183,7 +183,7 @@ describe('queue metrics for single tenant service', () => {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
       }
 
-      await wait(300) // ... for metrics to be collected again
+      await wait(150) // ... for metrics to be collected again
 
       expect(metricValue('cold_entries', E1)).to.eq(0)
       expect(metricValue('remaining_entries', E1)).to.eq(1)
@@ -205,7 +205,7 @@ describe('queue metrics for single tenant service', () => {
 
       // Wait for the second retry to be initiated
       while (currentRetryCount[E1] < 3) await wait(100)
-      await wait(300) // ... for the retry to be processed and metrics to be collected
+      await wait(150) // ... for the retry to be processed and metrics to be collected
       expect(currentRetryCount[E1]).to.eq(3)
       expect(currentRetryCount[E2]).to.eq(3)
 
@@ -258,7 +258,7 @@ describe('queue metrics for single tenant service', () => {
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
 
-      await wait(300) // ... for metrics to be collected
+      await wait(150) // ... for metrics to be collected
 
       expect(metricValue('cold_entries', E1)).to.eq(1)
       expect(metricValue('remaining_entries', E1)).to.eq(0)
