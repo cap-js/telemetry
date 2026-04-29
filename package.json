@@ -106,9 +106,10 @@
           }
         },
         "telemetry-to-dynatrace": {
-          "vcap": {
-            "label": "dynatrace"
-          },
+          "vcap": [
+            { "label": "dynatrace" },
+            { "tag": "dynatrace" }
+          ],
           "tracing": {
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-proto",
@@ -124,9 +125,10 @@
           "token_name": "ingest_apitoken"
         },
         "telemetry-to-cloud-logging": {
-          "vcap": {
-            "label": "cloud-logging"
-          },
+          "vcap": [
+            { "label": "cloud-logging" },
+            { "tag": "Cloud Logging" }
+          ],
           "tracing": {
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-grpc",
