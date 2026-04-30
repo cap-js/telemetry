@@ -22,6 +22,10 @@ jobs:
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
       - uses: cap-js/.github/.github/actions/hana-hdi-container@main
