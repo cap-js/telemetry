@@ -8,7 +8,9 @@ updates:
   - package-ecosystem: 'npm' # See documentation for possible values
     directory: '/' # Location of package manifests
     schedule:
-      interval: 'daily'
+      interval: 'weekly'
+    cooldown:
+      default-days: 1
     groups:
       prod-dependencies:
         dependency-type: 'production'
@@ -20,3 +22,10 @@ updates:
         update-types:
           - 'minor'
           - 'patch'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+    cooldown:
+      default-days: 1
