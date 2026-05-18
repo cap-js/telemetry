@@ -10,7 +10,7 @@ updates:
     schedule:
       interval: 'weekly'
     cooldown:
-      default-days: 1
+      default-days: 3
     groups:
       prod-dependencies:
         dependency-type: 'production'
@@ -28,4 +28,4 @@ updates:
     schedule:
       interval: 'weekly'
     cooldown:
-      default-days: 1
+      default-days: 3
