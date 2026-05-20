@@ -19,7 +19,7 @@ const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks')
-const debugLog = cds.log('telemetry').debug = jest.fn(() => {})
+const debugLog = (cds.log('telemetry').debug = jest.fn(() => {}))
 
 function metricValue(metric) {
   const mostRecentMetricLog = consoleDirLogs.findLast(
@@ -63,7 +63,6 @@ describe('queue metrics for single tenant service', () => {
   })
 
   describe('given the target service succeeds immediately', () => {
-
     test('metrics are collected', async () => {
       if (cds.version.split('.')[0] < 9) return
 
@@ -188,8 +187,7 @@ describe('queue metrics for single tenant service', () => {
 
   describe('given someone tries to interact with the persistent outox table directly', () => {
     describe('app should not crash', () => {
-
-      test('when a message targeting an unknown service is added to the persistent outbox table manually', async () => {  
+      test('when a message targeting an unknown service is added to the persistent outbox table manually', async () => {
         if (cds.version.split('.')[0] < 9) return
 
         try {

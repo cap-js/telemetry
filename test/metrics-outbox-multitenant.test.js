@@ -137,7 +137,7 @@ describe('queue metrics for multi tenant service', () => {
       // Wait for the first retry to be processed
       while (currentRetryCount[T1] < 2) await wait(10)
       while (currentRetryCount[T2] < 2) await wait(10)
-    
+
       // Wait until at least 1 second has passed since the initial call
       const timeAfterFirstRetry = Date.now()
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
@@ -192,7 +192,7 @@ describe('queue metrics for multi tenant service', () => {
     beforeAll(async () => {
       unboxedService = await cds.connect.to('ExternalService')
 
-      unboxedService.before('call', req =>  {
+      unboxedService.before('call', req => {
         didProcess[cds.context.tenant] = true
         return req.reject({ status: 418, unrecoverable: true })
       })
