@@ -33,11 +33,11 @@ jobs:
           service-manager-auth-url: ${{ secrets.SM_AUTH_URL }}
           service-manager-client-id: ${{ secrets.SM_CLIENT_ID }}
           service-manager-client-secret: ${{ secrets.SM_CLIENT_SECRET }}
-      - run: npm i -g @sap/cds-dk
-      - run: npm add @cap-js/hana
-      - run: npm add hdb
-      - run: npm add @sap/hana-client
-      - run: npm i
+      - run: npm i -g @sap/cds-dk --ignore-scripts
+      - run: npm add @cap-js/hana --ignore-scripts
+      - run: npm add hdb --ignore-scripts
+      - run: npm add @sap/hana-client --ignore-scripts
+      - run: npm i --ignore-scripts
       - run: cds v
       - run: cd test/bookshop && cds deploy -2 hana --vcap-file vcap.json
       - run: npm run test
