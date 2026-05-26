@@ -25,7 +25,7 @@ jobs:
           npm run test
       - name: get version
         id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.2.3
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
       - name: parse changelog
         id: parse-changelog
         uses: schwma/parse-changelog-action@v1.2.0
