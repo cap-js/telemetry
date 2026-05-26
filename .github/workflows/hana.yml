@@ -23,7 +23,7 @@ jobs:
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v6
       - uses: cap-js/.github/.github/actions/hana-hdi-container@main
         with:
           instance-prefix: telemetry
