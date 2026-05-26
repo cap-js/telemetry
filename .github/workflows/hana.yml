@@ -22,7 +22,7 @@ jobs:
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v2
       - uses: cap-js/.github/.github/actions/hana-hdi-container@main
         with:
