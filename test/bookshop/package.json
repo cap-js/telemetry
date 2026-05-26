@@ -40,6 +40,9 @@
           }
         }
       },
+      "db": {
+        "driver": "node"
+      },
       "messaging": {
         "kind": "local-messaging",
         "_kind": "file-based-messaging",
