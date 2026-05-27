@@ -19,8 +19,8 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - name: run tests
         run: |
-          npm i -g @sap/cds-dk --ignore-scripts
-          npm i --ignore-scripts
+          npm i -g @sap/cds-dk
+          npm i
           npm run lint
           npm run test
       - name: get version
