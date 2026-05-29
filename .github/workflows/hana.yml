@@ -12,7 +12,7 @@ on:
 
 jobs:
   hana:
-    environment: ci
+    environment: hana
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
