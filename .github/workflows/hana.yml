@@ -23,8 +23,8 @@ jobs:
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
       - uses: cap-js/.github/.github/actions/hana-hdi-container@main
         with:
           instance-prefix: telemetry
