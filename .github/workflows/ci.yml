@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  NPM_CONFIG_IGNORE_SCRIPTS: true
+
 jobs:
   lint:
     runs-on: ubuntu-latest
