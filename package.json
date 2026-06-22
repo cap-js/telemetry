@@ -18,7 +18,7 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "test": "npx jest --silent",
-    "prepare": "husky"
+    "prepare": "npx lint-staged"
   },
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern"
