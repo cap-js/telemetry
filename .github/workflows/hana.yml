@@ -12,6 +12,7 @@ on:
 
 jobs:
   hana:
+    environment: hana
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -19,19 +20,22 @@ jobs:
         hana-driver: [hdb, hana-client]
         hana-prom: [true, false]
     env:
-      SM_CLIENT_ID: ${{ secrets.SM_CLIENT_ID }}
-      SM_CLIENT_SECRET: ${{ secrets.SM_CLIENT_SECRET }}
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: node .github/scripts/cleanup.js
-      - run: node .github/scripts/setup.js
+      - uses: actions/checkout@v6.0.3
+      - uses: actions/setup-node@v6.4.0
+      - uses: cap-js/.github/.github/actions/hana-hdi-container@main
+        with:
+          instance-prefix: telemetry
+          config-path: test/bookshop
+          service-manager-url: ${{ secrets.SM_URL }}
+          hana-plan-id: ${{ secrets.HANA_PLAN_ID }}
+          service-manager-auth-url: ${{ secrets.SM_AUTH_URL }}
+          service-manager-client-id: ${{ secrets.SM_CLIENT_ID }}
+          service-manager-client-secret: ${{ secrets.SM_CLIENT_SECRET }}
       - run: npm i -g @sap/cds-dk
-      - run: npm add @cap-js/hana
-      - run: npm add hdb
-      - run: npm add @sap/hana-client
+      - run: npm add @cap-js/hana hdb @sap/hana-client
       - run: npm i
       - run: cds v
       - run: cd test/bookshop && cds deploy -2 hana --vcap-file vcap.json
