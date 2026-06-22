@@ -14,11 +14,10 @@
   ],
   "main": "cds-plugin.js",
   "scripts": {
-    "lint": "npx eslint .",
     "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "test": "npx jest --silent",
-    "prepare": "npx lint-staged"
+    "lint": "npx eslint .",
+    "prepare": "npx lint-staged",
+    "test": "npx jest --silent"
   },
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern"
@@ -33,6 +32,9 @@
     "@opentelemetry/sdk-trace-base": "^1.30",
     "@opentelemetry/sdk-trace-node": "^1.30",
     "@opentelemetry/semantic-conventions": "^1.36"
+  },
+  "peerDependencies": {
+    "@sap/cds": "^8 || ^9"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^0",
@@ -51,13 +53,9 @@
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
     "eslint": "^10",
-    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "lint-staged": "^17.0.8",
     "oxfmt": "^0.56.0"
-  },
-  "peerDependencies": {
-    "@sap/cds": "^8 || ^9"
   },
   "cds": {
     "requires": {
