@@ -15,6 +15,7 @@
   "main": "cds-plugin.js",
   "scripts": {
     "lint": "npx eslint .",
+    "lint-staged": "lint-staged",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "test": "npx jest --silent"
