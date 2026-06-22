@@ -24,7 +24,7 @@ service CatalogService {
 
   @requires: 'authenticated-user'
   action submitOrder(book : Books : ID, quantity : Integer) returns {
-    stock                         : Integer
+    stock : Integer
   };
 
   event OrderedBook : {

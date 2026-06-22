@@ -1,3 +1,4 @@
 service ProxyService {
-  function proxyCallToExternalService() returns String;
+  function proxyCallToExternalServiceOne() returns String;
+  function proxyCallToExternalServiceTwo() returns String;
 }
