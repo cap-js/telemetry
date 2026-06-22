@@ -15,10 +15,10 @@
   "main": "cds-plugin.js",
   "scripts": {
     "lint": "npx eslint .",
-    "lint-staged": "lint-staged",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "test": "npx jest --silent"
+    "test": "npx jest --silent",
+    "prepare": "husky"
   },
   "lint-staged": {
     "*": "oxfmt --no-error-on-unmatched-pattern"
@@ -51,6 +51,7 @@
     "chai-as-promised": "^7.1.1",
     "chai-subset": "^1.6.0",
     "eslint": "^10",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "lint-staged": "^17.0.8",
     "oxfmt": "^0.56.0"
