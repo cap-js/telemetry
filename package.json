@@ -153,6 +153,23 @@
           "metrics": {
             "exporter": "env"
           }
+        },
+        "telemetry-to-caas": {
+          "vcap": {
+            "label": "caas-service"
+          },
+          "tracing": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-trace-otlp-proto",
+              "class": "OTLPTraceExporter"
+            }
+          },
+          "metrics": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-metrics-otlp-proto",
+              "class": "OTLPMetricExporter"
+            }
+          }
         }
       }
     }
