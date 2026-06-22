@@ -1,14 +1,3 @@
-process.env.cds_requires_outbox = true
-process.env.cds_requires_telemetry_metrics = JSON.stringify({
-  config: { exportIntervalMillis: 100 },
-  _db_pool: false,
-  _queue: false,
-  exporter: {
-    module: '@opentelemetry/sdk-metrics',
-    class: 'ConsoleMetricExporter'
-  }
-})
-
 // Mock console.dir to capture logs ConsoleMetricExporter writes
 const consoleDirLogs = []
 jest.spyOn(console, 'dir').mockImplementation((...args) => {
@@ -18,7 +7,7 @@ jest.spyOn(console, 'dir').mockImplementation((...args) => {
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
-const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks')
+const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox-disabled')
 
 function metricValue(metric) {
   const mostRecentMetricLog = consoleDirLogs.findLast(
@@ -34,15 +23,15 @@ describe('queue metrics is disabled', () => {
   const admin = { auth: { username: 'alice' } }
   beforeAll(async () => {
     const proxyService = await cds.connect.to('ProxyService')
-    const externalService = await cds.connect.to('ExternalService')
-    const queuedService = cds.outboxed(externalService)
+    const externalServiceOne = await cds.connect.to('ExternalServiceOne')
+    const externalServiceOneQ = cds.outboxed(externalServiceOne)
 
-    proxyService.on('proxyCallToExternalService', async req => {
-      await queuedService.send('call', {})
+    proxyService.on('proxyCallToExternalServiceOne', async req => {
+      await externalServiceOneQ.send('call', {})
       return req.reply('OK')
     })
 
-    externalService.before('*', () => {})
+    externalServiceOne.before('*', () => {})
   })
 
   beforeEach(() => (consoleDirLogs.length = 0))
@@ -50,7 +39,7 @@ describe('queue metrics is disabled', () => {
   test('metrics are not collected', async () => {
     if (cds.version.split('.')[0] < 9) return
 
-    await GET('/odata/v4/proxy/proxyCallToExternalService', admin)
+    await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
     await wait(150) // Wait for metrics to be collected
 
