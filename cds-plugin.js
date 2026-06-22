@@ -39,7 +39,7 @@
   }
   if (violations.length) {
     const msg =
-      "@cap-js/telemetry does not yet support OpenTelemetry SDK 2.0 (^2 and ^0.200):" +
+      '@cap-js/telemetry does not yet support OpenTelemetry SDK 2.0 (^2 and ^0.200):' +
       `\n  - ${violations.join('\n  - ')}\n`
     throw new Error(msg)
   }
