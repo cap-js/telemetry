@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 1.7.0 - tbd
+
+### Added
+
+### Changed
+
+### Fixed
+
+- Prefer `VCAP_APPLICATION.name` over `name` in `package.json` for app name resolution
+
+### Removed
+
 ## Version 1.6.0 - 2025-12-16
 
 ### Added
