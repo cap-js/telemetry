@@ -45,9 +45,6 @@
         "_kind": "file-based-messaging",
         "file": "../msg-box"
       },
-      "db": {
-        "pool": { "max": 1 }
-      },
       "_outbox": {
         "kind": "persistent-outbox"
       },
