@@ -12,6 +12,7 @@ on:
 
 jobs:
   hana:
+    environment: hana
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -22,8 +23,8 @@ jobs:
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v6.0.2
+      - uses: actions/setup-node@v6.4.0
       - uses: cap-js/.github/.github/actions/hana-hdi-container@main
         with:
           instance-prefix: telemetry
@@ -34,9 +35,7 @@ jobs:
           service-manager-client-id: ${{ secrets.SM_CLIENT_ID }}
           service-manager-client-secret: ${{ secrets.SM_CLIENT_SECRET }}
       - run: npm i -g @sap/cds-dk
-      - run: npm add @cap-js/hana
-      - run: npm add hdb
-      - run: npm add @sap/hana-client
+      - run: npm add @cap-js/hana hdb @sap/hana-client
       - run: npm i
       - run: cds v
       - run: cd test/bookshop && cds deploy -2 hana --vcap-file vcap.json
