@@ -22,6 +22,7 @@
     "@opentelemetry/core": "^1.30",
     "@opentelemetry/instrumentation": "^0.57",
     "@opentelemetry/instrumentation-http": "^0.57",
+    "@opentelemetry/instrumentation-undici": "^0.29",
     "@opentelemetry/resources": "^1.30",
     "@opentelemetry/sdk-metrics": "^1.30",
     "@opentelemetry/sdk-trace-base": "^1.30",
@@ -63,6 +64,10 @@
             "http": {
               "module": "@opentelemetry/instrumentation-http",
               "class": "HttpInstrumentation"
+            },
+            "undici": {
+              "module": "@opentelemetry/instrumentation-undici",
+              "class": "UndiciInstrumentation"
             }
           },
           "tracing": {
