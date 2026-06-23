@@ -14,5 +14,7 @@ const CHECK = (log, expect) => {
 }
 
 describe(`tracing messaging - ${CASE}`, () => {
+  if (require('@sap/cds').version.split('.')[0] == 10) return test.skip('no in-memory queue in cds^10', () => {})
+
   require('./tracing-messaging')(CASE, CHECK)
 })
