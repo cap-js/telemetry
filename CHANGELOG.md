@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- HTTP client attributes for remote service
+
 ### Changed
 
 ### Fixed
