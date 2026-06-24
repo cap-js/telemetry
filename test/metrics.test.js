@@ -22,4 +22,16 @@ describe('metrics', () => {
     expect(log.output).to.match(/process/i)
     expect(log.output).not.to.match(/network/i)
   })
+
+  test('other metrics with multiple datapoints are logged as array', async () => {
+    const { status } = await GET('/odata/v4/admin/Books', admin)
+    expect(status).to.equal(200)
+
+    await wait(200)
+
+    // nodejs.eventloop.time has multiple datapoints (active + idle) → logged as array
+    expect(log.output).to.match(/nodejs\.eventloop\.time: \[/)
+    // nodejs.eventloop.utilization has single datapoint → logged unwrapped (not as array)
+    expect(log.output).to.match(/nodejs\.eventloop\.utilization: \{/)
+  })
 })
