@@ -4,7 +4,7 @@ process.env.cds_requires_telemetry_tracing_sampler = JSON.stringify({
 })
 
 const cds = require('@sap/cds')
-const { expect, GET, POST } = cds.test().in(__dirname + '/bookshop')
+const { expect, GET, POST } = cds.test(__dirname + '/bookshop')
 const log = cds.test.log()
 
 const wait = require('node:timers/promises').setTimeout

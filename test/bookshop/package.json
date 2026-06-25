@@ -10,6 +10,9 @@
     "@sap-cloud-sdk/http-client": "^4",
     "@sap-cloud-sdk/resilience": "^4"
   },
+  "devDependencies": {
+    "@sap/cds-dk": "*"
+  },
   "cds": {
     "requires": {
       "telemetry": {
@@ -45,12 +48,10 @@
         "_kind": "file-based-messaging",
         "file": "../msg-box"
       },
-      "_outbox": {
-        "kind": "persistent-outbox"
-      },
       "queue": {
         "legacyLocking": false
       },
+      "_scheduling": true,
       "ExternalServiceOne": {
         "kind": "odata",
         "model": "srv/external/ExternalServiceOne"
@@ -75,42 +76,6 @@
               "roles": [
                 "admin"
               ]
-            }
-          }
-        }
-      }
-    },
-    "[metrics-outbox]": {
-      "requires": {
-        "queue": true,
-        "telemetry": {
-          "metrics": {
-            "config": {
-              "exportIntervalMillis": 100
-            },
-            "_db_pool": false,
-            "_queue": true,
-            "exporter": {
-              "module": "@opentelemetry/sdk-metrics",
-              "class": "ConsoleMetricExporter"
-            }
-          }
-        }
-      }
-    },
-    "[metrics-outbox-disabled]": {
-      "requires": {
-        "queue": true,
-        "telemetry": {
-          "metrics": {
-            "config": {
-              "exportIntervalMillis": 250
-            },
-            "_db_pool": false,
-            "_queue": false,
-            "exporter": {
-              "module": "@opentelemetry/sdk-metrics",
-              "class": "ConsoleMetricExporter"
             }
           }
         }

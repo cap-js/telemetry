@@ -1,11 +1,12 @@
-const CASE = 'with_in_memory_outbox'
+// REVISIT: remove with cds^11
 
-const env = {
+const CASE = 'in-memory-outbox'
+
+// REVISIT: even with profile "in-memory-outbox", messaging kind and file from package.json wins
+process.env.cds_requires_messaging = JSON.stringify({
   kind: 'file-based-messaging',
-  outbox: { kind: 'in-memory-outbox' },
   file: `../${CASE}`
-}
-process.env.cds_requires_messaging = JSON.stringify(env)
+})
 
 const CHECK = (log, expect) => {
   // 2: no outbox -> consumer gets new root context

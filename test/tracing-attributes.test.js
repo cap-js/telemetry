@@ -1,7 +1,5 @@
-process.env.cds_requires_telemetry_tracing_exporter_module = '@opentelemetry/sdk-trace-node'
-
 const cds = require('@sap/cds')
-const { expect, data } = cds.test().in(__dirname + '/bookshop')
+const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
 
 describe('tracing attributes', () => {
   beforeEach(data.reset)

@@ -1,14 +1,10 @@
-const CASE = 'with_persistent-outbox'
+const CASE = 'persistent-outbox'
 
-const env = {
+// REVISIT: even with profile "in-memory-outbox", messaging kind and file from package.json wins
+process.env.cds_requires_messaging = JSON.stringify({
   kind: 'file-based-messaging',
-  outbox: true,
   file: `../${CASE}`
-}
-process.env.cds_requires_messaging = JSON.stringify(env)
-process.env.cds_requires_outbox = JSON.stringify({ kind: 'persistent-outbox' })
-
-process.env.cds_requires_telemetry_metrics = null
+})
 
 const CHECK = (log, expect) => {
   // 3: outbox -> consumers get new root context
