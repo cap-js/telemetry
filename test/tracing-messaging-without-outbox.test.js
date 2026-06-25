@@ -1,6 +1,6 @@
 const CASE = 'without-outbox'
 
-// REVISIT: even with profile "in-memory-outbox", messaging kind and file from package.json wins
+// REVISIT: even with profile "without-outbox", messaging kind and file from package.json wins
 process.env.cds_requires_messaging = JSON.stringify({
   kind: 'file-based-messaging',
   file: `../${CASE}`,
