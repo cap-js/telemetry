@@ -1,6 +1,6 @@
 {
   "name": "@cap-js/telemetry",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "CDS plugin providing observability features, incl. automatic OpenTelemetry instrumentation.",
   "repository": {
     "type": "git",
@@ -19,14 +19,15 @@
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
-    "@opentelemetry/core": "^1.30",
-    "@opentelemetry/instrumentation": "^0.57",
-    "@opentelemetry/instrumentation-http": "^0.57",
-    "@opentelemetry/resources": "^1.30",
-    "@opentelemetry/sdk-metrics": "^1.30",
-    "@opentelemetry/sdk-trace-base": "^1.30",
-    "@opentelemetry/sdk-trace-node": "^1.30",
-    "@opentelemetry/semantic-conventions": "^1.36"
+    "@opentelemetry/core": "^2.8",
+    "@opentelemetry/instrumentation": "^0.219",
+    "@opentelemetry/instrumentation-http": "^0.219",
+    "@opentelemetry/instrumentation-undici": "^0.29",
+    "@opentelemetry/resources": "^2.8",
+    "@opentelemetry/sdk-metrics": "^2.8",
+    "@opentelemetry/sdk-trace-base": "^2.8",
+    "@opentelemetry/sdk-trace-node": "^2.8",
+    "@opentelemetry/semantic-conventions": "^1.41"
   },
   "peerDependencies": {
     "@sap/cds": "^8 || ^9"
@@ -36,12 +37,12 @@
     "@cap-js/sqlite": "^1 || ^2",
     "@cap-js/telemetry": "file:.",
     "@grpc/grpc-js": "^1.9.14",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.57.0",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.57.0",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.57.0",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.57.0",
-    "@opentelemetry/host-metrics": "^0.36.0",
-    "@opentelemetry/instrumentation-runtime-node": "^0.17.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.219",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.219",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.219",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.219",
+    "@opentelemetry/instrumentation-host-metrics": "^0.2.0",
+    "@opentelemetry/instrumentation-runtime-node": "^0.32.0",
     "@sap/cds-mtxs": "^2 || ^3",
     "axios": "^1.6.7",
     "chai": "^4.4.1",
@@ -61,6 +62,10 @@
             "http": {
               "module": "@opentelemetry/instrumentation-http",
               "class": "HttpInstrumentation"
+            },
+            "undici": {
+              "module": "@opentelemetry/instrumentation-undici",
+              "class": "UndiciInstrumentation"
             }
           },
           "tracing": {
@@ -104,9 +109,10 @@
           }
         },
         "telemetry-to-dynatrace": {
-          "vcap": {
-            "label": "dynatrace"
-          },
+          "vcap": [
+            { "label": "dynatrace" },
+            { "tag": "dynatrace" }
+          ],
           "tracing": {
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-proto",
@@ -122,9 +128,10 @@
           "token_name": "ingest_apitoken"
         },
         "telemetry-to-cloud-logging": {
-          "vcap": {
-            "label": "cloud-logging"
-          },
+          "vcap": [
+            { "label": "cloud-logging" },
+            { "tag": "Cloud Logging" }
+          ],
           "tracing": {
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-grpc",
