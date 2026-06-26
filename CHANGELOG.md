@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- HTTP client attributes for remote service
+- `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
 
 ### Changed
 
