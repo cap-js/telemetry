@@ -3,7 +3,7 @@
   "dependencies": {
     "@cap-js/sqlite": "*",
     "@cap-js/telemetry": "*",
-    "@opentelemetry/host-metrics": "*",
+    "@opentelemetry/instrumentation-host-metrics": "*",
     "@opentelemetry/instrumentation-runtime-node": "*",
     "@sap/cds-mtxs": "*",
     "@sap-cloud-sdk/connectivity": "^4",
@@ -21,10 +21,6 @@
             "config": {
               "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
             }
-          },
-          "instrumentation-runtime-node": {
-            "class": "RuntimeNodeInstrumentation",
-            "module": "@opentelemetry/instrumentation-runtime-node"
           }
         },
         "_tracing": {
@@ -124,5 +120,8 @@
     "fiori": {
       "draft_deletion_timeout": false
     }
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "^9"
   }
 }

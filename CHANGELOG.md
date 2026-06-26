@@ -10,6 +10,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Changed
 
+- `@opentelemetry/instrumentation-host-metrics` replaces deprecated `@opentelemetry/host-metrics`
+
 ### Fixed
 
 - Prefer `VCAP_APPLICATION.name` over `name` in `package.json` for app name resolution

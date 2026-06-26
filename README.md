@@ -14,32 +14,43 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 
 ## Table of Contents
 
-- [About This Project](#about-this-project)
-- [Requirements](#requirements)
-- [Setup](#setup)
-- [Telemetry Signals](#telemetry-signals)
-  - [Traces](#traces)
-  - [Metrics](#metrics)
-  - [Logs](#logs)
-- [Predefined Kinds](#predefined-kinds)
-  - [`telemetry-to-console`](#telemetry-to-console)
-  - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
-  - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
-  - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
-  - [`telemetry-to-otlp`](#telemetry-to-otlp)
-- [Detailed Configuration Options](#detailed-configuration-options)
-  - [Configuration Pass Through](#configuration-pass-through)
-  - [Resource Attributes](#resource-attributes)
-  - [Instrumentations](#instrumentations)
-  - [Sampler](#sampler)
-  - [Propagators](#propagators)
-  - [Exporters](#exporters)
-  - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
-  - [Environment Variables](#environment-variables)
-- [Custom Spans (beta)](#custom-spans-beta)
-- [Support, Feedback, Contributing](#support-feedback-contributing)
-- [Code of Conduct](#code-of-conduct)
-- [Licensing](#licensing)
+- [Welcome to @cap-js/telemetry](#welcome-to-cap-jstelemetry)
+  - [About This Project](#about-this-project)
+  - [Table of Contents](#table-of-contents)
+  - [Requirements](#requirements)
+  - [Setup](#setup)
+  - [Telemetry Signals](#telemetry-signals)
+    - [Traces](#traces)
+    - [Metrics](#metrics)
+      - [Host Metrics](#host-metrics)
+        - [Example `host metrics` outputs:](#example-host-metrics-outputs)
+      - [Database Pool](#database-pool)
+        - [Example `db.pool` output:](#example-dbpool-output)
+      - [Queue](#queue)
+        - [Example `queue` output:](#example-queue-output)
+      - [Custom Metrics](#custom-metrics)
+    - [Logs](#logs)
+  - [Predefined Kinds](#predefined-kinds)
+    - [`telemetry-to-console`](#telemetry-to-console)
+    - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
+      - [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent)
+    - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
+    - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
+    - [`telemetry-to-otlp`](#telemetry-to-otlp)
+  - [Detailed Configuration Options](#detailed-configuration-options)
+    - [Configuration Pass Through](#configuration-pass-through)
+    - [Resource Attributes](#resource-attributes)
+    - [Instrumentations](#instrumentations)
+    - [Sampler](#sampler)
+    - [Propagators](#propagators)
+    - [Exporters](#exporters)
+      - [Some Alternative Exporters](#some-alternative-exporters)
+    - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
+    - [Environment Variables](#environment-variables)
+  - [Custom Spans (beta)](#custom-spans-beta)
+  - [Support, Feedback, Contributing](#support-feedback-contributing)
+  - [Code of Conduct](#code-of-conduct)
+  - [Licensing](#licensing)
 
 
 
@@ -103,17 +114,14 @@ In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no Ope
 Metrics are "measurements captured at runtime", which help you understand your app's health and performance.
 
 The `@cap-js/telemetry` enables the observation of some metrics out of the box. 
-These include generic [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) (if the package is found in the app's dependencies), 
+These include generic [`@opentelemetry/instrumentation-host-metrics`](https://www.npmjs.com/package/@opentelemetry/instrumentation-host-metrics) (if the package is found in the app's dependencies), 
 metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`,
 as well as metrics regarding [CAP's Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
 
 #### Host Metrics
 
-Currently, there is no public config option to influence which metrics `@opentelemetry/host-metrics` collects.
-However, it is possible to instruct the meter provider during initialization, which metrics shall be ignored.
-By default, this is done for all `system.*` metrics collected by `@opentelemetry/host-metrics`.
-This can be disabled via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`.
-As these so-called *views* must be passed into the constructor, the above only applies in case `@cap-js/telemetry` initializes the meter provider.
+[@opentelemetry/instrumentation-host-metrics](https://www.npmjs.com/package/@opentelemetry/instrumentation-host-metrics) allows you to optionally restrict collection to one or more metric groups via config option `metricGroups`.
+For backward compatibility, `@cap-js/telemetry` limits collection to `['process.cpu', 'process.memory']` if not configured manually (via [`cds.requires.telemetry.instrumentations`](#instrumentations)) or disabled via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`.
 
 To avoid spamming the console, only `process.*` metrics are printed by default, regardless of whether the `system.*` metrics are ignored or not.
 Printing the `system.*` metrics (if not ignored) in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
