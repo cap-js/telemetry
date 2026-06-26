@@ -40,9 +40,6 @@
           }
         }
       },
-      "db": {
-        "driver": "node"
-      },
       "messaging": {
         "kind": "local-messaging",
         "_kind": "file-based-messaging",
@@ -127,8 +124,5 @@
     "fiori": {
       "draft_deletion_timeout": false
     }
-  },
-  "devDependencies": {
-    "@sap/cds-dk": "^9"
   }
 }
