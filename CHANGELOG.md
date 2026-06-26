@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for OpenTelemetry SDK 2.0
+
 ### Changed
 
 - `@opentelemetry/instrumentation-host-metrics` replaces deprecated `@opentelemetry/host-metrics`
