@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 - Support for OpenTelemetry SDK 2.0
 - `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
+- Support for `@sap/cds^10`
 
 ### Changed
 
@@ -20,6 +21,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Prefer `VCAP_APPLICATION.name` over `name` in `package.json` for app name resolution
 
 ### Removed
+
+- Support for `@sap/cds^8`
 
 ## Version 1.6.0 - 2025-12-16
 
