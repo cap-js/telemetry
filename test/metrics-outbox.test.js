@@ -177,6 +177,11 @@ describe('queue metrics for single tenant service', () => {
       expect(currentRetryCount[E1]).to.eq(2)
       expect(currentRetryCount[E2]).to.eq(2)
 
+      // Snapshot counters now: retry 2 fires at t+1250ms (waitingTime(2)), which overlaps
+      // with the wait below, causing totalOut/totalFailed to advance ahead of the metric export
+      const snapOut = { ...totalOut }
+      const snapFailed = { ...totalFailed }
+
       // Wait until at least 1 second has passed since the initial call
       const timeAfterFirstRetry = Date.now()
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
@@ -188,8 +193,8 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('cold_entries', E1)).to.eq(0)
       expect(metricValue('remaining_entries', E1)).to.eq(1)
       expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
-      expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
-      expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
+      expect(metricValue('outgoing_messages', E1)).to.eq(snapOut[E1])
+      expect(metricValue('processing_failures', E1)).to.eq(snapFailed[E1])
       expect(metricValue('min_storage_time_in_seconds', E1)).to.be.gte(1)
       expect(metricValue('med_storage_time_in_seconds', E1)).to.be.gte(1)
       expect(metricValue('max_storage_time_in_seconds', E1)).to.be.gte(1)
@@ -197,8 +202,8 @@ describe('queue metrics for single tenant service', () => {
       expect(metricValue('cold_entries', E2)).to.eq(0)
       expect(metricValue('remaining_entries', E2)).to.eq(1)
       expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
-      expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
-      expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
+      expect(metricValue('outgoing_messages', E2)).to.eq(snapOut[E2])
+      expect(metricValue('processing_failures', E2)).to.eq(snapFailed[E2])
       expect(metricValue('min_storage_time_in_seconds', E2)).to.be.gte(1)
       expect(metricValue('med_storage_time_in_seconds', E2)).to.be.gte(1)
       expect(metricValue('max_storage_time_in_seconds', E2)).to.be.gte(1)
