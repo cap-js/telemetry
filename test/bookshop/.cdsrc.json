@@ -82,15 +82,6 @@
       }
     }
   },
-  "[in-memory-outbox]": {
-    "requires": {
-      "messaging": {
-        "kind": "file-based-messaging",
-        "file": "../in-memory-outbox",
-        "outbox": { "kind": "in-memory-outbox" }
-      }
-    }
-  },
   "[persistent-outbox]": {
     "requires": {
       "messaging": {

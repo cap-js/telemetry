@@ -135,6 +135,5 @@ dist
 # test
 test/msg-box
 test/bookshop/gen
-#test/bookshop/.cdsrc.json
 
 .claude/
