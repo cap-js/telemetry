@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
+
 ### Changed
 
 ### Fixed

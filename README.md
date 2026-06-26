@@ -395,6 +395,10 @@ Default:
   "http": {
     "module": "@opentelemetry/instrumentation-http",
     "class": "HttpInstrumentation"
+  },
+  "undici": {
+    "module": "@opentelemetry/instrumentation-undici",
+    "class": "UndiciInstrumentation"
   }
 }
 ```
