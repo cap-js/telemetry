@@ -10,6 +10,9 @@
     "@sap-cloud-sdk/http-client": "^4",
     "@sap-cloud-sdk/resilience": "^4"
   },
+  "devDependencies": {
+    "@sap/cds-dk": "*"
+  },
   "cds": {
     "requires": {
       "telemetry": {
