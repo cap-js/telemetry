@@ -78,7 +78,7 @@ describe('queue metrics for multi tenant service', () => {
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
 
-      await wait(300) // Wait for metrics to be collected
+      await wait(150) // Wait for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
@@ -138,7 +138,7 @@ describe('queue metrics for multi tenant service', () => {
       if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
         await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
       }
-      await wait(300) // ... for metrics to be collected
+      await wait(150) // ... for metrics to be collected
 
       expect(metricValue(T1, 'cold_entries')).to.eq(0)
       expect(metricValue(T1, 'incoming_messages')).to.eq(totalInc[T1])
