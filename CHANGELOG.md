@@ -4,11 +4,16 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.7.0 - tbd
+## Version 2.0.0 - tbd
 
 ### Added
 
+- Support for OpenTelemetry SDK 2.0
+- `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
+
 ### Changed
+
+- `@opentelemetry/instrumentation-host-metrics` replaces deprecated `@opentelemetry/host-metrics`
 
 ### Fixed
 

@@ -4,11 +4,6 @@
 
 
 
-> [!WARNING]
-> [OpenTelemetry SDK 2.0](https://github.com/open-telemetry/opentelemetry-js/releases/tag/v2.0.0) is not yet supported.
-
-
-
 ## About This Project
 
 `@cap-js/telemetry` is a CDS plugin providing observability features, including [automatic OpenTelemetry instrumentation](https://opentelemetry.io/docs/concepts/instrumentation/automatic).
@@ -108,17 +103,14 @@ In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no Ope
 Metrics are "measurements captured at runtime", which help you understand your app's health and performance.
 
 The `@cap-js/telemetry` enables the observation of some metrics out of the box. 
-These include generic [`@opentelemetry/host-metrics`](https://www.npmjs.com/package/@opentelemetry/host-metrics) (if the package is found in the app's dependencies), 
+These include generic host metrics collected by [`@opentelemetry/instrumentation-host-metrics`](https://www.npmjs.com/package/@opentelemetry/instrumentation-host-metrics) (if the package is found in the app's dependencies), 
 metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`,
 as well as metrics regarding [CAP's Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
 
 #### Host Metrics
 
-Currently, there is no public config option to influence which metrics `@opentelemetry/host-metrics` collects.
-However, it is possible to instruct the meter provider during initialization, which metrics shall be ignored.
-By default, this is done for all `system.*` metrics collected by `@opentelemetry/host-metrics`.
-This can be disabled via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`.
-As these so-called *views* must be passed into the constructor, the above only applies in case `@cap-js/telemetry` initializes the meter provider.
+[@opentelemetry/instrumentation-host-metrics](https://www.npmjs.com/package/@opentelemetry/instrumentation-host-metrics) allows you to optionally restrict collection to one or more metric groups via config option `metricGroups`.
+For backward compatibility, `@cap-js/telemetry` limits collection to `['process.cpu', 'process.memory']` if not configured manually (via [`cds.requires.telemetry.instrumentations`](#instrumentations)) or disabled via environment variable `HOST_METRICS_RETAIN_SYSTEM=true`.
 
 To avoid spamming the console, only `process.*` metrics are printed by default, regardless of whether the `system.*` metrics are ignored or not.
 Printing the `system.*` metrics (if not ignored) in the built-in console exporter can be enabled via environment variable `HOST_METRICS_LOG_SYSTEM=true`.
@@ -401,6 +393,10 @@ Default:
   "http": {
     "module": "@opentelemetry/instrumentation-http",
     "class": "HttpInstrumentation"
+  },
+  "undici": {
+    "module": "@opentelemetry/instrumentation-undici",
+    "class": "UndiciInstrumentation"
   }
 }
 ```
