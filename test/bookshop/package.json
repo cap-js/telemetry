@@ -3,12 +3,15 @@
   "dependencies": {
     "@cap-js/sqlite": "*",
     "@cap-js/telemetry": "*",
-    "@opentelemetry/host-metrics": "*",
+    "@opentelemetry/instrumentation-host-metrics": "*",
     "@opentelemetry/instrumentation-runtime-node": "*",
     "@sap/cds-mtxs": "*",
     "@sap-cloud-sdk/connectivity": "^4",
     "@sap-cloud-sdk/http-client": "^4",
     "@sap-cloud-sdk/resilience": "^4"
+  },
+  "devDependencies": {
+    "@sap/cds-dk": "*"
   },
   "cds": {
     "requires": {
@@ -21,10 +24,6 @@
             "config": {
               "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
             }
-          },
-          "instrumentation-runtime-node": {
-            "class": "RuntimeNodeInstrumentation",
-            "module": "@opentelemetry/instrumentation-runtime-node"
           }
         },
         "_tracing": {

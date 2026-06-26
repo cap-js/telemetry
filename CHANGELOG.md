@@ -8,9 +8,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for OpenTelemetry SDK 2.0
 - `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
 
 ### Changed
+
+- `@opentelemetry/instrumentation-host-metrics` replaces deprecated `@opentelemetry/host-metrics`
 
 ### Fixed
 
