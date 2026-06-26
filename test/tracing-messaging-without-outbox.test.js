@@ -7,6 +7,7 @@ process.env.cds_requires_messaging = JSON.stringify({
   outboxed: false
 })
 
+// REVISIT: check json exports
 const CHECK = (log, expect) => {
   // 2: no outbox -> consumer gets new root context
   expect(log.output.match(/\[telemetry\] - elapsed times:/g).length).to.equal(2)
