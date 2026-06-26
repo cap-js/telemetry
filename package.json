@@ -1,6 +1,6 @@
 {
   "name": "@cap-js/telemetry",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "description": "CDS plugin providing observability features, incl. automatic OpenTelemetry instrumentation.",
   "repository": {
     "type": "git",
