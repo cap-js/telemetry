@@ -103,7 +103,7 @@ In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no Ope
 Metrics are "measurements captured at runtime", which help you understand your app's health and performance.
 
 The `@cap-js/telemetry` enables the observation of some metrics out of the box. 
-These include generic [`@opentelemetry/instrumentation-host-metrics`](https://www.npmjs.com/package/@opentelemetry/instrumentation-host-metrics) (if the package is found in the app's dependencies), 
+These include generic host metrics collected by [`@opentelemetry/instrumentation-host-metrics`](https://www.npmjs.com/package/@opentelemetry/instrumentation-host-metrics) (if the package is found in the app's dependencies), 
 metrics regarding the app's database pool, namely the [pool info](https://www.npmjs.com/package/generic-pool#pool-info) statistics of `generic-pool`,
 as well as metrics regarding [CAP's Persistent Queue](https://cap.cloud.sap/docs/node.js/queue#persistent-queue).
 
