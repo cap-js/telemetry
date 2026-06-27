@@ -1,11 +1,11 @@
-// Mock console.dir to capture logs ConsoleMetricExporter writes
+// Capture exported metric data via ConsoleMetricExporter's console.dir output
 const consoleDirLogs = []
 jest.spyOn(console, 'dir').mockImplementation((...args) => {
   consoleDirLogs.push(args)
 })
 
 const cds = require('@sap/cds')
-const { setTimeout: wait } = require('node:timers/promises')
+const { metrics } = require('@opentelemetry/api')
 
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox-disabled')
 
@@ -41,7 +41,10 @@ describe('queue metrics is disabled', () => {
 
     await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
-    await wait(150) // Wait for metrics to be collected
+    // Drain the metric pipeline deterministically. If queue metrics were enabled they'd appear
+    // in `consoleDirLogs` right after this returns; since they're disabled, the assertions below
+    // verify nothing was emitted — no sleep needed.
+    await metrics.getMeterProvider().forceFlush?.()
 
     expect(metricValue('cold_entries')).to.eq(null)
     expect(metricValue('remaining_entries')).to.eq(null)
