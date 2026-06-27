@@ -1,6 +1,6 @@
 // Mock console.dir to capture logs ConsoleMetricExporter writes
 const consoleDirLogs = []
-jest.spyOn(console, 'dir').mockImplementation((...args) => {
+vi.spyOn(console, 'dir').mockImplementation((...args) => {
   consoleDirLogs.push(args)
 })
 
@@ -27,7 +27,7 @@ function metricValue(metric, queuedServiceName) {
   return mestRecentQueueMetricData.value
 }
 
-const debugLog = (cds.log('telemetry').debug = jest.fn(() => {}))
+const debugLog = (cds.log('telemetry').debug = vi.fn(() => {}))
 
 describe('queue metrics for single tenant service', () => {
   if (cds.version.split('.')[0] < 9) {

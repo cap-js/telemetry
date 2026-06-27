@@ -32,7 +32,7 @@ describe('logging', () => {
 
   const { dir } = console
   beforeEach(() => {
-    console.dir = jest.fn()
+    console.dir = vi.fn()
   })
   afterAll(() => {
     console.dir = dir

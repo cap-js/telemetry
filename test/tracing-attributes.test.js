@@ -4,10 +4,12 @@ const cds = require('@sap/cds')
 const { expect, data } = cds.test().in(__dirname + '/bookshop')
 
 describe('tracing attributes', () => {
-  beforeEach(data.reset)
-
-  const log = jest.spyOn(console, 'dir')
-  beforeEach(log.mockClear)
+  let log
+  beforeAll(() => {
+    log = vi.spyOn(console, 'dir')
+  })
+  beforeEach(() => data.reset())
+  beforeEach(() => log.mockClear())
 
   describe('db', () => {
     const _db_spans = require('./_db_spans')
