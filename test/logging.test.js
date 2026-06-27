@@ -1,31 +1,10 @@
 /* eslint-disable no-console */
 
-process.env.cds_log = JSON.stringify({
-  format: 'json',
-  cls_custom_fields: ['foo']
-})
-
-process.env.cds_requires_telemetry = JSON.stringify({
-  tracing: {
-    sampler: {
-      ignoreIncomingPaths: ['/odata/v4/admin/Genres']
-    }
-  },
-  logging: {
-    exporter: {
-      module: '@opentelemetry/sdk-logs',
-      class: 'ConsoleLogRecordExporter'
-    },
-    // experimental feature of the experimental feature!!!
-    processor: {
-      module: './lib/MySimpleLogRecordProcessor.js',
-      class: 'MySimpleLogRecordProcessor'
-    }
-  }
-})
+// REVISIT: even with profile "logging", cls_custom_fields from package.json wins
+process.env.cds_log = JSON.stringify({ cls_custom_fields: ['foo'] })
 
 const cds = require('@sap/cds')
-const { expect, GET } = cds.test().in(__dirname + '/bookshop')
+const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'logging')
 
 describe('logging', () => {
   const admin = { auth: { username: 'alice' } }
