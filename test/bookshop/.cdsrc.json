@@ -76,7 +76,8 @@
       "telemetry": {
         "tracing": {
           "exporter": {
-            "module": "@opentelemetry/sdk-trace-node"
+            "module": "./lib/MyInMemorySpanExporter.js",
+            "class": "MyInMemorySpanExporter"
           }
         }
       }

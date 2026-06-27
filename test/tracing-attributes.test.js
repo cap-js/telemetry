@@ -2,12 +2,22 @@ const cds = require('@sap/cds')
 const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
 const http = require('http')
 
+// The tracing-attributes profile (see test/bookshop/.cdsrc.json) configures
+// MyInMemorySpanExporter as the trace exporter. We read the captured ReadableSpan
+// objects directly out of its shared buffer — no console spy, no provider-poking.
+const { captured } = require('./bookshop/lib/MyInMemorySpanExporter')
+
+beforeEach(async () => {
+  // data.reset is itself heavily traced (it runs DELETEs + INSERTs for the seed data) —
+  // run it first, THEN clear the buffer so the test only sees its own spans.
+  await data.reset()
+  captured.length = 0
+})
+
+// Returns all finished spans, optionally filtered by a predicate.
+const spans = filter => (filter ? captured.filter(filter) : captured.slice())
+
 describe('tracing attributes', () => {
-  beforeEach(data.reset)
-
-  const log = jest.spyOn(console, 'dir')
-  beforeEach(log.mockClear)
-
   describe('remote', () => {
     let server, port
 
@@ -37,54 +47,62 @@ describe('tracing attributes', () => {
       // no mock handler - let it make the actual HTTP call
       await remote.send({ method: 'GET', path: '/test' })
 
-      const output = JSON.stringify(log.mock.calls)
-      expect(output).to.match(/"http\.request\.method":"GET"/)
-      expect(output).to.match(/"http\.response\.status_code":200/)
-      expect(output).to.match(new RegExp(`"url\\.full":"http://localhost:${port}/test"`))
-      expect(output).to.match(/"server\.address":"localhost"/)
-      expect(output).to.match(new RegExp(`"server\\.port":${port}`))
+      // Find the HTTP client span (instrumented by OTel's http instrumentation)
+      const httpSpan = spans(s => s.attributes['http.request.method'] === 'GET' && s.attributes['url.full'])
+      expect(httpSpan, 'expected an HTTP client span').to.have.lengthOf.at.least(1)
+      const attrs = httpSpan[0].attributes
+      expect(attrs).to.include({
+        'http.request.method': 'GET',
+        'http.response.status_code': 200,
+        'url.full': `http://localhost:${port}/test`,
+        'server.address': 'localhost',
+        'server.port': port
+      })
     })
   })
 
   describe('db', () => {
     const _db_spans = require('./_db_spans')
-    // prettier-ignore
-    const _get_db_spans = o => JSON.parse(o).map(o => o[0]).filter(s => !s.name.startsWith('db'))
-    const _match_db_spans = (output, kind) => {
-      const db_spans = _get_db_spans(output)
-      for (const each of _db_spans[kind]) expect(db_spans).to.containSubset([each])
+
+    // Filter out the high-level "db - …" CAP wrapper spans, keep only the @cap-js/<driver> ones
+    // that carry the actual DB attributes.
+    const dbSpans = () => spans(s => !s.name.startsWith('db'))
+
+    const _match_db_spans = kind => {
+      const got = dbSpans().map(s => ({ name: s.name, attributes: { ...s.attributes } }))
+      for (const each of _db_spans[kind]) expect(got).to.containSubset([each])
     }
 
     test('SELECT', async () => {
       await SELECT.from('sap.capire.bookshop.Books').where('title !=', 'DUMMY')
-      const output = JSON.stringify(log.mock.calls)
-      expect(output).to.match(/db\.client\.response.returned_rows":5/)
-      _match_db_spans(output, 'SELECT')
+      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      expect(rowCounts).to.include(5)
+      _match_db_spans('SELECT')
     })
 
     test('INSERT', async () => {
       await INSERT.into('sap.capire.bookshop.Books').entries([{ ID: 1 }, { ID: 2 }])
-      const output = JSON.stringify(log.mock.calls)
-      expect(output).to.match(/db\.client\.response.returned_rows":2/)
+      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      expect(rowCounts).to.include(2)
       // TODO
-      // _match_db_spans(output, 'INSERT')
+      // _match_db_spans('INSERT')
     })
 
     test('UPDATE', async () => {
       await UPDATE('sap.capire.bookshop.Books').set({ stock: 42 }).where('ID > 250')
-      const output = JSON.stringify(log.mock.calls)
-      expect(output).to.match(/db\.client\.response.returned_rows":3/)
+      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      expect(rowCounts).to.include(3)
       // TODO
-      // _match_db_spans(output, 'UPDATE')
+      // _match_db_spans('UPDATE')
     })
 
     test('DELETE', async () => {
       await DELETE.from('sap.capire.bookshop.Books')
-      const output = JSON.stringify(log.mock.calls)
-      expect(output).to.match(/db\.client\.response.returned_rows":0/) //> texts
-      expect(output).to.match(/db\.client\.response.returned_rows":5/)
+      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      expect(rowCounts).to.include(0) // texts
+      expect(rowCounts).to.include(5)
       // TODO
-      // _match_db_spans(output, 'DELETE')
+      // _match_db_spans('DELETE')
     })
   })
 })
