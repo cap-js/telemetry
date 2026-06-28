@@ -144,10 +144,10 @@ describe('queue metrics for single tenant service', () => {
     })
 
     test('storage time increases before message can be delivered', async () => {
-      const timeOfInitialCall = Date.now()
-
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
+
+      const timeOfInitialCall = Date.now()
 
       await wait(150) // ... for metrics to be collected
       expect(currentRetryCount[E1]).to.eq(1)
