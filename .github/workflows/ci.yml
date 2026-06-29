@@ -8,7 +8,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, 2]
+    branches: [main]
 
 env:
   NPM_CONFIG_IGNORE_SCRIPTS: true
