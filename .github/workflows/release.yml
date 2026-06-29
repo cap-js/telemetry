@@ -21,6 +21,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org/
       - name: run tests
+        # REVISIT: remove "npm explore better-sqlite3 -- npm run install" with cds^10
         run: |
           npm i -g @sap/cds-dk
           npm i
