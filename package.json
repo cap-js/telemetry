@@ -165,6 +165,7 @@
           "vcap": {
             "label": "caas-service"
           },
+          "mtls_service_pattern": "caas-mtls|caas-cert",
           "tracing": {
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-proto",
