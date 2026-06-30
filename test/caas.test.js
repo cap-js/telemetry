@@ -91,7 +91,7 @@ describe('augmentCaaSCreds', () => {
     delete require.cache[require.resolve('../lib/utils')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
-    expect(() => augmentCaaSCreds({})).toThrow('No OTLP endpoints found')
+    expect(() => augmentCaaSCreds({})).toThrow('No OTLP HTTP endpoint found')
   })
 
   test('does not augment twice', () => {
