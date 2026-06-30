@@ -5,10 +5,10 @@ permissions:
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  # push:
+  #  branches: [main]
+  # pull_request:
+  #  branches: [main]
 
 jobs:
   hana:
@@ -23,7 +23,7 @@ jobs:
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - uses: actions/setup-node@v6.4.0
       - uses: cap-js/.github/.github/actions/hana-hdi-container@main
         with:

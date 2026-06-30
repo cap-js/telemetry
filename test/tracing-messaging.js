@@ -1,6 +1,6 @@
 module.exports = (CASE, CHECK) => {
   const cds = require('@sap/cds')
-  const { expect, POST } = cds.test().in(__dirname + '/bookshop')
+  const { expect, POST } = cds.test(__dirname + '/bookshop', '--profile', CASE)
   const log = cds.test.log()
 
   const wait = require('node:timers/promises').setTimeout

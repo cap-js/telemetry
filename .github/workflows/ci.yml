@@ -17,7 +17,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - run: npm i
       - run: npm run lint
   test:
@@ -26,16 +26,17 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [24.x, 22.x]
-        cds-version: [9, 8]
+        # cds-version: [10, 9]
+        cds-version: [9]
     steps:
-      - uses: actions/checkout@v6.0.3
+      - uses: actions/checkout@v7.0.0
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v6.4.0
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm i -g @sap/cds-dk@${{ matrix.cds-version }}
       - run: npm i
-      - run: if [ ${{ matrix.cds-version }} -eq 8 ]; then npm i -f @sap/cds@8 @cap-js/sqlite@1 @sap/cds-mtxs@2; fi
-      - run: npm explore better-sqlite3 -- npm run install
+      #- run: if [ ${{ matrix.cds-version }} -eq 9 ]; then npm i -f @sap/cds@9 @cap-js/sqlite@2 @sap/cds-mtxs@3; fi
+      - run: if [ ${{ matrix.cds-version }} -eq 9 ]; then npm explore better-sqlite3 -- npm run install; fi
       - run: cds v
       - run: npm run test

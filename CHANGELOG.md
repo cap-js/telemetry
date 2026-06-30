@@ -4,17 +4,25 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 1.7.0 - tbd
+## Version 2.0.0 - 2026-06-29
 
 ### Added
 
+- Support for OpenTelemetry SDK 2.0
+- `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
+- Support for `@sap/cds^10`
+
 ### Changed
+
+- `@opentelemetry/instrumentation-host-metrics` replaces deprecated `@opentelemetry/host-metrics`
 
 ### Fixed
 
 - Prefer `VCAP_APPLICATION.name` over `name` in `package.json` for app name resolution
 
 ### Removed
+
+- Support for `@sap/cds^8`
 
 ## Version 1.6.0 - 2025-12-16
 
