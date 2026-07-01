@@ -1,6 +1,5 @@
 const cds = require('@sap/cds')
 const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
-const { SELECT, INSERT } = cds.ql
 const http = require('http')
 
 describe('span names', () => {
@@ -23,9 +22,12 @@ describe('span names', () => {
       expect(names).to.include('db - READ sap.capire.bookshop.Books')
       // inner SQLite prepare span: SQL verb + table appended, not raw SQL
       expect(names.some(n => /^@cap-js\/\w+ - prepare SELECT sap\.capire\.bookshop\.Books$/.test(n))).to.be.true
-      // no span name should carry raw SQL
+      // no span name should carry raw SQL (function calls, column lists, etc.)
+      // but a bare "SELECT <table>" is the intended shape
       for (const name of names) {
-        expect(name, `span "${name}" contains SQL`).not.to.match(/SELECT\s|json_insert|INSERT\s+INTO|UPDATE\s+\w/)
+        expect(name, `span "${name}" contains raw SQL`).not.to.match(
+          /SELECT\s+\S+,|SELECT\s+\w*\(|json_insert|INSERT\s+INTO|UPDATE\s+\S+\s+SET|DELETE\s+FROM/
+        )
       }
     })
 
