@@ -47,7 +47,6 @@
       "queue": {
         "legacyLocking": false
       },
-      "_scheduling": true,
       "ExternalServiceOne": {
         "kind": "odata",
         "model": "srv/external/ExternalServiceOne"
