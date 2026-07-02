@@ -71,8 +71,6 @@ describe('queue metrics for multi tenant service', () => {
 
   describe('given the target service succeeds immediately', () => {
     test('metrics are collected per tenant', async () => {
-      if (cds.version.split('.')[0] < 9) return
-
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
@@ -121,8 +119,6 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     test('storage time increases before message can be delivered', async () => {
-      if (cds.version.split('.')[0] < 9) return
-
       const timeOfInitialCall = Date.now()
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
@@ -203,8 +199,6 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     test('cold entry is observed', async () => {
-      if (cds.version.split('.')[0] < 9) return
-
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])

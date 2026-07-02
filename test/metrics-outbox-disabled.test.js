@@ -37,8 +37,6 @@ describe('queue metrics is disabled', () => {
   beforeEach(() => (consoleDirLogs.length = 0))
 
   test('metrics are not collected', async () => {
-    if (cds.version.split('.')[0] < 9) return
-
     await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
     await wait(150) // Wait for metrics to be collected
