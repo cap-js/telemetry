@@ -25,7 +25,6 @@ jobs:
         run: |
           npm i -g @sap/cds-dk
           npm i
-          npm explore better-sqlite3 -- npm run install
           npm run lint
           npm run test
       - name: get version
