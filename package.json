@@ -30,11 +30,11 @@
     "@opentelemetry/semantic-conventions": "^1.41"
   },
   "peerDependencies": {
-    "@sap/cds": "^9"
+    "@sap/cds": "^10 || ^9"
   },
   "devDependencies": {
-    "@cap-js/cds-test": "^0",
-    "@cap-js/sqlite": "^2",
+    "@cap-js/cds-test": "^1",
+    "@cap-js/sqlite": "^3",
     "@cap-js/telemetry": "file:.",
     "@grpc/grpc-js": "^1.9.14",
     "@opentelemetry/exporter-metrics-otlp-grpc": "^0.219",
@@ -43,7 +43,7 @@
     "@opentelemetry/exporter-trace-otlp-proto": "^0.219",
     "@opentelemetry/instrumentation-host-metrics": "^0.2.0",
     "@opentelemetry/instrumentation-runtime-node": "^0.32.0",
-    "@sap/cds-mtxs": "^3",
+    "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "chai": "^4.4.1",
     "chai-as-promised": "^7.1.1",
