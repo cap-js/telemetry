@@ -77,9 +77,6 @@ describe('span names', () => {
     afterAll(() => new Promise(resolve => server.close(resolve)))
 
     test('Cloud SDK span name uses destination+method, not URL', async () => {
-      // Cloud SDK resilience module resolution issues in cds < 9
-      if (Number(cds.version.split('.')[0]) < 9) return
-
       cds.env.requires.TestRemote = { kind: 'odata', credentials: { url: `http://localhost:${port}` } }
       const remote = await cds.connect.to('TestRemote')
       await remote.send({ method: 'GET', path: '/test' })
