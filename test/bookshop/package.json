@@ -1,5 +1,5 @@
 {
-  "name": "bookshop",
+  "name": "d050513-telemetry-bookshop",
   "dependencies": {
     "@cap-js/sqlite": "*",
     "@cap-js/telemetry": "*",

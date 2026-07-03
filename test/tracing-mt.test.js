@@ -1,7 +1,8 @@
 const cds = require('@sap/cds')
 // prettier-ignore
-const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'multitenancy')
-const log = cds.test.log()
+const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'multitenancy,tracing-in-memory')
+
+const { reset, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
 
 describe('tracing with multitenancy', () => {
   const TENANT1 = 'tenant_1'
@@ -17,22 +18,23 @@ describe('tracing with multitenancy', () => {
     await mts.subscribe(TENANT2)
   })
 
-  beforeEach(log.clear)
+  beforeEach(reset)
 
   test('GET with user1 is traced', async () => {
     const { status } = await GET('/odata/v4/admin/Books', user1)
     expect(status).to.equal(200)
-    // primitive check that console has trace logs
-    expect(log.output).to.match(/\[telemetry|tenant_1\] - elapsed times:/)
-    expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* AdminService - READ AdminService.Books/)
+    // AdminService READ ran and was tagged with the right tenant.
+    const span = captured.find(s => s.name === 'AdminService - READ AdminService.Books')
+    expect(span, 'expected AdminService READ span').to.exist
+    expect(span.attributes['sap.tenancy.tenant_id']).to.equal(TENANT1)
   })
 
   test('GET with user2 is traced', async () => {
     const { status } = await GET('/odata/v4/admin/Books', user2)
     expect(status).to.equal(200)
-    // primitive check that console has trace logs
-    expect(log.output).to.match(/\[telemetry|tenant_2\] - elapsed times:/)
-    expect(log.output).to.match(/\s+\d+\.\d+ → \s*\d+\.\d+ = \s*\d+\.\d+ ms \s* AdminService - READ AdminService.Books/)
+    const span = captured.find(s => s.name === 'AdminService - READ AdminService.Books')
+    expect(span, 'expected AdminService READ span').to.exist
+    expect(span.attributes['sap.tenancy.tenant_id']).to.equal(TENANT2)
   })
 
   // --- TODO ---

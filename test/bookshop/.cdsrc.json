@@ -71,7 +71,7 @@
       }
     }
   },
-  "[tracing-attributes]": {
+  "[tracing-in-memory]": {
     "requires": {
       "telemetry": {
         "tracing": {
@@ -88,6 +88,25 @@
       "messaging": {
         "kind": "file-based-messaging",
         "file": "../persistent-outbox"
+      }
+    }
+  },
+  "[inboxed]": {
+    "requires": {
+      "messaging": {
+        "kind": "file-based-messaging",
+        "file": "../inboxed",
+        "inboxed": true
+      }
+    }
+  },
+  "[outboxed-and-inboxed]": {
+    "requires": {
+      "messaging": {
+        "kind": "file-based-messaging",
+        "file": "../outboxed-and-inboxed",
+        "outboxed": true,
+        "inboxed": true
       }
     }
   },

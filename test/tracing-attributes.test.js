@@ -1,8 +1,8 @@
 const cds = require('@sap/cds')
-const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
+const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 const http = require('http')
 
-// The tracing-attributes profile (see test/bookshop/.cdsrc.json) configures
+// The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures
 // MyInMemorySpanExporter as the trace exporter. We read the captured ReadableSpan
 // objects directly out of its shared buffer — no console spy, no provider-poking.
 const { captured } = require('./bookshop/lib/MyInMemorySpanExporter')

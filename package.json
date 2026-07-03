@@ -30,7 +30,7 @@
     "@opentelemetry/semantic-conventions": "^1.41"
   },
   "peerDependencies": {
-    "@sap/cds": "^9"
+    "@sap/cds": "^10.0.1"
   },
   "devDependencies": {
     "@cap-js/cds-test": "^0",
@@ -110,8 +110,12 @@
         },
         "telemetry-to-dynatrace": {
           "vcap": [
-            { "label": "dynatrace" },
-            { "tag": "dynatrace" }
+            {
+              "label": "dynatrace"
+            },
+            {
+              "tag": "dynatrace"
+            }
           ],
           "tracing": {
             "exporter": {
@@ -129,8 +133,12 @@
         },
         "telemetry-to-cloud-logging": {
           "vcap": [
-            { "label": "cloud-logging" },
-            { "tag": "Cloud Logging" }
+            {
+              "label": "cloud-logging"
+            },
+            {
+              "tag": "Cloud Logging"
+            }
           ],
           "tracing": {
             "exporter": {
