@@ -1,4 +1,4 @@
-// REVISIT: use native fetch in cds oq
+// Use native fetch in CDS OQ so @opentelemetry/instrumentation-undici can see outbound calls
 process.env.cds_remote_native__fetch = 'true'
 
 const cds = require('@sap/cds')
