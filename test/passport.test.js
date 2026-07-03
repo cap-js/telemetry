@@ -1,4 +1,5 @@
 process.env.SAP_PASSPORT = 'true'
+
 // CDS v10 enables scheduling by default; its periodic outbox reads run in
 // their own transactions and cause spurious SAP_PASSPORT set/reset pairs on
 // the connection, breaking the deterministic _count assertions below.
