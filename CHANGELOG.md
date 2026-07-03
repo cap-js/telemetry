@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Readability of span names for DB and Cloud SDK traces
 - Peer dependency allows `@sap/cds^10`
 
 ## Version 2.0.0 - 2026-06-29
