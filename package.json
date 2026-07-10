@@ -20,9 +20,9 @@
   "dependencies": {
     "@opentelemetry/api": "^1.9",
     "@opentelemetry/core": "^2.8",
-    "@opentelemetry/instrumentation": "^0.219",
-    "@opentelemetry/instrumentation-http": "^0.219",
-    "@opentelemetry/instrumentation-undici": "^0.29",
+    "@opentelemetry/instrumentation": "^0.220",
+    "@opentelemetry/instrumentation-http": "^0.220",
+    "@opentelemetry/instrumentation-undici": "^0.30",
     "@opentelemetry/resources": "^2.8",
     "@opentelemetry/sdk-metrics": "^2.8",
     "@opentelemetry/sdk-trace-base": "^2.8",
