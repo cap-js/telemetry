@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for OpenTelemetry SDK 2.0
 - `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
 - Support for `@sap/cds^10`
+- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service)
 
 ### Changed
 

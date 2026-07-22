@@ -25,6 +25,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-console`](#telemetry-to-console)
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
+  - [`telemetry-to-caas`](#telemetry-to-caas)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
@@ -200,7 +201,7 @@ Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`
 
 ## Predefined Kinds
 
-There are five predefined kinds as follows:
+There are six predefined kinds as follows:
 
 
 ### `telemetry-to-console`
@@ -283,11 +284,45 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 
 If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has the tag `Cloud Logging`.
 
-> Tip: To add the required tag to an existing user-provided service, you can use: 
+> Tip: To add the required tag to an existing user-provided service, you can use:
 > ```
 > cf update-user-provided-service {service-name} -t "Cloud Logging"
 > ```
 > For detailed information about binding resolution in CAP, consult [`cds.connect()` → Service Bindings](https://cap.cloud.sap/docs/node.js/cds-connect#service-bindings).
+
+### `telemetry-to-caas`
+
+Exports traces and metrics to CaaS (Collector as a Service).
+CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
+
+Use via `cds.requires.telemetry.kind = 'to-caas'`.
+
+Required additional dependencies:
+- `@opentelemetry/exporter-trace-otlp-proto`
+- `@opentelemetry/exporter-metrics-otlp-proto`
+
+CaaS requires mTLS authentication with SAP-signed certificates. You need to:
+
+1. **Bind the CaaS service** to your app with subject/issuer configuration:
+```yaml
+# mta.yaml
+requires:
+  - name: my-caas-instance
+    parameters:
+      config:
+        subject: "CN=my-app,..."
+        issuer: "CN=SAP PKI Certificate Service Client CA,..."
+```
+
+2. **Obtain and bind mTLS credentials** via a user-provided service containing `cert` and `key` (base64 encoded):
+```bash
+cf create-user-provided-service caas-mtls-creds -p '{"cert":"<base64>","key":"<base64>"}'
+cf bind-service my-app caas-mtls-creds
+```
+
+The mTLS certificate must be created (e.g., via `openssl`) and signed through SAP BTP Certificate Service. The certificate must be renewed periodically (typically every 7 days).
+
+> Note: The user-provided service name must match the pattern configured in `mtls_service_pattern` (default: `caas-mtls|caas-cert`).
 
 ### `telemetry-to-jaeger`
 
