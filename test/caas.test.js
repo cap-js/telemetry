@@ -10,26 +10,6 @@ const MOCK_CAAS_VCAP = {
         grpc: 'grpc://caas.example.com:4317'
       }
     }
-  }],
-  'user-provided': [{
-    name: 'caas-mtls-creds',
-    credentials: {
-      cert: Buffer.from('-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----').toString('base64'),
-      key: Buffer.from('-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----').toString('base64')
-    },
-    tags: []
-  }]
-}
-
-const MOCK_CAAS_VCAP_NO_MTLS = {
-  'caas-service': [{
-    name: 'test-caas',
-    credentials: {
-      otlp: {
-        http: 'https://caas.example.com/otlp',
-        grpc: 'grpc://caas.example.com:4317'
-      }
-    }
   }]
 }
 
@@ -47,7 +27,12 @@ describe('augmentCaaSCreds', () => {
 
   beforeEach(() => {
     cds.env.requires = cds.env.requires || {}
-    cds.env.requires.telemetry = { mtls_service_pattern: 'caas-mtls|caas-cert' }
+    cds.env.requires.telemetry = {
+      x509: {
+        cert: Buffer.from('-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----').toString('base64'),
+        key: Buffer.from('-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----').toString('base64')
+      }
+    }
     delete require.cache[require.resolve('../lib/utils')]
   })
 
@@ -113,7 +98,8 @@ describe('augmentCaaSCreds', () => {
   })
 
   test('no httpAgentOptions when mTLS credentials not found', () => {
-    process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP_NO_MTLS)
+    cds.env.requires.telemetry = {} // No x509 credentials
+    process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
