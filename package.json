@@ -177,6 +177,12 @@
               "module": "@opentelemetry/exporter-metrics-otlp-proto",
               "class": "OTLPMetricExporter"
             }
+          },
+          "logging": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-logs-otlp-proto",
+              "class": "OTLPLogExporter"
+            }
           }
         }
       }
