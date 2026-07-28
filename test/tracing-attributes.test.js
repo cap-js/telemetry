@@ -1,3 +1,6 @@
+// REVISIT: use native fetch in cds oq
+process.env.cds_remote_native__fetch = 'true'
+
 const cds = require('@sap/cds')
 const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
 const http = require('http')
