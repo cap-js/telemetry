@@ -25,7 +25,7 @@ const { reset, captured, groupedByTrace, rootSpans } = require('./bookshop/lib/M
 const wait = require('node:timers/promises').setTimeout
 
 describe('tracing for scheduled tasks', () => {
-  if (cds.version.split('.')[0] < 9) {
+  if (Number(cds.version.split('.')[0]) < 9) {
     test.skip('skipping for cds < 9', () => {})
     return
   }

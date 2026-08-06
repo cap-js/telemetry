@@ -23,18 +23,18 @@ describe('tracing with multitenancy', () => {
   test('GET with user1 is traced', async () => {
     const { status } = await GET('/odata/v4/admin/Books', user1)
     expect(status).to.equal(200)
-    // AdminService READ ran and was tagged with the right tenant.
-    const span = captured.find(s => s.name === 'AdminService - READ AdminService.Books')
-    expect(span, 'expected AdminService READ span').to.exist
-    expect(span.attributes['sap.tenancy.tenant_id']).to.equal(TENANT1)
+    // AdminService READ ran exactly once and was tagged with the right tenant.
+    const spans = captured.filter(s => s.name === 'AdminService - READ AdminService.Books')
+    expect(spans.length, 'expected exactly one AdminService READ span').to.equal(1)
+    expect(spans[0].attributes['sap.tenancy.tenant_id']).to.equal(TENANT1)
   })
 
   test('GET with user2 is traced', async () => {
     const { status } = await GET('/odata/v4/admin/Books', user2)
     expect(status).to.equal(200)
-    const span = captured.find(s => s.name === 'AdminService - READ AdminService.Books')
-    expect(span, 'expected AdminService READ span').to.exist
-    expect(span.attributes['sap.tenancy.tenant_id']).to.equal(TENANT2)
+    const spans = captured.filter(s => s.name === 'AdminService - READ AdminService.Books')
+    expect(spans.length, 'expected exactly one AdminService READ span').to.equal(1)
+    expect(spans[0].attributes['sap.tenancy.tenant_id']).to.equal(TENANT2)
   })
 
   // --- TODO ---

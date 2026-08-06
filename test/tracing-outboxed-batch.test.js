@@ -5,11 +5,12 @@
 const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace } = require('./bookshop/lib/MyInMemorySpanExporter')
+const { hrTimeToNanoseconds } = require('@opentelemetry/core')
 
 const wait = require('node:timers/promises').setTimeout
 
 describe('tracing for outboxed batch (chunk-size fan-out)', () => {
-  if (cds.version.split('.')[0] < 9) {
+  if (Number(cds.version.split('.')[0]) < 9) {
     test.skip('skipping for cds < 9', () => {})
     return
   }
@@ -59,11 +60,9 @@ describe('tracing for outboxed batch (chunk-size fan-out)', () => {
 
     // The dispatch txs should overlap in time (parallel), not be strictly sequential.
     if (dispatchTxs.length >= 2) {
-      const sorted = [...dispatchTxs].sort((a, b) =>
-        require('@opentelemetry/core').hrTimeToNanoseconds(a.startTime) -
-        require('@opentelemetry/core').hrTimeToNanoseconds(b.startTime)
+      const sorted = [...dispatchTxs].sort(
+        (a, b) => hrTimeToNanoseconds(a.startTime) - hrTimeToNanoseconds(b.startTime)
       )
-      const { hrTimeToNanoseconds } = require('@opentelemetry/core')
       const firstEndNs = hrTimeToNanoseconds(sorted[0].endTime)
       const secondStartNs = hrTimeToNanoseconds(sorted[1].startTime)
       // Parallel: second starts before first ends (allow a tiny slack).
