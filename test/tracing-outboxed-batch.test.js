@@ -13,6 +13,11 @@ describe('tracing for outboxed batch (chunk-size fan-out)', () => {
     test.skip('skipping for cds < 9', () => {})
     return
   }
+  // Queue-worker spans need cds.spawn on sqlite (pending cds fix). REMOVE with follow-up PR.
+  if (cds.env.requires.db?.kind === 'sqlite') {
+    test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
+    return
+  }
 
   beforeAll(async () => {
     const externalOne = await cds.connect.to('ExternalServiceOne')
