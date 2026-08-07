@@ -43,6 +43,7 @@
     "@opentelemetry/exporter-trace-otlp-proto": "^0.219",
     "@opentelemetry/instrumentation-host-metrics": "^0.2.0",
     "@opentelemetry/instrumentation-runtime-node": "^0.32.0",
+    "@sap-cloud-sdk/http-client": "^4",
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
