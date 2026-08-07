@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Queue worker transactions are traced as coherent `<service> - tx` spans under the `cds.spawn - run task` root, instead of orphaned per-call spans
+
 ### Changed
 
 ### Fixed
