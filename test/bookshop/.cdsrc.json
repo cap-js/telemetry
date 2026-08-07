@@ -111,16 +111,6 @@
       }
     }
   },
-  "[outboxed-and-inboxed]": {
-    "requires": {
-      "messaging": {
-        "kind": "file-based-messaging",
-        "file": "../outboxed-and-inboxed",
-        "outboxed": true,
-        "inboxed": true
-      }
-    }
-  },
   "[without-outbox]": {
     "requires": {
       "messaging": {
