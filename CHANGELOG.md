@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Cloud SDK outbound requests are traced again (patch getter-only `@sap-cloud-sdk/http-client` exports via `Object.defineProperty`)
+
 ## Version 2.0.1 - 2026-07-03
 
 ### Fixed
