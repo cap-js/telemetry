@@ -82,11 +82,32 @@
       }
     }
   },
+  "[tracing-in-memory]": {
+    "requires": {
+      "telemetry": {
+        "tracing": {
+          "exporter": {
+            "module": "./lib/MyInMemorySpanExporter.js",
+            "class": "MyInMemorySpanExporter"
+          }
+        }
+      }
+    }
+  },
   "[persistent-outbox]": {
     "requires": {
       "messaging": {
         "kind": "file-based-messaging",
         "file": "../persistent-outbox"
+      }
+    }
+  },
+  "[inboxed]": {
+    "requires": {
+      "messaging": {
+        "kind": "file-based-messaging",
+        "file": "../inboxed",
+        "inboxed": true
       }
     }
   },
