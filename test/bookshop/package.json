@@ -22,7 +22,9 @@
         "instrumentations": {
           "http": {
             "config": {
-              "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js"
+              "ignoreIncomingRequestHook": "./lib/MyIgnoreIncomingRequestHook.js",
+              "disableIncomingRequestInstrumentation": true,
+              "disableOutgoingRequestInstrumentation": true
             }
           }
         },
