@@ -15,7 +15,9 @@
   ],
   "scripts": {
     "lint": "npx eslint . --max-warnings=0",
-    "test": "vitest run --silent"
+    "test": "vitest run --silent",
+    "format": "npx oxfmt",
+    "format:check": "npx oxfmt --check"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
@@ -47,6 +49,7 @@
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
+    "oxfmt": "0.63.0",
     "vitest": "^4"
   },
   "cds": {
