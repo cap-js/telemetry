@@ -15,7 +15,9 @@
   ],
   "scripts": {
     "lint": "npx eslint . --max-warnings=0",
-    "test": "npx jest --silent"
+    "test": "npx jest --silent",
+    "format": "npx prettier --write .",
+    "format:check": "npx prettier --check ."
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
@@ -47,7 +49,8 @@
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
-    "jest": "^30.4.2"
+    "jest": "^30.4.2",
+    "prettier": "3.9.6"
   },
   "cds": {
     "requires": {

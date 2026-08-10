@@ -1,0 +1,7 @@
+# Dependencies and generated files
+node_modules
+package-lock.json
+CHANGELOG.md
+
+# Excluded: removed by the jest -> vitest migration (chore/vitest); do not reformat to avoid merge conflicts
+jest.config.js
