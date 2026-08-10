@@ -6,12 +6,19 @@ process.env.cds_log = JSON.stringify({ cls_custom_fields: ['foo'] })
 const cds = require('@sap/cds')
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'logging')
 
+const wait = require('node:timers/promises').setTimeout
+
 describe('logging', () => {
   const admin = { auth: { username: 'alice' } }
 
   const { dir } = console
+  // The queue's SchedulingService runs an initial outbox scan on server "listening"; its
+  // telemetry "elapsed times:" trace primer is exported asynchronously and would otherwise
+  // land in the spy window below. Drain it once up front (jest happened to miss this window
+  // because it broke otel's http patching and shifted timings; vitest sees the real thing).
+  beforeAll(() => wait(500))
   beforeEach(() => {
-    console.dir = jest.fn()
+    console.dir = vi.fn()
   })
   afterAll(() => {
     console.dir = dir

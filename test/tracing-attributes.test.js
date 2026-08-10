@@ -24,20 +24,21 @@ describe('tracing attributes', () => {
   describe('remote', () => {
     let server, port
 
-    beforeAll(done => {
-      server = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ value: [] }))
-      })
-      server.listen(0, () => {
-        port = server.address().port
-        done()
-      })
-    })
+    beforeAll(
+      () =>
+        new Promise(resolve => {
+          server = http.createServer((req, res) => {
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ value: [] }))
+          })
+          server.listen(0, () => {
+            port = server.address().port
+            resolve()
+          })
+        })
+    )
 
-    afterAll(done => {
-      server.close(done)
-    })
+    afterAll(() => new Promise(resolve => server.close(resolve)))
 
     test('HTTP client attributes are set on remote service span', async () => {
       // skip for cds 8 due to Cloud SDK resilience module resolution issues in test environment

@@ -5,7 +5,7 @@ const http = require('http')
 describe('span names', () => {
   beforeEach(data.reset)
 
-  const log = jest.spyOn(console, 'dir')
+  const log = vi.spyOn(console, 'dir')
   beforeEach(log.mockClear)
 
   const getSpans = () => log.mock.calls.map(c => c[0]).filter(Boolean)
@@ -63,16 +63,19 @@ describe('span names', () => {
   describe('cloud sdk', () => {
     let server, port
 
-    beforeAll(done => {
-      server = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-Type': 'application/json' })
-        res.end(JSON.stringify({ value: [] }))
-      })
-      server.listen(0, () => {
-        port = server.address().port
-        done()
-      })
-    })
+    beforeAll(
+      () =>
+        new Promise(resolve => {
+          server = http.createServer((req, res) => {
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify({ value: [] }))
+          })
+          server.listen(0, () => {
+            port = server.address().port
+            resolve()
+          })
+        })
+    )
 
     afterAll(() => new Promise(resolve => server.close(resolve)))
 
