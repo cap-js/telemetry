@@ -1,3 +1,4 @@
+import { vi } from 'vitest'
 // Mock console.dir to capture logs ConsoleMetricExporter writes
 const consoleDirLogs = []
 vi.spyOn(console, 'dir').mockImplementation((...args) => {

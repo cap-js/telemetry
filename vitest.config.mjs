@@ -32,6 +32,6 @@ export default defineConfig({
     // top-of-module process.env mutations some test files rely on.
     isolate: true,
     // don't hang the run waiting on lingering handles at teardown.
-    teardownTimeout: 1000
+    teardownTimeout: 5000
   }
 })

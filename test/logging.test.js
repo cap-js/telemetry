@@ -14,8 +14,8 @@ describe('logging', () => {
   const { dir } = console
   // The queue's SchedulingService runs an initial outbox scan on server "listening"; its
   // telemetry "elapsed times:" trace primer is exported asynchronously and would otherwise
-  // land in the spy window below. Drain it once up front (jest happened to miss this window
-  // because it broke otel's http patching and shifted timings; vitest sees the real thing).
+  // land in the spy window below. Drain it once up front before installing the spy.
+  // REVISIT: replace this fixed wait by polling for the primer / an in-memory exporter (see #478).
   beforeAll(() => wait(500))
   beforeEach(() => {
     console.dir = vi.fn()
