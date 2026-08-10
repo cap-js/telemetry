@@ -36,16 +36,18 @@ describe('tracing for outboxed batch (chunk-size fan-out)', () => {
     expect(upserts.length, 'expected three producer outbox UPSERTs').to.be.gte(3)
 
     // Look for a queue worker root containing multiple dispatch tx spans.
-    const workerTrace = groupedByTrace().find(g =>
-      g.root.name === 'cds.spawn - run task' &&
-      g.all.filter(s => s.name === 'ExternalServiceOne - tx').length >= 2
+    const workerTrace = groupedByTrace().find(
+      g => g.root.name === 'cds.spawn - run task' && g.all.filter(s => s.name === 'ExternalServiceOne - tx').length >= 2
     )
     expect(workerTrace, 'expected a worker trace with multiple ExternalServiceOne - tx children').to.exist
 
     // The worker root must have exactly one lock tx (db - tx with READ + UPDATE)…
-    const lockTxs = workerTrace.all.filter(s =>
-      s.name === 'db - tx' &&
-      workerTrace.all.some(c => c.parentSpanContext?.spanId === s.spanContext().spanId && c.name === 'db - READ cds.outbox.Messages')
+    const lockTxs = workerTrace.all.filter(
+      s =>
+        s.name === 'db - tx' &&
+        workerTrace.all.some(
+          c => c.parentSpanContext?.spanId === s.spanContext().spanId && c.name === 'db - READ cds.outbox.Messages'
+        )
     )
     expect(lockTxs, 'expected one lock tx (db - tx with READ + UPDATE)').to.have.lengthOf(1)
 
@@ -54,8 +56,14 @@ describe('tracing for outboxed batch (chunk-size fan-out)', () => {
     expect(dispatchTxs.length, 'expected multiple dispatch txs (chunk-size fan-out)').to.be.gte(2)
     for (const tx of dispatchTxs) {
       const kids = workerTrace.all.filter(k => k.parentSpanContext?.spanId === tx.spanContext().spanId)
-      expect(kids.some(k => k.name.match(/ExternalServiceOne - handle/)), 'dispatch tx should contain handle call').to.be.true
-      expect(kids.some(k => k.name === 'db - DELETE cds.outbox.Messages'), 'dispatch tx should contain DELETE').to.be.true
+      expect(
+        kids.some(k => k.name.match(/ExternalServiceOne - handle/)),
+        'dispatch tx should contain handle call'
+      ).to.be.true
+      expect(
+        kids.some(k => k.name === 'db - DELETE cds.outbox.Messages'),
+        'dispatch tx should contain DELETE'
+      ).to.be.true
     }
 
     // The dispatch txs should overlap in time (parallel), not be strictly sequential.

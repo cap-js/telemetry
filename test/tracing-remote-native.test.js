@@ -44,9 +44,7 @@ describe('tracing remote via native fetch', () => {
     // no mock handler - let it make the actual HTTP call via native fetch
     await remote.send({ method: 'GET', path: '/test' })
 
-    const undiciSpan = getSpans().find(
-      s => s.instrumentationScope?.name === '@opentelemetry/instrumentation-undici'
-    )
+    const undiciSpan = getSpans().find(s => s.instrumentationScope?.name === '@opentelemetry/instrumentation-undici')
     expect(undiciSpan, 'no span from @opentelemetry/instrumentation-undici').to.exist
     expect(undiciSpan.attributes['http.request.method']).to.equal('GET')
     expect(undiciSpan.attributes['http.response.status_code']).to.equal(200)

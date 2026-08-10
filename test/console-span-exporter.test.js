@@ -80,9 +80,30 @@ describe('ConsoleSpanExporter', () => {
       //     childB (5 → 9 ms)
       const TRACE = 'a'.repeat(32)
       const root = span({ name: 'root', traceId: TRACE, spanId: 'r0', startMs: 0, durationMs: 10 })
-      const childA = span({ name: 'childA', traceId: TRACE, spanId: 'cA', parentSpanId: 'r0', startMs: 1, durationMs: 3 })
-      const grand = span({ name: 'grandchild', traceId: TRACE, spanId: 'g0', parentSpanId: 'cA', startMs: 2, durationMs: 1 })
-      const childB = span({ name: 'childB', traceId: TRACE, spanId: 'cB', parentSpanId: 'r0', startMs: 5, durationMs: 4 })
+      const childA = span({
+        name: 'childA',
+        traceId: TRACE,
+        spanId: 'cA',
+        parentSpanId: 'r0',
+        startMs: 1,
+        durationMs: 3
+      })
+      const grand = span({
+        name: 'grandchild',
+        traceId: TRACE,
+        spanId: 'g0',
+        parentSpanId: 'cA',
+        startMs: 2,
+        durationMs: 1
+      })
+      const childB = span({
+        name: 'childB',
+        traceId: TRACE,
+        spanId: 'cB',
+        parentSpanId: 'r0',
+        startMs: 5,
+        durationMs: 4
+      })
 
       // Order matters: children must arrive BEFORE the root for the exporter's
       // temporaryStorage flush logic to merge them under the same primer.
@@ -111,7 +132,14 @@ describe('ConsoleSpanExporter', () => {
       // Root starts at 100 ms wallclock; child at 105 ms. Child should display as 5.00 → ...
       const TRACE = 'b'.repeat(32)
       const root = span({ name: 'root', traceId: TRACE, spanId: 'r0', startMs: 100, durationMs: 20 })
-      const child = span({ name: 'child', traceId: TRACE, spanId: 'c0', parentSpanId: 'r0', startMs: 105, durationMs: 10 })
+      const child = span({
+        name: 'child',
+        traceId: TRACE,
+        spanId: 'c0',
+        parentSpanId: 'r0',
+        startMs: 105,
+        durationMs: 10
+      })
 
       const [primer] = exportAndCapture([child, root])
 
@@ -123,8 +151,22 @@ describe('ConsoleSpanExporter', () => {
       const TRACE = 'c'.repeat(32)
       const root = span({ name: 'root', traceId: TRACE, spanId: 'r0', startMs: 0, durationMs: 50 })
       const late = span({ name: 'late', traceId: TRACE, spanId: 's3', parentSpanId: 'r0', startMs: 10, durationMs: 1 })
-      const earlyLong = span({ name: 'earlyLong', traceId: TRACE, spanId: 's1', parentSpanId: 'r0', startMs: 0, durationMs: 30 })
-      const earlyShort = span({ name: 'earlyShort', traceId: TRACE, spanId: 's2', parentSpanId: 'r0', startMs: 0, durationMs: 5 })
+      const earlyLong = span({
+        name: 'earlyLong',
+        traceId: TRACE,
+        spanId: 's1',
+        parentSpanId: 'r0',
+        startMs: 0,
+        durationMs: 30
+      })
+      const earlyShort = span({
+        name: 'earlyShort',
+        traceId: TRACE,
+        spanId: 's2',
+        parentSpanId: 'r0',
+        startMs: 0,
+        durationMs: 5
+      })
 
       const [primer] = exportAndCapture([late, earlyShort, earlyLong, root])
 
@@ -154,7 +196,14 @@ describe('ConsoleSpanExporter', () => {
       const TRACE = 'f'.repeat(32)
       const root = span({ name: 'root', traceId: TRACE, spanId: 'r0', startMs: 0, durationMs: 10 })
       // The skip regex is /^[A-Z]+ \/\${0,1}\w+$/ — single path segment, no slashes after the first.
-      const noisy = span({ name: 'GET /catalog', traceId: TRACE, spanId: 'h0', parentSpanId: 'r0', startMs: 1, durationMs: 5 })
+      const noisy = span({
+        name: 'GET /catalog',
+        traceId: TRACE,
+        spanId: 'h0',
+        parentSpanId: 'r0',
+        startMs: 1,
+        durationMs: 5
+      })
 
       const [primer] = exportAndCapture([noisy, root])
 
@@ -215,7 +264,14 @@ describe('ConsoleSpanExporter', () => {
     it('does not throw when a child arrives without its parent (orphan trace)', () => {
       // No root provided for this trace — the exporter should buffer the child and not flush.
       const TRACE = '5'.repeat(32)
-      const orphan = span({ name: 'orphan', traceId: TRACE, spanId: 'o0', parentSpanId: 'r-missing', startMs: 0, durationMs: 1 })
+      const orphan = span({
+        name: 'orphan',
+        traceId: TRACE,
+        spanId: 'o0',
+        parentSpanId: 'r-missing',
+        startMs: 0,
+        durationMs: 1
+      })
 
       expect(() => exportAndCapture([orphan])).not.to.throw()
       expect(infoCalls.length).to.equal(0)
