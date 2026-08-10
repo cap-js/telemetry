@@ -43,11 +43,7 @@ module.exports = class AdminService extends cds.ApplicationService {
     this.on('test_outboxed_send_batch', async () => {
       const externalOne = await cds.connect.to('ExternalServiceOne')
       const queued = cds.queued(externalOne)
-      await Promise.all([
-        queued.send('call', {}),
-        queued.send('call', {}),
-        queued.send('call', {})
-      ])
+      await Promise.all([queued.send('call', {}), queued.send('call', {}), queued.send('call', {})])
     })
 
     // test_scheduled: schedules a one-shot task to fire after a short delay.

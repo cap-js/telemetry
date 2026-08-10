@@ -79,14 +79,18 @@ describe('tracing attributes', () => {
 
     test('SELECT', async () => {
       await SELECT.from('sap.capire.bookshop.Books').where('title !=', 'DUMMY')
-      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      const rowCounts = dbSpans()
+        .map(s => s.attributes['db.client.response.returned_rows'])
+        .filter(v => v != null)
       expect(rowCounts).to.include(5)
       _match_db_spans('SELECT')
     })
 
     test('INSERT', async () => {
       await INSERT.into('sap.capire.bookshop.Books').entries([{ ID: 1 }, { ID: 2 }])
-      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      const rowCounts = dbSpans()
+        .map(s => s.attributes['db.client.response.returned_rows'])
+        .filter(v => v != null)
       expect(rowCounts).to.include(2)
       // TODO
       // _match_db_spans('INSERT')
@@ -94,7 +98,9 @@ describe('tracing attributes', () => {
 
     test('UPDATE', async () => {
       await UPDATE('sap.capire.bookshop.Books').set({ stock: 42 }).where('ID > 250')
-      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      const rowCounts = dbSpans()
+        .map(s => s.attributes['db.client.response.returned_rows'])
+        .filter(v => v != null)
       expect(rowCounts).to.include(3)
       // TODO
       // _match_db_spans('UPDATE')
@@ -102,7 +108,9 @@ describe('tracing attributes', () => {
 
     test('DELETE', async () => {
       await DELETE.from('sap.capire.bookshop.Books')
-      const rowCounts = dbSpans().map(s => s.attributes['db.client.response.returned_rows']).filter(v => v != null)
+      const rowCounts = dbSpans()
+        .map(s => s.attributes['db.client.response.returned_rows'])
+        .filter(v => v != null)
       expect(rowCounts).to.include(0) // texts
       expect(rowCounts).to.include(5)
       // TODO
