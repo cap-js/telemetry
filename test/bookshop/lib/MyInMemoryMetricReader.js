@@ -33,6 +33,10 @@ const captured = []
 // same way the gauge path does. Under DELTA the SDK reports the increment since its last
 // collection; summing every increment a series receives reconstructs its cumulative value — which
 // is what the tests track (totalInc/totalOut/totalFailed grow monotonically, never reset per case).
+//
+// NOTE: `captured` and `counterSeries` are process-level singletons. Cross-file correctness relies
+// on Vitest isolating each test file in its own worker process (vitest.config.mjs: pool:'forks' +
+// isolate:true). Two files sharing this module in one process would bleed counter totals together.
 const counterSeries = new Map()
 
 function seriesKey(metricName, attributes) {
@@ -124,14 +128,17 @@ function counterTotal(metricName, attributes) {
   return found ? total : null
 }
 
-// Whether `queue.<metricName>` has ever been exported as a SUM (counter). Distinguishes counters
-// from gauges without hardcoding names, so `latestDataPointValue` knows which lookup to use.
+// Names of metrics that are SUM (counter) instruments — the three counters the queue plugin
+// registers. Dispatches latestDataPointValue explicitly, rather than relying on counterSeries
+// happening to be populated (which is empty on the first poll after reset()).
+const COUNTER_METRIC_NAMES = new Set([
+  'queue.incoming_messages',
+  'queue.outgoing_messages',
+  'queue.processing_failures'
+])
+
 function isCounter(metricName) {
-  const name = `queue.${metricName}`
-  for (const entry of counterSeries.values()) {
-    if (entry.name === name) return true
-  }
-  return false
+  return COUNTER_METRIC_NAMES.has(`queue.${metricName}`)
 }
 
 // Value of `queue.<metricName>` for the datapoint(s) matching all given attributes

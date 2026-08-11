@@ -144,12 +144,12 @@ describe('queue metrics for multi tenant service', () => {
     })
 
     test('storage time increases before message can be delivered', async () => {
+      // Reference time taken BEFORE the GETs so the queuing round-trip counts toward the wall-clock debounce below.
+      const timeOfInitialCall = Date.now()
       await Promise.all([
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T1]),
         GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user[T2])
       ])
-      // Reference time taken after GETs return — i.e. after both messages are persisted in the outbox.
-      const timeOfInitialCall = Date.now()
 
       // The storage_time gauges need a real second to elapse since the messages were enqueued —
       // this is the one place the test fundamentally depends on wall-clock time.
