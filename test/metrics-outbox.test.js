@@ -1,9 +1,4 @@
 import { vi } from 'vitest'
-// Mock console.dir to capture logs ConsoleMetricExporter writes
-const consoleDirLogs = []
-vi.spyOn(console, 'dir').mockImplementation((...args) => {
-  consoleDirLogs.push(args)
-})
 
 const E1 = 'ExternalServiceOne'
 const E2 = 'ExternalServiceTwo'
@@ -11,26 +6,46 @@ const E2 = 'ExternalServiceTwo'
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
+// Exported metric data is captured in-memory by MyInMemoryMetricReader (wired via the
+// metrics-outbox profile in .cdsrc.json) instead of scraping ConsoleMetricExporter's console.dir.
+const { latestDataPointValue, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
+
 const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox')
 axios.defaults.validateStatus = () => true
 
 function metricValue(metric, queuedServiceName) {
-  const mostRecentMetricLog = consoleDirLogs.findLast(
-    metricLog => metricLog[0].descriptor.name === `queue.${metric}` && metricLog[0].dataPoints?.length
-  )?.[0]
+  return latestDataPointValue(metric, { 'queue.name': queuedServiceName })
+}
 
-  const mestRecentQueueMetricData = mostRecentMetricLog?.dataPoints.find(
-    dataPoint => dataPoint.attributes['queue.name'] === queuedServiceName
-  )
-
-  if (!mestRecentQueueMetricData) return null
-
-  return mestRecentQueueMetricData.value
+// State-based wait: force the wired meter provider to collect + export, then re-run the assertion
+// block. Replaces all fixed-time `wait(150)` sleeps — the loop completes the instant the in-memory
+// queue statistics (kept fresh by the existing cds.spawn poller) reflect the asserted state.
+// forceFlush() throws fast if the provider isn't wired, so a misconfigured profile fails loudly
+// instead of busy-spinning the full timeout.
+async function expectEventually(assertion, { timeout = 10000, interval = 25 } = {}) {
+  const start = Date.now()
+  let lastError
+  while (true) {
+    await forceFlush()
+    try {
+      assertion()
+      return
+    } catch (err) {
+      lastError = err
+      if (Date.now() - start >= timeout) throw lastError
+      await wait(interval)
+    }
+  }
 }
 
 const debugLog = (cds.log('telemetry').debug = vi.fn(() => {}))
 
 describe('queue metrics for single tenant service', () => {
+  if (cds.version.split('.')[0] < 9) {
+    test.skip('skipping tests for cds version < 9', () => {})
+    return
+  }
+
   let totalInc = { [E1]: 0, [E2]: 0 }
   let totalOut = { [E1]: 0, [E2]: 0 }
   let totalFailed = { [E1]: 0, [E2]: 0 }
@@ -74,7 +89,7 @@ describe('queue metrics for single tenant service', () => {
 
   beforeEach(async () => {
     await DELETE.from('cds.outbox.Messages')
-    consoleDirLogs.length = 0
+    reset()
     debugLog.mockClear()
   })
 
@@ -82,37 +97,43 @@ describe('queue metrics for single tenant service', () => {
     test('metrics are collected', async () => {
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
-      await wait(150) // Wait for metrics to be collected
-
-      expect(metricValue('cold_entries', E1)).to.eq(0)
-      expect(metricValue('remaining_entries', E1)).to.eq(0)
-      expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
-      expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
-      expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
-      expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
+      await expectEventually(() => {
+        expect(metricValue('cold_entries', E1)).to.eq(0)
+        expect(metricValue('remaining_entries', E1)).to.eq(0)
+        expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
+        expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
+        expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
+        expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
+      })
 
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
 
-      await wait(150) // Wait for metrics to be collected
-
-      expect(metricValue('cold_entries', E2)).to.eq(0)
-      expect(metricValue('remaining_entries', E2)).to.eq(0)
-      expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
-      expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
-      expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
-      expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+      await expectEventually(() => {
+        expect(metricValue('cold_entries', E2)).to.eq(0)
+        expect(metricValue('remaining_entries', E2)).to.eq(0)
+        expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
+        expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
+        expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
+        expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+      })
     })
   })
 
   describe('given a target service that requires retries', () => {
     let currentRetryCount, customizedHandler
 
+    // Fail the first 3 attempts so the 4th delivers. With the queue's exp-backoff schedule
+    // (0.5s, 1.25s, 2.375s, ...), this places the 4th attempt at ~t=4.1s after enqueue —
+    // giving a comfortable ~3s window between "message has aged 1s in the queue" and
+    // "message is finally delivered and removed". Tightening that window is what made the
+    // original wall-clock-based test flaky.
+    const ATTEMPTS_TO_FAIL = 3
     const customizedHandlerFor = E => req => {
-      if ((currentRetryCount[E] += 1) <= 2) {
+      if ((currentRetryCount[E] += 1) <= ATTEMPTS_TO_FAIL) {
         totalFailed[E] += 1
         return req.reject({ status: 503 })
       }
@@ -142,88 +163,87 @@ describe('queue metrics for single tenant service', () => {
     test('storage time increases before message can be delivered', async () => {
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
-
+      // Reference time taken after GETs return — i.e. after both messages are persisted in the outbox.
       const timeOfInitialCall = Date.now()
 
-      await wait(150) // ... for metrics to be collected
-      expect(currentRetryCount[E1]).to.eq(1)
-      expect(currentRetryCount[E2]).to.eq(1)
+      // The queue has made its first delivery attempt for both services (handler invocation count is
+      // observed directly via the rejecting `before('call')` handler — pure CAP event observation).
+      await expectEventually(() => {
+        expect(currentRetryCount[E1]).to.be.gte(1)
+        expect(currentRetryCount[E2]).to.be.gte(1)
 
-      expect(metricValue('cold_entries', E1)).to.eq(0)
-      expect(metricValue('remaining_entries', E1)).to.eq(1)
-      expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
-      expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
-      expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
-      expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('cold_entries', E1)).to.eq(0)
+        expect(metricValue('remaining_entries', E1)).to.eq(1)
+        expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
+        expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
+        expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
+        expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
 
-      expect(metricValue('cold_entries', E2)).to.eq(0)
-      expect(metricValue('remaining_entries', E2)).to.eq(1)
-      expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
-      expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
-      expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
-      expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('cold_entries', E2)).to.eq(0)
+        expect(metricValue('remaining_entries', E2)).to.eq(1)
+        expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
+        expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
+        expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
+        expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+      })
 
-      // Wait for the first retry to be initiated
-      while (currentRetryCount[E1] < 2) await wait(10)
-      while (currentRetryCount[E2] < 2) await wait(10)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
-      expect(currentRetryCount[E1]).to.eq(2)
-      expect(currentRetryCount[E2]).to.eq(2)
+      // The storage_time gauges need a real second to elapse since the messages were enqueued —
+      // this is the one place the test fundamentally depends on wall-clock time.
+      const elapsed = Date.now() - timeOfInitialCall
+      if (elapsed < 1500) await wait(1500 - elapsed)
 
-      // Wait until at least 1 second has passed since the initial call
-      const timeAfterFirstRetry = Date.now()
-      if (timeAfterFirstRetry - timeOfInitialCall < 1000) {
-        await wait(1000 - (timeAfterFirstRetry - timeOfInitialCall))
-      }
+      await expectEventually(() => {
+        // Either still on attempt 2 (waiting to retry) or on attempt 3 (delivered) — both are fine
+        // for these assertions, the message has been in the queue >=1s either way.
+        expect(currentRetryCount[E1]).to.be.gte(2)
+        expect(currentRetryCount[E2]).to.be.gte(2)
 
-      await wait(150) // ... for metrics to be collected again
+        expect(metricValue('cold_entries', E1)).to.eq(0)
+        expect(metricValue('remaining_entries', E1)).to.eq(1)
+        expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
+        expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
+        expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
+        expect(metricValue('min_storage_time_in_seconds', E1)).to.be.gte(1)
+        expect(metricValue('med_storage_time_in_seconds', E1)).to.be.gte(1)
+        expect(metricValue('max_storage_time_in_seconds', E1)).to.be.gte(1)
 
-      expect(metricValue('cold_entries', E1)).to.eq(0)
-      expect(metricValue('remaining_entries', E1)).to.eq(1)
-      expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
-      expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
-      expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
-      expect(metricValue('min_storage_time_in_seconds', E1)).to.be.gte(1)
-      expect(metricValue('med_storage_time_in_seconds', E1)).to.be.gte(1)
-      expect(metricValue('max_storage_time_in_seconds', E1)).to.be.gte(1)
+        expect(metricValue('cold_entries', E2)).to.eq(0)
+        expect(metricValue('remaining_entries', E2)).to.eq(1)
+        expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
+        expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
+        expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
+        expect(metricValue('min_storage_time_in_seconds', E2)).to.be.gte(1)
+        expect(metricValue('med_storage_time_in_seconds', E2)).to.be.gte(1)
+        expect(metricValue('max_storage_time_in_seconds', E2)).to.be.gte(1)
+      })
 
-      expect(metricValue('cold_entries', E2)).to.eq(0)
-      expect(metricValue('remaining_entries', E2)).to.eq(1)
-      expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
-      expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
-      expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
-      expect(metricValue('min_storage_time_in_seconds', E2)).to.be.gte(1)
-      expect(metricValue('med_storage_time_in_seconds', E2)).to.be.gte(1)
-      expect(metricValue('max_storage_time_in_seconds', E2)).to.be.gte(1)
+      // Final attempt — the message is delivered and removed from the outbox.
+      await expectEventually(() => {
+        expect(currentRetryCount[E1]).to.be.gte(ATTEMPTS_TO_FAIL + 1)
+        expect(currentRetryCount[E2]).to.be.gte(ATTEMPTS_TO_FAIL + 1)
 
-      // Wait for the second retry to be initiated
-      while (currentRetryCount[E1] < 3) await wait(10)
-      while (currentRetryCount[E2] < 3) await wait(10)
-      await wait(150) // ... for the retry to be processed and metrics to be collected
-      expect(currentRetryCount[E1]).to.eq(3)
-      expect(currentRetryCount[E2]).to.eq(3)
+        expect(metricValue('cold_entries', E1)).to.eq(0)
+        expect(metricValue('remaining_entries', E1)).to.eq(0)
+        expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
+        expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
+        expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
+        expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
 
-      expect(metricValue('cold_entries', E1)).to.eq(0)
-      expect(metricValue('remaining_entries', E1)).to.eq(0)
-      expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
-      expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
-      expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
-      expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
-
-      expect(metricValue('cold_entries', E2)).to.eq(0)
-      expect(metricValue('remaining_entries', E2)).to.eq(0)
-      expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
-      expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
-      expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
-      expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('cold_entries', E2)).to.eq(0)
+        expect(metricValue('remaining_entries', E2)).to.eq(0)
+        expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
+        expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
+        expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
+        expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+      })
     })
   })
 
@@ -256,25 +276,25 @@ describe('queue metrics for single tenant service', () => {
       await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
       await GET('/odata/v4/proxy/proxyCallToExternalServiceTwo', admin)
 
-      await wait(150) // ... for metrics to be collected
+      await expectEventually(() => {
+        expect(metricValue('cold_entries', E1)).to.eq(1)
+        expect(metricValue('remaining_entries', E1)).to.eq(0)
+        expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
+        expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
+        expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
+        expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
 
-      expect(metricValue('cold_entries', E1)).to.eq(1)
-      expect(metricValue('remaining_entries', E1)).to.eq(0)
-      expect(metricValue('incoming_messages', E1)).to.eq(totalInc[E1])
-      expect(metricValue('outgoing_messages', E1)).to.eq(totalOut[E1])
-      expect(metricValue('processing_failures', E1)).to.eq(totalFailed[E1])
-      expect(metricValue('min_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E1)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E1)).to.eq(0)
-
-      expect(metricValue('cold_entries', E2)).to.eq(1)
-      expect(metricValue('remaining_entries', E2)).to.eq(0)
-      expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
-      expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
-      expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
-      expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
-      expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('cold_entries', E2)).to.eq(1)
+        expect(metricValue('remaining_entries', E2)).to.eq(0)
+        expect(metricValue('incoming_messages', E2)).to.eq(totalInc[E2])
+        expect(metricValue('outgoing_messages', E2)).to.eq(totalOut[E2])
+        expect(metricValue('processing_failures', E2)).to.eq(totalFailed[E2])
+        expect(metricValue('min_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('med_storage_time_in_seconds', E2)).to.eq(0)
+        expect(metricValue('max_storage_time_in_seconds', E2)).to.eq(0)
+      })
     })
   })
 

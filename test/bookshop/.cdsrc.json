@@ -46,8 +46,8 @@
           "_db_pool": false,
           "_queue": true,
           "exporter": {
-            "module": "@opentelemetry/sdk-metrics",
-            "class": "ConsoleMetricExporter"
+            "module": "./lib/MyInMemoryMetricReader.js",
+            "class": "MyInMemoryMetricReader"
           }
         }
       }
@@ -64,8 +64,8 @@
           "_db_pool": false,
           "_queue": false,
           "exporter": {
-            "module": "@opentelemetry/sdk-metrics",
-            "class": "ConsoleMetricExporter"
+            "module": "./lib/MyInMemoryMetricReader.js",
+            "class": "MyInMemoryMetricReader"
           }
         }
       }
