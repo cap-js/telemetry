@@ -1,5 +1,3 @@
-import { vi } from 'vitest'
-
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
@@ -39,9 +37,6 @@ async function expectEventually(assertion, { timeout = 10000, interval = 25 } = 
     }
   }
 }
-
-// Silence noisy debug logging without asserting on it here
-cds.log('telemetry').debug = vi.fn(() => {})
 
 describe('queue metrics for multi tenant service', () => {
   if (cds.version.split('.')[0] < 9) {
