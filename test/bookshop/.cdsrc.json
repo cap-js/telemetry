@@ -30,6 +30,10 @@
         "metrics": {
           "config": {
             "exportIntervalMillis": 100
+          },
+          "exporter": {
+            "module": "./lib/MyInMemoryMetricReader.js",
+            "class": "MyInMemoryMetricReader"
           }
         }
       }
