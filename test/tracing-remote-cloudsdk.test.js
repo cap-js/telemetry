@@ -8,9 +8,6 @@ const http = require('http')
 // export so the outbound call produces a @cap-js/telemetry CLIENT span carrying
 // the sap.btp.destination attribute.
 describe('tracing remote via cloud sdk', () => {
-  // cloud-sdk resilience module resolution has issues on cds 8
-  if (Number(cds.version.split('.')[0]) < 9) return
-
   const log = vi.spyOn(console, 'dir')
   beforeEach(log.mockClear)
 

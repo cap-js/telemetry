@@ -4,12 +4,13 @@ import { defineConfig } from 'vitest/config'
 let testTimeout = 42000
 let include = ['test/**/*.test.js']
 
-// HANA CI runs only a small subset with a 10x timeout (ported from the old
-// jest.config.js). The `cds_requires_telemetry_tracing` env has to be set here,
-// before any test file requires @sap/cds, so keep it in the config module.
+// HANA CI runs the FULL suite (`test/**/*.test.js`, the default `include`) with a
+// 10x timeout since HANA is slower than sqlite. Only SAP Passport is HANA/sqlite-
+// specific, and that's handled by its own in-file skip. The `cds_requires_telemetry_tracing`
+// env has to be set here, before any test file requires @sap/cds, so keep it in the
+// config module.
 if (process.env.CI && process.env.HANA_DRIVER) {
   testTimeout *= 10
-  include = ['test/**/tracing-attributes.test.js', 'test/**/passport.test.js']
 
   if (process.env.HANA_PROM)
     process.env.cds_requires_telemetry_tracing = JSON.stringify({ _hana_prom: process.env.HANA_PROM === 'true' })

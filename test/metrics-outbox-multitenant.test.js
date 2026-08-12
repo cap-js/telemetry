@@ -39,11 +39,6 @@ async function expectEventually(assertion, { timeout = 10000, interval = 25 } = 
 }
 
 describe('queue metrics for multi tenant service', () => {
-  if (cds.version.split('.')[0] < 9) {
-    test.skip('skipping tests for cds version < 9', () => {})
-    return
-  }
-
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
 

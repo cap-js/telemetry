@@ -25,10 +25,6 @@ const { reset, captured, groupedByTrace, rootSpans } = require('./bookshop/lib/M
 const wait = require('node:timers/promises').setTimeout
 
 describe('tracing for scheduled tasks', () => {
-  if (Number(cds.version.split('.')[0]) < 9) {
-    test.skip('skipping for cds < 9', () => {})
-    return
-  }
   // Queue-worker spans (cds.spawn - run task root) require @sap/cds to route the sqlite
   // queue worker through cds.spawn. Published cds uses a raw setTimeout bypass on sqlite
   // (to avoid a single-writer deadlock), so those spans never appear. Skip until the cds
