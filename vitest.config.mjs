@@ -1,22 +1,30 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig, configDefaults } from 'vitest/config'
 
 // Default: 42s timeout, run every *.test.js file.
 let testTimeout = 42000
-let hookTimeout = 10000
+let hookTimeout = 30000
 let include = ['test/**/*.test.js']
+let exclude = configDefaults.exclude
 
 // HANA CI runs the FULL suite (`test/**/*.test.js`, the default `include`) with a
-// 10x timeout since HANA is slower than sqlite. Only SAP Passport is HANA/sqlite-
-// specific, and that's handled by its own in-file skip. The `cds_requires_telemetry_tracing`
+// 10x test timeout since HANA is slower than sqlite. The `cds_requires_telemetry_tracing`
 // env has to be set here, before any test file requires @sap/cds, so keep it in the
 // config module.
 const HANA = process.env.CI && process.env.HANA_DRIVER
 if (HANA) {
   testTimeout *= 10
-  // Queue/outbox test files settle background workers in afterAll (clear outbox → wait →
-  // clear) so a draining worker doesn't bleed into the next file on the shared HDI container.
-  // That settle exceeds the default 10s hook budget, so give hooks the same headroom.
-  hookTimeout *= 10
+
+  // Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI
+  // containers. The HANA CI runs against a single pre-provisioned HDI container with no
+  // Service Manager, so these two suites can't run there — exclude them from the HANA job
+  // entirely (they still run on sqlite with in-memory tenants).
+  exclude = [...configDefaults.exclude, '**/tracing-mt.test.js', '**/metrics-outbox-multitenant.test.js']
+
+  // Signal "running on HANA" to test files that must branch at COLLECTION time (before
+  // cds.test() applies its --profile), e.g. the queue/outbox files that skip the sqlite-only
+  // cds.spawn cases. Reading cds.env at collection time would freeze the env singleton before
+  // the profile is applied, so files read this env var instead.
+  process.env.TELEMETRY_TEST_HANA = '1'
 
   if (process.env.HANA_PROM)
     process.env.cds_requires_telemetry_tracing = JSON.stringify({ _hana_prom: process.env.HANA_PROM === 'true' })
@@ -28,6 +36,7 @@ export default defineConfig({
     // them in every test file (smallest diff to the existing jest suite).
     globals: true,
     include,
+    exclude,
     testTimeout,
     hookTimeout,
     // A couple of queue/outbox tests are timing-sensitive against the SHARED remote HANA Cloud

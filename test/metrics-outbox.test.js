@@ -17,17 +17,35 @@ function metricValue(metric, queuedServiceName) {
   return latestDataPointValue(metric, { 'queue.name': queuedServiceName })
 }
 
+// Best-effort outbox clear that can NEVER hang the surrounding hook. On the shared HANA HDI
+// container a background queue worker may be holding the connection pool (draining/retrying),
+// so a bare `DELETE` can block indefinitely — which previously turned into a 100s hook timeout
+// that starved the pool and cascaded into ECONNREFUSED for the NEXT test file's server. Race the
+// DELETE against a short timeout and swallow errors: if it can't complete quickly, the leftover
+// rows are handled by the next file's own beforeEach clear anyway.
+async function clearOutbox(timeout = 5000) {
+  try {
+    await Promise.race([DELETE.from('cds.outbox.Messages'), wait(timeout)])
+  } catch {
+    // pool draining / server shutting down — nothing left to clean matters
+  }
+}
+
 // State-based wait: force the wired meter provider to collect + export, then re-run the assertion
 // block. Replaces all fixed-time `wait(150)` sleeps — the loop completes the instant the in-memory
-// queue statistics (kept fresh by the existing cds.spawn poller) reflect the asserted state.
+// queue statistics (kept fresh by the queue-stats cds.spawn poller) reflect the asserted state.
 // forceFlush() throws fast if the provider isn't wired, so a misconfigured profile fails loudly
 // instead of busy-spinning the full timeout.
 //
-// Timeout is 30s (not 10s): the queue's exponential retry backoff spreads the 4 delivery attempts
-// out to ~11s on HANA (0.5s, 1.25s, 2.4s, ... — staggered per service), so a 10s poll window can
-// expire before the 4th attempt lands. The loop still returns the instant the state holds, so this
-// only raises the ceiling for the slow HANA path; sqlite satisfies in well under a second.
-async function expectEventually(assertion, { timeout = 30000, interval = 25 } = {}) {
+// interval is 500ms (NOT a few ms): each forceFlush() triggers a metric collection that runs the
+// queue-stats poller's SELECTs against the DB. On the SHARED HANA HDI container a tight poll loop
+// (plus the profile's background export) starves the queue worker of connections, so its retries
+// stall and delivery never completes — which manifested as `expected N to be at least M` flakes
+// and, via ensuing hook hangs + pool exhaustion, ECONNREFUSED cascades into later files' servers.
+// Polling at 500ms (with the profile's exportIntervalMillis raised to 1000ms) leaves the worker
+// enough DB headroom to make all its attempts. The loop still returns the instant the state holds,
+// so sqlite (per-file in-memory DB) still satisfies in well under a second.
+async function expectEventually(assertion, { timeout = 30000, interval = 500 } = {}) {
   const start = Date.now()
   let lastError
   while (true) {
@@ -88,7 +106,7 @@ describe('queue metrics for single tenant service', () => {
   })
 
   beforeEach(async () => {
-    await DELETE.from('cds.outbox.Messages')
+    await clearOutbox()
     reset()
     debugLog.mockClear()
   })
@@ -97,27 +115,14 @@ describe('queue metrics for single tenant service', () => {
   // On HANA all files share one HDI container, so (a) the undeliverable `unknown-service` row
   // inserted by the last case below would otherwise linger and skew another file's queue metrics,
   // and (b) an in-flight worker retrying a message could fire this file's `before('call')` handler
-  // during teardown. We DELETE, wait a beat for any in-flight worker iteration to finish, then
-  // DELETE again so nothing survives into teardown or the next file. Best-effort: a background
-  // worker may already be draining the pool as we run, so swallow errors. No-op on sqlite.
+  // during teardown. Clear, wait a beat for any in-flight worker iteration to finish, clear again.
+  // Every clear is timeout-bounded (clearOutbox) so a draining pool can't hang the hook. HANA-only:
+  // sqlite gets a fresh in-memory DB per file, so the settle is pointless there.
   afterAll(async () => {
-    const bestEffortClear = async () => {
-      try {
-        await DELETE.from('cds.outbox.Messages')
-      } catch {
-        // pool draining / server shutting down — nothing left to clean matters
-      }
-    }
-    // On the shared HANA HDI container, this file's background queue workers keep retrying
-    // undeliverable messages (exp-backoff) and can still fire into the NEXT file's run,
-    // adding foreign `cds.spawn - run task` roots / outbox rows that flake other suites.
-    // Clear, wait long enough for the last in-flight worker + a backoff cycle to settle, clear
-    // again. HANA-only: sqlite gets a fresh in-memory DB per file (so this is pointless there),
-    // and a 10s wait would trip sqlite's 10s hookTimeout.
-    await bestEffortClear()
-    if (cds.env.requires.db?.kind === 'hana') {
-      await wait(10000)
-      await bestEffortClear()
+    await clearOutbox()
+    if (process.env.TELEMETRY_TEST_HANA) {
+      await wait(5000)
+      await clearOutbox()
     }
   })
 

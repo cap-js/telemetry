@@ -38,20 +38,10 @@ async function expectEventually(assertion, { timeout = 10000, interval = 25 } = 
   }
 }
 
+// Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI containers.
+// The HANA CI runs against a single pre-provisioned HDI container with no Service Manager, so this
+// suite is excluded from the HANA job in vitest.config.mjs. It runs on sqlite (in-memory tenants).
 describe('queue metrics for multi tenant service', () => {
-  // Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI
-  // containers. The HANA CI runs against a single pre-provisioned HDI container with no
-  // Service Manager, so tenant subscription fails ("No Service Manager credentials").
-  // Skip on HANA; this suite still runs on sqlite (in-memory tenants).
-  if (cds.env.requires.db?.kind === 'hana') {
-    test.skip('multitenancy needs a bound Service Manager (MTX), not available in single-HDI-container CI', () => {})
-    return
-  }
-  // Reading cds.env above (in the guard) at collection time caches the singleton BEFORE
-  // cds.test() applies its `--profile`; without this reset the profile's queue/exporter
-  // config is lost and the server fails to launch on sqlite.
-  delete cds.env
-
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
 

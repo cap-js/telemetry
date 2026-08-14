@@ -4,20 +4,10 @@ const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname 
 
 const { reset, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
 
+// Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI containers.
+// The HANA CI runs against a single pre-provisioned HDI container with no Service Manager, so this
+// suite is excluded from the HANA job in vitest.config.mjs. It runs on sqlite (in-memory tenants).
 describe('tracing with multitenancy', () => {
-  // Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI
-  // containers. The HANA CI runs against a single pre-provisioned HDI container with no
-  // Service Manager, so tenant subscription fails ("No Service Manager credentials").
-  // Skip on HANA; this suite still runs on sqlite (in-memory tenants).
-  if (cds.env.requires.db?.kind === 'hana') {
-    test.skip('multitenancy needs a bound Service Manager (MTX), not available in single-HDI-container CI', () => {})
-    return
-  }
-  // Reading cds.env above (in the guard) at collection time caches the singleton BEFORE
-  // cds.test() applies its `--profile`; without this reset the profile's messaging/exporter
-  // config is lost and the server fails to launch on sqlite.
-  delete cds.env
-
   const TENANT1 = 'tenant_1'
   const TENANT2 = 'tenant_2'
   const USER1 = `user_${TENANT1}`

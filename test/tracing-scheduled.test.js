@@ -59,15 +59,14 @@ describe('tracing for scheduled tasks', () => {
   // queue worker through cds.spawn. Published cds uses a raw setTimeout bypass on sqlite
   // (to avoid a single-writer deadlock), so those spans never appear. Skip until the cds
   // fix lands (cap/cds test/queue-spawn-sqlite-extended-tenant). REMOVE with follow-up PR.
-  if (cds.env.requires.db?.kind === 'sqlite') {
+  // Detect the DB via the env var set by vitest.config.mjs for the HANA job, NOT via cds.env:
+  // reading cds.env at collection time would freeze the singleton before cds.test() applies its
+  // `--profile`, so the tracer provider would be built with the default ConsoleSpanExporter and
+  // MyInMemorySpanExporter would never receive spans (captured stays empty).
+  if (!process.env.TELEMETRY_TEST_HANA) {
     test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
     return
   }
-  // Reading cds.env above (in the guard) at collection time caches the singleton BEFORE
-  // cds.test() applies `--profile tracing-in-memory` (it only sets CDS_ENV once its before()
-  // hook runs cds.exec). Without this reset the tracer provider is built with the default
-  // ConsoleSpanExporter and MyInMemorySpanExporter never receives spans (captured stays empty).
-  delete cds.env
 
   beforeAll(async () => {
     const externalOne = await cds.connect.to('ExternalServiceOne')

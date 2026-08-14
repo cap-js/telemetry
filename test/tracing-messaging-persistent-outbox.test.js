@@ -94,17 +94,15 @@ const CHECK = ({ expect, rootSpans, groupedByTrace }) => {
   }
 }
 
-const cds = require('@sap/cds')
-
 describe(`tracing messaging - ${CASE}`, () => {
   // Queue-worker spans need cds.spawn on sqlite (pending cds fix). REMOVE with follow-up PR.
-  if (cds.env.requires.db?.kind === 'sqlite') {
+  // Detect the DB via the env var set by vitest.config.mjs for the HANA job, NOT via cds.env:
+  // reading cds.env at collection time would freeze the singleton before cds.test() applies its
+  // `--profile`, so the tracer provider would be built with the default ConsoleSpanExporter and
+  // MyInMemorySpanExporter would never receive spans.
+  if (!process.env.TELEMETRY_TEST_HANA) {
     test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
     return
   }
-  // Reading cds.env above (in the guard) at collection time caches the singleton BEFORE
-  // cds.test() applies its `--profile`; without this reset the tracer provider is built with
-  // the default ConsoleSpanExporter and MyInMemorySpanExporter never receives spans.
-  delete cds.env
   require('./tracing-messaging')(CASE, CHECK)
 })

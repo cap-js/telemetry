@@ -3,20 +3,19 @@
 // REVISIT: even with profile "logging", cls_custom_fields from package.json wins
 process.env.cds_log = JSON.stringify({ cls_custom_fields: ['foo'] })
 
+// This test asserts the exported LogRecords only. Disable the tracing signal (no exporter →
+// lib/tracing/index.js bails out early) so the queue SchedulingService's outbox-scan "elapsed
+// times:" trace primer is never produced and can't land in the console.dir spy window. Without
+// this, on HANA the outbox poll fires later than any fixed drain and the primer flakes the count.
+process.env.cds_requires_telemetry_tracing = JSON.stringify({ exporter: false })
+
 const cds = require('@sap/cds')
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'logging')
-
-const wait = require('node:timers/promises').setTimeout
 
 describe('logging', () => {
   const admin = { auth: { username: 'alice' } }
 
   const { dir } = console
-  // The queue's SchedulingService runs an initial outbox scan on server "listening"; its
-  // telemetry "elapsed times:" trace primer is exported asynchronously and would otherwise
-  // land in the spy window below. Drain it once up front before installing the spy.
-  // REVISIT: replace this fixed wait by polling for the primer / an in-memory exporter (see #478).
-  beforeAll(() => wait(500))
   beforeEach(() => {
     console.dir = vi.fn()
   })
@@ -27,10 +26,7 @@ describe('logging', () => {
   test('it works', async () => {
     const { status } = await GET('/odata/v4/admin/Genres', admin)
     expect(status).to.equal(200)
-    // Filter out the queue's outbox-scan "elapsed times:" trace primer. On HANA the outbox
-    // poll fires later than the 500ms beforeAll drain, so its primer log can still land in the
-    // spy window — but this test is about the 4 real LogRecords, not the trace primer.
-    const logs = console.dir.mock.calls.map(([log]) => log).filter(log => !log?.body?.startsWith('elapsed times:'))
+    const logs = console.dir.mock.calls.map(([log]) => log)
     expect(logs.length).to.equal(4)
     expect(logs[0]).to.include({ body: 'GET /odata/v4/admin/Genres ' }) //> why the trailing space?
     expect(logs[1]).to.include({ body: 'Hello, World!' })

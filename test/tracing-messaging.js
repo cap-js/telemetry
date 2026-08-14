@@ -6,6 +6,19 @@ module.exports = (CASE, CHECK) => {
 
   const wait = require('node:timers/promises').setTimeout
 
+  // Best-effort outbox clear that can NEVER hang the surrounding hook. On the shared HANA HDI
+  // container a background queue worker may hold the connection pool, so a bare DELETE can block
+  // indefinitely — which would turn into a hook timeout that starves the pool and cascades into
+  // ECONNREFUSED for the next file's server. Race the DELETE against a short timeout; leftover
+  // rows are cleared by the next file's own beforeEach anyway.
+  async function clearOutbox(timeout = 5000) {
+    try {
+      await Promise.race([DELETE.from('cds.outbox.Messages'), wait(timeout)])
+    } catch {
+      // pool draining during shutdown — nothing left to clean matters
+    }
+  }
+
   // Force-flush the tracer provider's span processor so any spans buffered by background
   // queue-worker activity are exported into `captured`. The global provider is a
   // ProxyTracerProvider (no forceFlush) whose delegate is the real NodeTracerProvider;
@@ -65,21 +78,12 @@ module.exports = (CASE, CHECK) => {
     // On the shared HANA HDI container, a still-draining background queue worker from THIS file
     // would dispatch into the NEXT file's run and add foreign `cds.spawn - run task` roots that
     // break its exact root-count CHECKs. Clear the shared outbox, let the last worker settle, then
-    // clear again. HANA-only: sqlite gets a fresh in-memory DB per file, so the settle is
-    // pointless there AND a 10s wait would trip sqlite's 10s hookTimeout. (hookTimeout is raised
-    // on the HANA CI path in vitest.config.mjs to accommodate this.)
-    if (cds.env.requires.db?.kind === 'hana') {
-      try {
-        await DELETE.from('cds.outbox.Messages')
-      } catch {
-        // pool draining during shutdown — nothing left to clean matters
-      }
-      await wait(10000)
-      try {
-        await DELETE.from('cds.outbox.Messages')
-      } catch {
-        // ignore
-      }
+    // clear again. Every clear is timeout-bounded (clearOutbox) so a draining pool can't hang the
+    // hook. HANA-only: sqlite gets a fresh in-memory DB per file, so the settle is pointless there.
+    if (process.env.TELEMETRY_TEST_HANA) {
+      await clearOutbox()
+      await wait(5000)
+      await clearOutbox()
     }
     rm()
   })
@@ -90,7 +94,7 @@ module.exports = (CASE, CHECK) => {
     // dispatched by THIS file's queue worker — producing a foreign `cds.spawn - run task` root
     // that breaks the exact root-count CHECKs. Reset AFTER so the DELETE's own spans aren't
     // captured. (No-op on sqlite, where each file gets its own in-memory DB.)
-    await DELETE.from('cds.outbox.Messages')
+    await clearOutbox()
     reset()
   })
 
