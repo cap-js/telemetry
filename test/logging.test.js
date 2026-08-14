@@ -27,7 +27,10 @@ describe('logging', () => {
   test('it works', async () => {
     const { status } = await GET('/odata/v4/admin/Genres', admin)
     expect(status).to.equal(200)
-    const logs = console.dir.mock.calls.map(([log]) => log)
+    // Filter out the queue's outbox-scan "elapsed times:" trace primer. On HANA the outbox
+    // poll fires later than the 500ms beforeAll drain, so its primer log can still land in the
+    // spy window — but this test is about the 4 real LogRecords, not the trace primer.
+    const logs = console.dir.mock.calls.map(([log]) => log).filter(log => !log?.body?.startsWith('elapsed times:'))
     expect(logs.length).to.equal(4)
     expect(logs[0]).to.include({ body: 'GET /odata/v4/admin/Genres ' }) //> why the trailing space?
     expect(logs[1]).to.include({ body: 'Hello, World!' })

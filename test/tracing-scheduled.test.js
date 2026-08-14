@@ -21,8 +21,38 @@
 const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace, rootSpans } = require('./bookshop/lib/MyInMemorySpanExporter')
+const otel = require('@opentelemetry/api')
 
 const wait = require('node:timers/promises').setTimeout
+
+// Force-flush the tracer provider's span processor so any spans buffered by background
+// queue/worker activity are exported into `captured`. The global provider is a
+// ProxyTracerProvider (no forceFlush) whose delegate is the real NodeTracerProvider;
+// guard for the no-op provider so a misconfigured profile fails loudly, not silently.
+async function flushSpans() {
+  const provider = otel.trace.getTracerProvider()
+  const delegate = provider.getDelegate?.() ?? provider
+  if (typeof delegate.forceFlush === 'function') await delegate.forceFlush()
+}
+
+// State-based wait: repeatedly flush + re-run the assertion until it holds or times out.
+// Replaces fixed `wait(...)` sleeps that flake on HANA, where the worker flushes spans after
+// the sleep window.
+async function eventually(fn, { timeout = 15000, interval = 50 } = {}) {
+  const start = Date.now()
+  let lastError
+  while (true) {
+    await flushSpans()
+    try {
+      await fn()
+      return
+    } catch (err) {
+      lastError = err
+      if (Date.now() - start >= timeout) throw lastError
+      await wait(interval)
+    }
+  }
+}
 
 describe('tracing for scheduled tasks', () => {
   // Queue-worker spans (cds.spawn - run task root) require @sap/cds to route the sqlite
@@ -33,37 +63,51 @@ describe('tracing for scheduled tasks', () => {
     test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
     return
   }
+  // Reading cds.env above (in the guard) at collection time caches the singleton BEFORE
+  // cds.test() applies `--profile tracing-in-memory` (it only sets CDS_ENV once its before()
+  // hook runs cds.exec). Without this reset the tracer provider is built with the default
+  // ConsoleSpanExporter and MyInMemorySpanExporter never receives spans (captured stays empty).
+  delete cds.env
 
   beforeAll(async () => {
     const externalOne = await cds.connect.to('ExternalServiceOne')
     externalOne.on('call', () => 'ok')
   })
 
-  beforeEach(reset)
+  beforeEach(async () => {
+    // Clear outbox rows left by a prior test file BEFORE resetting the span buffer — the HANA
+    // HDI container is shared across all files, so a leftover message would be dispatched by this
+    // file's worker and add a foreign `cds.spawn - run task` root. Reset AFTER so the DELETE's own
+    // spans aren't captured. (No-op on sqlite: per-file in-memory DB.)
+    await DELETE.from('cds.outbox.Messages')
+    reset()
+  })
 
   test('schedule .after() is fully traced through the queue worker', async () => {
     await POST('/odata/v4/admin/test_scheduled', {}, { auth: { username: 'alice' } })
-    // wait long enough for the scheduled task to fire (10ms after-delay + worker latency)
-    await wait(1500)
 
-    // Producer trace: writes the task row inside the HTTP request tx.
-    const producer = groupedByTrace().find(g => g.all.some(s => s.name === 'AdminService - handle test_scheduled'))
-    expect(producer, 'expected a producer trace').to.exist
-    expect(producer.root.name).to.equal('AdminService - tx')
-    expect(producer.all.some(s => s.name === 'db - UPSERT cds.outbox.Messages')).to.be.true
-    expect(producer.all.some(s => s.name === 'cds.spawn - schedule task')).to.be.true
+    // Poll (flush + re-check) until the scheduled task has fired and all spans have been
+    // exported; on HANA the worker latency exceeds any reasonable fixed sleep.
+    await eventually(() => {
+      // Producer trace: writes the task row inside the HTTP request tx.
+      const producer = groupedByTrace().find(g => g.all.some(s => s.name === 'AdminService - handle test_scheduled'))
+      expect(producer, 'expected a producer trace').to.exist
+      expect(producer.root.name).to.equal('AdminService - tx')
+      expect(producer.all.some(s => s.name === 'db - UPSERT cds.outbox.Messages')).to.be.true
+      expect(producer.all.some(s => s.name === 'cds.spawn - schedule task')).to.be.true
 
-    // Queue worker trace: rooted at cds.spawn - run task, contains both tx spans.
-    const workerTrace = groupedByTrace().find(g => g.root.name === 'cds.spawn - run task')
-    expect(workerTrace, 'expected a queue-worker spawn-root trace').to.exist
-    expect(workerTrace.all.some(s => s.name === 'db - tx')).to.be.true
-    expect(workerTrace.all.some(s => s.name === 'ExternalServiceOne - tx')).to.be.true
+      // Queue worker trace: rooted at cds.spawn - run task, contains both tx spans.
+      const workerTrace = groupedByTrace().find(g => g.root.name === 'cds.spawn - run task')
+      expect(workerTrace, 'expected a queue-worker spawn-root trace').to.exist
+      expect(workerTrace.all.some(s => s.name === 'db - tx')).to.be.true
+      expect(workerTrace.all.some(s => s.name === 'ExternalServiceOne - tx')).to.be.true
 
-    // The ExternalServiceOne handler was invoked.
-    expect(captured.some(s => s.name.match(/ExternalServiceOne - handle/))).to.be.true
+      // The ExternalServiceOne handler was invoked.
+      expect(captured.some(s => s.name.match(/ExternalServiceOne - handle/))).to.be.true
 
-    // Total meaningful roots: producer + worker (+ optional bookkeeping scan).
-    expect(rootSpans().length).to.be.gte(2)
-    expect(rootSpans().length).to.be.lte(3)
+      // Total meaningful roots: producer + worker (+ optional bookkeeping scan).
+      expect(rootSpans().length).to.be.gte(2)
+      expect(rootSpans().length).to.be.lte(3)
+    })
   })
 })

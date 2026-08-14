@@ -62,5 +62,9 @@ describe(`tracing messaging - ${CASE}`, () => {
     test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
     return
   }
-  require('./tracing-messaging')(CASE, CHECK, { waitMs: 4000 })
+  // Reading cds.env above (in the guard) at collection time caches the singleton BEFORE
+  // cds.test() applies its `--profile`; without this reset the tracer provider is built with
+  // the default ConsoleSpanExporter and MyInMemorySpanExporter never receives spans.
+  delete cds.env
+  require('./tracing-messaging')(CASE, CHECK)
 })
