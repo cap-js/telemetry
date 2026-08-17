@@ -5,14 +5,14 @@ const http = require('http')
 // The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures
 // MyInMemorySpanExporter as the trace exporter. We read the captured ReadableSpan
 // objects directly out of its shared buffer — no console spy.
-const { captured } = require('./bookshop/lib/MyInMemorySpanExporter')
+const { captured, reset } = require('./bookshop/lib/MyInMemorySpanExporter')
 
 describe('span names', () => {
   beforeEach(async () => {
     // data.reset is itself heavily traced (it runs DELETEs + INSERTs for the seed data) —
     // run it first, THEN clear the buffer so the test only sees its own spans.
     await data.reset()
-    captured.length = 0
+    reset()
   })
 
   const getSpans = () => captured
