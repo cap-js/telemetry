@@ -1,6 +1,11 @@
 const cds = require('@sap/cds')
-const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
+const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 const http = require('http')
+
+// The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures
+// MyInMemorySpanExporter as the trace exporter. We read the captured ReadableSpan
+// objects directly out of its shared buffer — no console spy.
+const { captured, reset } = require('./bookshop/lib/MyInMemorySpanExporter')
 
 // Cloud SDK path: with @sap-cloud-sdk/http-client installed (as in the bookshop) and
 // cds.env.remote.native_fetch NOT set, CAP routes outbound remote calls through
@@ -8,10 +13,9 @@ const http = require('http')
 // export so the outbound call produces a @cap-js/telemetry CLIENT span carrying
 // the sap.btp.destination attribute.
 describe('tracing remote via cloud sdk', () => {
-  const log = vi.spyOn(console, 'dir')
-  beforeEach(log.mockClear)
+  beforeEach(reset)
 
-  const getSpans = () => log.mock.calls.map(c => c[0]).filter(Boolean)
+  const getSpans = () => captured
   const getCapSpans = () => getSpans().filter(s => s.instrumentationScope?.name === '@cap-js/telemetry')
 
   let server, port
