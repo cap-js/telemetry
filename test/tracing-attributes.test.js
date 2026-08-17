@@ -1,3 +1,6 @@
+// REVISIT: use native fetch in cds oq
+process.env.cds_remote_native__fetch = 'true'
+
 const cds = require('@sap/cds')
 const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
 const http = require('http')
@@ -27,9 +30,6 @@ describe('tracing attributes', () => {
     })
 
     test('HTTP client attributes are set on remote service span', async () => {
-      // skip for cds 8 due to Cloud SDK resilience module resolution issues in test environment
-      if (Number(cds.version.split('.')[0]) < 9) return
-
       // configure destination URL directly on credentials
       cds.env.requires.TestRemote = { kind: 'odata', credentials: { url: `http://localhost:${port}` } }
       const remote = await cds.connect.to('TestRemote')

@@ -30,11 +30,6 @@ function metricValue(metric, queuedServiceName) {
 const debugLog = (cds.log('telemetry').debug = jest.fn(() => {}))
 
 describe('queue metrics for single tenant service', () => {
-  if (cds.version.split('.')[0] < 9) {
-    test.skip('skipping tests for cds version < 9', () => {})
-    return
-  }
-
   let totalInc = { [E1]: 0, [E2]: 0 }
   let totalOut = { [E1]: 0, [E2]: 0 }
   let totalFailed = { [E1]: 0, [E2]: 0 }
