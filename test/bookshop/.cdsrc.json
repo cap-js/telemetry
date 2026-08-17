@@ -45,7 +45,7 @@
       "telemetry": {
         "metrics": {
           "config": {
-            "exportIntervalMillis": 100
+            "exportIntervalMillis": 1000
           },
           "_db_pool": false,
           "_queue": true,

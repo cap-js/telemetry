@@ -12,9 +12,6 @@ const http = require('http')
 // comes from that instrumentation scope (NOT @opentelemetry/instrumentation-http, and
 // NOT our cloud_sdk wrapper) and carries the standard http.* / url.* / server.* attributes.
 describe('tracing remote via native fetch', () => {
-  // cloud-sdk resilience module resolution has issues on cds 8
-  if (Number(cds.version.split('.')[0]) < 9) return
-
   const log = vi.spyOn(console, 'dir')
   beforeEach(log.mockClear)
 

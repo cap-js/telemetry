@@ -38,12 +38,10 @@ async function expectEventually(assertion, { timeout = 10000, interval = 25 } = 
   }
 }
 
+// Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI containers.
+// The HANA CI runs against a single pre-provisioned HDI container with no Service Manager, so this
+// suite is excluded from the HANA job in vitest.config.mjs. It runs on sqlite (in-memory tenants).
 describe('queue metrics for multi tenant service', () => {
-  if (cds.version.split('.')[0] < 9) {
-    test.skip('skipping tests for cds version < 9', () => {})
-    return
-  }
-
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
 

@@ -9,9 +9,49 @@ const { expect, GET, POST } = cds.test(__dirname + '/bookshop', '--profile', 'tr
 // Assert against the structured ReadableSpan objects captured by MyInMemorySpanExporter
 // (configured via the tracing-in-memory profile in test/bookshop/.cdsrc.json) — no
 // console spying, no string-regex matching of formatted output.
-const { reset, rootSpans, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
+const { reset, rootSpans, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
+const otel = require('@opentelemetry/api')
 
 const wait = require('node:timers/promises').setTimeout
+
+// Force-flush the tracer provider's span processor so any spans buffered by background
+// activity are exported into `captured`. The global provider is a ProxyTracerProvider (no
+// forceFlush) whose delegate is the real NodeTracerProvider; guard for the no-op provider
+// so a misconfigured profile fails loudly, not silently.
+async function flushSpans() {
+  const provider = otel.trace.getTracerProvider()
+  const delegate = provider.getDelegate?.() ?? provider
+  if (typeof delegate.forceFlush === 'function') await delegate.forceFlush()
+}
+
+// State-based wait: repeatedly flush + re-run the assertion until it holds or times out.
+// Replaces fixed `wait(...)` sleeps that flake on HANA, where spawned/emitted work flushes
+// spans after the sleep window.
+async function eventually(fn, { timeout = 15000, interval = 50 } = {}) {
+  const start = Date.now()
+  let lastError
+  while (true) {
+    await flushSpans()
+    try {
+      await fn()
+      return
+    } catch (err) {
+      lastError = err
+      if (Date.now() - start >= timeout) throw lastError
+      await wait(interval)
+    }
+  }
+}
+
+// On HANA the persistent-outbox queue poller periodically scans `cds.outbox.Messages` in its
+// own `db - tx`, producing an extra root trace that is unrelated to what these tests exercise.
+// Filter those bookkeeping traces out so root-count assertions stay stable across both DBs.
+const isOutboxScanTrace = g =>
+  g.root.name === 'db - tx' && g.all.every(s => s.name === 'db - tx' || s.name.includes('cds.outbox.Messages'))
+const meaningfulRoots = () =>
+  groupedByTrace()
+    .filter(g => !isOutboxScanTrace(g))
+    .flatMap(g => g.roots)
 
 describe('tracing', () => {
   const admin = { auth: { username: 'alice' } }
@@ -42,13 +82,19 @@ describe('tracing', () => {
   })
 
   test('NonRecordingSpans are handled correctly', async () => {
+    // Idempotent cleanup: this file has no data.reset, and on the persistent HANA container a
+    // leftover Author 42 from a prior run would make the POST fail with a unique-constraint 500.
+    await DELETE.from('sap.capire.bookshop.Authors').where({ ID: 42 })
+    reset()
     const { status: postStatus } = await POST('/odata/v4/admin/Authors', { ID: 42, name: 'Douglas Adams' }, admin)
     expect(postStatus).to.equal(201)
     const { status: getStatus } = await GET('/odata/v4/admin/Authors?$select=ID', admin)
     expect(getStatus).to.equal(200)
     // The sampler in this test ignores /odata/v4/admin/Authors — no spans should be captured for it.
     // (Other unrelated background work may still produce spans; assert only that none mention Authors.)
-    expect(captured.filter(s => s.attributes['url.path']?.includes('/admin/Authors'))).to.have.lengthOf(0)
+    await eventually(() => {
+      expect(captured.filter(s => s.attributes['url.path']?.includes('/admin/Authors'))).to.have.lengthOf(0)
+    })
   })
 
   // REVISIT: jest breaks otel's patching of incoming request handling -> behavior to test not reproducible
@@ -68,23 +114,23 @@ describe('tracing', () => {
     // With the tx wrap (lib/tracing/cds.js), each batch request's tx becomes a single root —
     // the previously-visible 4 sub-roots (POST: CREATE + read-after-write; GET: read actives +
     // read drafts) are now nested under 2 root tx spans, one per batch entry.
-    expect(rootSpans()).to.have.lengthOf(2)
+    await eventually(() => expect(meaningfulRoots()).to.have.lengthOf(2))
   })
 
   test('cds.spawn is traced', async () => {
     await POST('/odata/v4/admin/test_spawn', {}, admin)
-    await wait(30)
     // 2 visible roots: the action invocation + the spawned task
-    expect(rootSpans()).to.have.lengthOf(2)
-    expect(captured.some(s => s.name === 'cds.spawn - schedule task')).to.be.true
-    expect(captured.some(s => s.name === 'cds.spawn - run task')).to.be.true
+    await eventually(() => {
+      expect(meaningfulRoots()).to.have.lengthOf(2)
+      expect(captured.some(s => s.name === 'cds.spawn - schedule task')).to.be.true
+      expect(captured.some(s => s.name === 'cds.spawn - run task')).to.be.true
+    })
   })
 
   test('emit is traced', async () => {
     await POST('/odata/v4/admin/test_emit', {}, admin)
-    await wait(100)
     // local-messaging keeps the consumer in the same context → exactly 1 visible root
-    expect(rootSpans()).to.have.lengthOf(1)
+    await eventually(() => expect(meaningfulRoots()).to.have.lengthOf(1))
   })
 
   describe('db', () => {
@@ -105,8 +151,7 @@ describe('tracing', () => {
 
   test('custom spans are supported', async () => {
     await GET('/odata/v4/catalog/ListOfBooks', {}, admin)
-    await wait(100)
-    expect(captured.filter(s => s.name === 'my custom span')).to.have.lengthOf(1)
+    await eventually(() => expect(captured.filter(s => s.name === 'my custom span')).to.have.lengthOf(1))
   })
 
   // --- TODO ---
