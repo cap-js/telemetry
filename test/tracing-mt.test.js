@@ -4,6 +4,9 @@ const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname 
 
 const { reset, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
 
+// Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI containers.
+// The HANA CI runs against a single pre-provisioned HDI container with no Service Manager, so this
+// suite is excluded from the HANA job in vitest.config.mjs. It runs on sqlite (in-memory tenants).
 describe('tracing with multitenancy', () => {
   const TENANT1 = 'tenant_1'
   const TENANT2 = 'tenant_2'

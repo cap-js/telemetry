@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Fixed
 
 - Cloud SDK outbound requests are traced again (patch getter-only `@sap-cloud-sdk/http-client` exports via `Object.defineProperty`)
+- Raw SQL no longer leaks into HANA INSERT `prepare` span names (now uses operation + table, matching SELECT)
+- Queue `*_storage_time_in_seconds` metrics are now correct on HANA (timezone-naive `min`/`max` timestamp aggregates were parsed as local time, skewing the values by the machine's UTC offset)
 
 ## Version 2.0.1 - 2026-07-03
 
