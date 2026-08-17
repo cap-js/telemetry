@@ -1,14 +1,21 @@
 const cds = require('@sap/cds')
-const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
+const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 const http = require('http')
 
+// The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures
+// MyInMemorySpanExporter as the trace exporter. We read the captured ReadableSpan
+// objects directly out of its shared buffer — no console spy.
+const { captured, reset } = require('./bookshop/lib/MyInMemorySpanExporter')
+
 describe('span names', () => {
-  beforeEach(data.reset)
+  beforeEach(async () => {
+    // data.reset is itself heavily traced (it runs DELETEs + INSERTs for the seed data) —
+    // run it first, THEN clear the buffer so the test only sees its own spans.
+    await data.reset()
+    reset()
+  })
 
-  const log = vi.spyOn(console, 'dir')
-  beforeEach(log.mockClear)
-
-  const getSpans = () => log.mock.calls.map(c => c[0]).filter(Boolean)
+  const getSpans = () => captured
 
   // Spans from our tracer only (excludes HTTP instrumentation spans)
   const getCapSpans = () => getSpans().filter(s => s.instrumentationScope?.name === '@cap-js/telemetry')

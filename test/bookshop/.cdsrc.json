@@ -75,17 +75,6 @@
       }
     }
   },
-  "[tracing-attributes]": {
-    "requires": {
-      "telemetry": {
-        "tracing": {
-          "exporter": {
-            "module": "@opentelemetry/sdk-trace-node"
-          }
-        }
-      }
-    }
-  },
   "[tracing-in-memory]": {
     "requires": {
       "telemetry": {

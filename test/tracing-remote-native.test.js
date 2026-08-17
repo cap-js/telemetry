@@ -3,8 +3,13 @@
 process.env.cds_remote_native__fetch = 'true'
 
 const cds = require('@sap/cds')
-const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-attributes')
+const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 const http = require('http')
+
+// The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures
+// MyInMemorySpanExporter as the trace exporter. We read the captured ReadableSpan
+// objects directly out of its shared buffer — no console spy.
+const { captured, reset } = require('./bookshop/lib/MyInMemorySpanExporter')
 
 // Native fetch path: when cds.env.remote.native_fetch === true (or no cloud sdk is
 // installed), CAP routes outbound remote calls through native fetch, which is
@@ -12,10 +17,9 @@ const http = require('http')
 // comes from that instrumentation scope (NOT @opentelemetry/instrumentation-http, and
 // NOT our cloud_sdk wrapper) and carries the standard http.* / url.* / server.* attributes.
 describe('tracing remote via native fetch', () => {
-  const log = vi.spyOn(console, 'dir')
-  beforeEach(log.mockClear)
+  beforeEach(reset)
 
-  const getSpans = () => log.mock.calls.map(c => c[0]).filter(Boolean)
+  const getSpans = () => captured
 
   let server, port
 
