@@ -314,15 +314,21 @@ requires:
         issuer: "CN=SAP PKI Certificate Service Client CA,..."
 ```
 
-2. **Obtain and bind mTLS credentials** via a user-provided service containing `cert` and `key` (base64 encoded):
-```bash
-cf create-user-provided-service caas-mtls-creds -p '{"cert":"<base64>","key":"<base64>"}'
-cf bind-service my-app caas-mtls-creds
+2. **Provide mTLS credentials** via environment variables (base64 encoded):
+```yaml
+# mta.yaml
+properties:
+  CDS_REQUIRES_TELEMETRY_X509_CERT: '<base64-encoded-certificate-chain>'
+  CDS_REQUIRES_TELEMETRY_X509_KEY: '<base64-encoded-private-key>'
 ```
 
-The mTLS certificate must be created (e.g., via `openssl`) and signed through SAP BTP Certificate Service. The certificate must be renewed periodically (typically every 7 days).
+Or set directly via Cloud Foundry CLI:
+```bash
+cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_CERT "<base64-cert>"
+cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_KEY "<base64-key>"
+```
 
-> Note: The user-provided service name must match the pattern configured in `mtls_service_pattern` (default: `caas-mtls|caas-cert`).
+The mTLS certificate must be SAP-signed through the BTP Certificate Service. Certificates can be created with validity from 7 days up to 1 year and must be renewed before expiration. For detailed certificate setup and renewal instructions, refer to your project's certificate management documentation.
 
 ### `telemetry-to-jaeger`
 
