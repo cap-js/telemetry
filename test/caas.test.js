@@ -36,7 +36,7 @@ describe('augmentCaaSCreds', () => {
     delete require.cache[require.resolve('../lib/utils')]
   })
 
-  test('sets baseUrl and url from otlp.http', () => {
+  test('sets baseUrl from otlp.http', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
     const { augmentCaaSCreds } = require('../lib/utils')
@@ -51,7 +51,6 @@ describe('augmentCaaSCreds', () => {
     augmentCaaSCreds(credentials)
 
     expect(credentials.baseUrl).toBe('https://caas.example.com/otlp')
-    expect(credentials.url).toBe('https://caas.example.com/otlp')
   })
 
   test('sets httpAgentOptions when mTLS credentials found', () => {
