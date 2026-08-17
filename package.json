@@ -52,9 +52,6 @@
     "oxfmt": "0.63.0",
     "vitest": "^4"
   },
-  "overrides": {
-    "@opentelemetry/sdk-logs": "0.219.0"
-  },
   "cds": {
     "requires": {
       "telemetry": {

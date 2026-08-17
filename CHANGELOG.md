@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Logging no longer recurses through `@opentelemetry/sdk-logs` 0.221's export path: the log-processor construction now adapts to the installed sdk-logs version (0.221+ takes an `{ exporter }` options object, earlier versions the positional exporter), and a re-entrancy guard was added to the `cds.log.format` interception
 - Cloud SDK outbound requests are traced again (patch getter-only `@sap-cloud-sdk/http-client` exports via `Object.defineProperty`)
 - Raw SQL no longer leaks into HANA INSERT `prepare` span names (now uses operation + table, matching SELECT)
 - Queue `*_storage_time_in_seconds` metrics are now correct on HANA (timezone-naive `min`/`max` timestamp aggregates were parsed as local time, skewing the values by the machine's UTC offset)
