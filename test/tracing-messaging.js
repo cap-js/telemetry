@@ -3,6 +3,14 @@ module.exports = (CASE, CHECK) => {
   const { expect, POST } = cds.test(__dirname + '/bookshop', '--profile', `${CASE},tracing-in-memory`)
   const { reset, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
   const otel = require('@opentelemetry/api')
+  const { suppressTracing } = require('@opentelemetry/core')
+
+  // The test's HTTP client runs in-process and, with outgoing HTTP instrumentation now enabled,
+  // would itself create a CLIENT span for the emit-triggering POST — an artificial extra root
+  // above the incoming SERVER span. Real callers are separate, un-instrumented processes, so we
+  // run the request under suppressTracing to model that: the outgoing CLIENT span is skipped and
+  // the incoming SERVER span is the producer trace's root.
+  const asExternalClient = fn => otel.context.with(suppressTracing(otel.context.active()), fn)
 
   const wait = require('node:timers/promises').setTimeout
 
@@ -99,7 +107,7 @@ module.exports = (CASE, CHECK) => {
   })
 
   test('emit is traced', async () => {
-    await POST('/odata/v4/admin/test_emit', {}, admin)
+    await asExternalClient(() => POST('/odata/v4/admin/test_emit', {}, admin))
     // Poll (flush + re-check) until both queue workers have run and exported their spans;
     // on HANA the worker latency exceeds any reasonable fixed sleep. Pass the meaningful
     // (non-outbox-scan) traces so the CHECK's exact root-count assertions aren't thrown off by

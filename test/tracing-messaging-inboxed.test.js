@@ -1,14 +1,18 @@
 const CASE = 'inboxed'
 
+const otel = require('@opentelemetry/api')
+
 // `inboxed: true` combined with the default outboxed messaging behavior means TWO queue
 // workers get involved per emit — one on the producer side (drains outbox to broker) and
 // one on the consumer side (drains inbox to subscribers). Each worker runs two
 // transactions (tx 1: lock; tx 2: handle + delete).
 //
 // Each worker iteration is wrapped by `cds.spawn`, so both txs collapse under a single
-// `cds.spawn - run task` root. 4 meaningful roots:
+// `cds.spawn - run task` root. With incoming HTTP instrumentation on, the producer trace is
+// rooted at the incoming SERVER span for the emit-triggering POST (AdminService - tx nests
+// under it). 4 meaningful roots:
 //
-//   1. AdminService - tx                    (producer: handle test_emit, UPSERT outbox)
+//   1. POST (incoming SERVER span)          (producer: AdminService - tx, handle test_emit, UPSERT outbox)
 //   2. cds.spawn - run task                  (outbox worker: dispatches to file)
 //        ├─ db - tx        (tx 1: lock)
 //        └─ messaging - tx (tx 2: handle foo — writes to file — + DELETE)
@@ -31,7 +35,8 @@ const CHECK = ({ expect, rootSpans, groupedByTrace }) => {
   // Producer trace
   const producer = groupedByTrace.find(g => g.all.some(s => s.name === 'AdminService - handle test_emit'))
   expect(producer, 'expected a producer trace').to.exist
-  expect(producer.root.name).to.equal('AdminService - tx')
+  expect(producer.root.kind, 'producer trace rooted at the incoming SERVER span').to.equal(otel.SpanKind.SERVER)
+  expect(producer.all.some(s => s.name === 'AdminService - tx')).to.be.true
   expect(producer.all.some(s => s.name === 'db - UPSERT cds.outbox.Messages')).to.be.true
 
   // The inbox worker must have run the application handler (SELECT Books).

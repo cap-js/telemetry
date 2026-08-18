@@ -1,5 +1,7 @@
 const CASE = 'persistent-outbox'
 
+const otel = require('@opentelemetry/api')
+
 // REVISIT: even with profile "persistent-outbox", messaging kind and file from package.json wins
 process.env.cds_requires_messaging = JSON.stringify({
   kind: 'file-based-messaging',
@@ -18,13 +20,17 @@ process.env.cds_requires_messaging = JSON.stringify({
 // wraps to emit a single `cds.spawn - run task` CONSUMER root that both worker tx spans
 // nest under.
 //
+// With incoming HTTP instrumentation on, the producer trace is rooted at the incoming SERVER
+// span for the emit-triggering POST (AdminService - tx nests under it).
+//
 // Expected shape (3 meaningful roots, same for sqlite and HANA):
 //
-//   1. AdminService - tx                          (producer trace)
-//        └─ AdminService - handle test_emit
-//             └─ messaging - emit outgoing foo
-//                  └─ db - UPSERT cds.outbox.Messages
-//                       └─ cds.spawn - schedule task
+//   1. POST (incoming SERVER span)                (producer trace)
+//        └─ AdminService - tx
+//             └─ AdminService - handle test_emit
+//                  └─ messaging - emit outgoing foo
+//                       └─ db - UPSERT cds.outbox.Messages
+//                            └─ cds.spawn - schedule task
 //
 //   2. cds.spawn - run task                       (queue worker root)
 //        ├─ db - tx                               (tx 1)
@@ -44,7 +50,8 @@ const CHECK = ({ expect, rootSpans, groupedByTrace }) => {
   // Producer trace
   const producer = groupedByTrace.find(g => g.all.some(s => s.name === 'AdminService - handle test_emit'))
   expect(producer, 'expected a producer trace').to.exist
-  expect(producer.root.name).to.equal('AdminService - tx')
+  expect(producer.root.kind, 'producer trace rooted at the incoming SERVER span').to.equal(otel.SpanKind.SERVER)
+  expect(producer.all.some(s => s.name === 'AdminService - tx')).to.be.true
   expect(producer.all.some(s => s.name === 'messaging - emit outgoing foo')).to.be.true
   expect(producer.all.some(s => s.name === 'db - UPSERT cds.outbox.Messages')).to.be.true
   expect(producer.all.some(s => s.name === 'cds.spawn - schedule task')).to.be.true

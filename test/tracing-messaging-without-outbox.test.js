@@ -1,5 +1,7 @@
 const CASE = 'without-outbox'
 
+const otel = require('@opentelemetry/api')
+
 // REVISIT: even with profile "without-outbox", messaging kind and file from package.json wins
 process.env.cds_requires_messaging = JSON.stringify({
   kind: 'file-based-messaging',
@@ -11,11 +13,15 @@ process.env.cds_requires_messaging = JSON.stringify({
 // transaction (no queue worker). The file watcher delivers asynchronously as a new
 // SpanKind.CONSUMER root.
 //
+// With incoming HTTP instrumentation on, the producer trace is now rooted at the incoming
+// SERVER span (SpanKind.SERVER) for the emit-triggering POST; `AdminService - tx` nests under it.
+//
 // Expected roots:
-//   1. AdminService - tx                    (producer)
-//        └─ AdminService - handle test_emit
-//             └─ messaging - emit outgoing foo
-//                  └─ messaging - handle foo  (writes to file, in-process)
+//   1. POST (incoming SERVER span)          (producer)
+//        └─ AdminService - tx
+//             └─ AdminService - handle test_emit
+//                  └─ messaging - emit outgoing foo
+//                       └─ messaging - handle foo  (writes to file, in-process)
 //
 //   2. messaging - tx                       (file-based CONSUMER)
 //        └─ messaging - emit outgoing foo
@@ -29,7 +35,8 @@ const CHECK = ({ expect, rootSpans, groupedByTrace }) => {
   // Producer trace
   const producer = groupedByTrace.find(g => g.all.some(s => s.name === 'AdminService - handle test_emit'))
   expect(producer, 'expected a producer trace').to.exist
-  expect(producer.root.name).to.equal('AdminService - tx')
+  expect(producer.root.kind, 'producer trace rooted at the incoming SERVER span').to.equal(otel.SpanKind.SERVER)
+  expect(producer.all.some(s => s.name === 'AdminService - tx')).to.be.true
   expect(producer.all.some(s => s.name.match(/messaging - emit outgoing/))).to.be.true
 
   // File-based CONSUMER trace
