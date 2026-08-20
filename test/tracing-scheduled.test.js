@@ -23,7 +23,7 @@ const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace, rootSpans } = require('./bookshop/lib/MyInMemorySpanExporter')
 const otel = require('@opentelemetry/api')
-const { asExternalClient, eventually } = require('./bookshop/lib/test-utils')
+const { asExternalClient, eventually } = require('./utils')
 
 describe('tracing for scheduled tasks', () => {
   // Queue-worker spans (cds.spawn - run task root) require @sap/cds to route the sqlite

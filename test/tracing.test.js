@@ -11,7 +11,7 @@ const { expect, GET, POST } = cds.test(__dirname + '/bookshop', '--profile', 'tr
 // console spying, no string-regex matching of formatted output.
 const { reset, rootSpans, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
 const otel = require('@opentelemetry/api')
-const { asExternalClient, eventually, meaningful } = require('./bookshop/lib/test-utils')
+const { asExternalClient, eventually, meaningful } = require('./utils')
 
 const meaningfulRoots = () => meaningful(groupedByTrace()).flatMap(g => g.roots)
 

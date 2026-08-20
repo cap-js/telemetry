@@ -9,7 +9,7 @@ const { setTimeout: wait } = require('node:timers/promises')
 // Exported metric data is captured in-memory by MyInMemoryMetricReader (wired via the
 // metrics-outbox profile in .cdsrc.json) instead of scraping ConsoleMetricExporter's console.dir.
 const { latestDataPointValue, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
-const { clearOutbox, makeExpectEventually } = require('./bookshop/lib/test-utils')
+const { clearOutbox, makeExpectEventually } = require('./utils')
 
 const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox')
 axios.defaults.validateStatus = () => true

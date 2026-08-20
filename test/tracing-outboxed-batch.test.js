@@ -6,7 +6,7 @@ const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace } = require('./bookshop/lib/MyInMemorySpanExporter')
 const { hrTimeToNanoseconds } = require('@opentelemetry/core')
-const { eventually } = require('./bookshop/lib/test-utils')
+const { eventually } = require('./utils')
 
 describe('tracing for outboxed batch (chunk-size fan-out)', () => {
   // Queue-worker spans need cds.spawn on sqlite (pending cds fix). REMOVE with follow-up PR.

@@ -1,7 +1,7 @@
 // Shared test helpers, centralized here so the ~10 tracing/metrics suites stop copy-pasting them.
 //
 // Kept dependency-light on purpose: it does NOT `require('@sap/cds')` at module top (doing so once
-// broke span capture for the sibling span exporter — the cds require has to happen inside the test
+// broke span capture for the in-memory span exporter — the cds require has to happen inside the test
 // file, after the profile is applied). Only @opentelemetry primitives + node timers here.
 //
 // `clearOutbox` uses the global `DELETE` (the cds query API). That global is installed by cds.test()

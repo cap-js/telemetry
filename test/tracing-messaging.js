@@ -2,7 +2,7 @@ module.exports = (CASE, CHECK) => {
   const cds = require('@sap/cds')
   const { expect, POST } = cds.test(__dirname + '/bookshop', '--profile', `${CASE},tracing-in-memory`)
   const { reset, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
-  const { asExternalClient, clearOutbox, eventually, meaningful } = require('./bookshop/lib/test-utils')
+  const { asExternalClient, clearOutbox, eventually, meaningful } = require('./utils')
 
   const wait = require('node:timers/promises').setTimeout
 
