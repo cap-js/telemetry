@@ -6,10 +6,11 @@
 //
 // Expected meaningful roots (unified across sqlite and HANA):
 //
-//   1. AdminService - tx                       (producer trace)
-//        └─ AdminService - handle test_scheduled
-//             └─ db - UPSERT cds.outbox.Messages
-//                  └─ cds.spawn - schedule task
+//   1. POST (incoming SERVER span)             (producer trace)
+//        └─ AdminService - tx
+//             └─ AdminService - handle test_scheduled
+//                  └─ db - UPSERT cds.outbox.Messages
+//                       └─ cds.spawn - schedule task
 //
 //   2. cds.spawn - run task                    (queue worker root)
 //        ├─ db - tx                            (tx 1: lock)
@@ -22,8 +23,16 @@ const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace, rootSpans } = require('./bookshop/lib/MyInMemorySpanExporter')
 const otel = require('@opentelemetry/api')
+const { suppressTracing } = require('@opentelemetry/core')
 
 const wait = require('node:timers/promises').setTimeout
+
+// With incoming HTTP instrumentation on, the in-process test client would otherwise emit its own
+// outgoing CLIENT span for the POST — an artifact that pollutes the producer trace and can even be
+// picked as its root. Real callers are separate, un-instrumented processes, so run client requests
+// under suppressTracing to model that: the CLIENT span is skipped and the genuine incoming SERVER
+// span is the producer trace's root.
+const asExternalClient = fn => otel.context.with(suppressTracing(otel.context.active()), fn)
 
 // Force-flush the tracer provider's span processor so any spans buffered by background
 // queue/worker activity are exported into `captured`. The global provider is a
@@ -83,7 +92,7 @@ describe('tracing for scheduled tasks', () => {
   })
 
   test('schedule .after() is fully traced through the queue worker', async () => {
-    await POST('/odata/v4/admin/test_scheduled', {}, { auth: { username: 'alice' } })
+    await asExternalClient(() => POST('/odata/v4/admin/test_scheduled', {}, { auth: { username: 'alice' } }))
 
     // Poll (flush + re-check) until the scheduled task has fired and all spans have been
     // exported; on HANA the worker latency exceeds any reasonable fixed sleep.
@@ -91,7 +100,10 @@ describe('tracing for scheduled tasks', () => {
       // Producer trace: writes the task row inside the HTTP request tx.
       const producer = groupedByTrace().find(g => g.all.some(s => s.name === 'AdminService - handle test_scheduled'))
       expect(producer, 'expected a producer trace').to.exist
-      expect(producer.root.name).to.equal('AdminService - tx')
+      // With incoming HTTP instrumentation on, the producer trace roots at the incoming SERVER
+      // span for the POST; `AdminService - tx` now nests under it.
+      expect(producer.root.kind, 'producer trace rooted at the incoming SERVER span').to.equal(otel.SpanKind.SERVER)
+      expect(producer.all.some(s => s.name === 'AdminService - tx')).to.be.true
       expect(producer.all.some(s => s.name === 'db - UPSERT cds.outbox.Messages')).to.be.true
       expect(producer.all.some(s => s.name === 'cds.spawn - schedule task')).to.be.true
 
