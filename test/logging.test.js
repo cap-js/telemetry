@@ -1,9 +1,10 @@
 /* eslint-disable no-console */
 
 // Config lives in the `[logging]` profile of test/bookshop/.cdsrc.json:
-//   - log.cls_custom_fields: ['foo'] (the base default from package.json's cds.log moved to
-//     .cdsrc.json so this profile can win — see #486; package.json config loads after .cdsrc.json
-//     and would otherwise override the profile)
+//   - log.cls_custom_fields: ['foo'] — the profile's own override (the base default is
+//     ['tenant_id']). #486 moved the base `cds.log`/`messaging` defaults out of package.json into
+//     .cdsrc.json base so profiles can win: package.json config loads AFTER .cdsrc.json and would
+//     otherwise override any profile.
 //   - requires.telemetry.tracing.exporter: false to disable the tracing signal (no exporter →
 //     lib/tracing/index.js bails out early) so the queue SchedulingService's outbox-scan "elapsed
 //     times:" trace primer is never produced and can't land in the console.dir spy window. Without
