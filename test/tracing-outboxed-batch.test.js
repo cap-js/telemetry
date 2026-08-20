@@ -6,38 +6,7 @@ const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace } = require('./bookshop/lib/MyInMemorySpanExporter')
 const { hrTimeToNanoseconds } = require('@opentelemetry/core')
-const otel = require('@opentelemetry/api')
-
-const wait = require('node:timers/promises').setTimeout
-
-// Force-flush the tracer provider's span processor so any spans buffered by background
-// outbox/queue activity are exported into `captured`. The global provider is a
-// ProxyTracerProvider (no forceFlush) whose delegate is the real NodeTracerProvider;
-// guard for the no-op provider so a misconfigured profile fails loudly, not silently.
-async function flushSpans() {
-  const provider = otel.trace.getTracerProvider()
-  const delegate = provider.getDelegate?.() ?? provider
-  if (typeof delegate.forceFlush === 'function') await delegate.forceFlush()
-}
-
-// State-based wait: repeatedly flush + re-run the assertion until it holds or times out.
-// Replaces fixed `wait(...)` sleeps that flake on HANA, where background work flushes spans
-// after the sleep window.
-async function eventually(fn, { timeout = 15000, interval = 50 } = {}) {
-  const start = Date.now()
-  let lastError
-  while (true) {
-    await flushSpans()
-    try {
-      await fn()
-      return
-    } catch (err) {
-      lastError = err
-      if (Date.now() - start >= timeout) throw lastError
-      await wait(interval)
-    }
-  }
-}
+const { eventually } = require('./bookshop/lib/test-utils')
 
 describe('tracing for outboxed batch (chunk-size fan-out)', () => {
   // Queue-worker spans need cds.spawn on sqlite (pending cds fix). REMOVE with follow-up PR.

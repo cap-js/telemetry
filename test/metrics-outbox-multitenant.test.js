@@ -4,6 +4,7 @@ const { setTimeout: wait } = require('node:timers/promises')
 // Exported metric data is captured in-memory by MyInMemoryMetricReader (wired via the
 // metrics-outbox profile in .cdsrc.json) instead of scraping ConsoleMetricExporter's console.dir.
 const { latestDataPointValue, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
+const { eventually } = require('./bookshop/lib/test-utils')
 
 const { expect, GET, axios } = cds.test(
   __dirname + '/bookshop',
@@ -17,26 +18,12 @@ function metricValue(tenant, metric) {
   return latestDataPointValue(metric, { 'sap.tenancy.tenant_id': tenant })
 }
 
-// State-based wait: force the wired meter provider to collect + export, then re-run the assertion
-// block. Replaces all fixed-time `wait(…)` sleeps — the loop completes the instant the in-memory
-// per-tenant queue statistics (kept fresh by the existing cds.spawn poller) reflect the asserted
-// state. forceFlush() throws fast if the provider isn't wired, so a misconfigured profile fails
-// loudly instead of busy-spinning the full timeout.
-async function expectEventually(assertion, { timeout = 10000, interval = 25 } = {}) {
-  const start = Date.now()
-  let lastError
-  while (true) {
-    await forceFlush()
-    try {
-      assertion()
-      return
-    } catch (err) {
-      lastError = err
-      if (Date.now() - start >= timeout) throw lastError
-      await wait(interval)
-    }
-  }
-}
+// State-based wait for metric assertions: force the wired meter provider (forceFlush) to collect +
+// export, then re-run the assertion block. Replaces all fixed-time `wait(…)` sleeps — the loop
+// completes the instant the in-memory per-tenant queue statistics (kept fresh by the existing
+// cds.spawn poller) reflect the asserted state. forceFlush() throws fast if the provider isn't
+// wired, so a misconfigured profile fails loudly instead of busy-spinning the full timeout.
+const expectEventually = assertion => eventually(assertion, { flush: forceFlush, timeout: 10000, interval: 25 })
 
 // Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI containers.
 // The HANA CI runs against a single pre-provisioned HDI container with no Service Manager, so this

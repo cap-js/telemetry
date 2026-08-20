@@ -2,72 +2,11 @@ module.exports = (CASE, CHECK) => {
   const cds = require('@sap/cds')
   const { expect, POST } = cds.test(__dirname + '/bookshop', '--profile', `${CASE},tracing-in-memory`)
   const { reset, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
-  const otel = require('@opentelemetry/api')
-  const { suppressTracing } = require('@opentelemetry/core')
-
-  // The test's HTTP client runs in-process and, with outgoing HTTP instrumentation now enabled,
-  // would itself create a CLIENT span for the emit-triggering POST — an artificial extra root
-  // above the incoming SERVER span. Real callers are separate, un-instrumented processes, so we
-  // run the request under suppressTracing to model that: the outgoing CLIENT span is skipped and
-  // the incoming SERVER span is the producer trace's root.
-  const asExternalClient = fn => otel.context.with(suppressTracing(otel.context.active()), fn)
+  const { asExternalClient, clearOutbox, eventually, meaningful } = require('./bookshop/lib/test-utils')
 
   const wait = require('node:timers/promises').setTimeout
 
-  // Best-effort outbox clear that can NEVER hang the surrounding hook. On the shared HANA HDI
-  // container a background queue worker may hold the connection pool, so a bare DELETE can block
-  // indefinitely — which would turn into a hook timeout that starves the pool and cascades into
-  // ECONNREFUSED for the next file's server. Race the DELETE against a short timeout; leftover
-  // rows are cleared by the next file's own beforeEach anyway.
-  async function clearOutbox(timeout = 5000) {
-    try {
-      await Promise.race([DELETE.from('cds.outbox.Messages'), wait(timeout)])
-    } catch {
-      // pool draining during shutdown — nothing left to clean matters
-    }
-  }
-
-  // Force-flush the tracer provider's span processor so any spans buffered by background
-  // queue-worker activity are exported into `captured`. The global provider is a
-  // ProxyTracerProvider (no forceFlush) whose delegate is the real NodeTracerProvider;
-  // guard for the no-op provider so a misconfigured profile fails loudly, not silently.
-  async function flushSpans() {
-    const provider = otel.trace.getTracerProvider()
-    const delegate = provider.getDelegate?.() ?? provider
-    if (typeof delegate.forceFlush === 'function') await delegate.forceFlush()
-  }
-
-  // State-based wait: repeatedly flush + re-run the assertion until it holds or times out.
-  // Replaces the fixed `wait(waitMs)` sleep that flakes on HANA, where the two queue workers
-  // flush their spans well after any reasonable fixed window.
-  async function eventually(fn, { timeout = 15000, interval = 50 } = {}) {
-    const start = Date.now()
-    let lastError
-    while (true) {
-      await flushSpans()
-      try {
-        await fn()
-        return
-      } catch (err) {
-        lastError = err
-        if (Date.now() - start >= timeout) throw lastError
-        await wait(interval)
-      }
-    }
-  }
-
   const admin = { auth: { username: 'alice' } }
-
-  // The queue scheduler periodically scans `cds.outbox.Messages` in its own `db - tx` (a
-  // SELECT + optional UPDATE that finds nothing to dispatch). On HANA these bookkeeping scans
-  // land as extra root traces that have nothing to do with the emit under test — and because
-  // the single HDI container is shared across all test files, scans triggered by other files'
-  // lingering workers show up too. Filter those pure outbox-scan traces so the CHECKs' exact
-  // root-count assertions stay stable. A scan trace is a `db - tx` root whose every span only
-  // touches `cds.outbox.Messages` (no application entity, no messaging/handle span).
-  const isOutboxScanTrace = g =>
-    g.root.name === 'db - tx' && g.all.every(s => s.name === 'db - tx' || s.name.includes('cds.outbox.Messages'))
-  const meaningful = groups => groups.filter(g => !isOutboxScanTrace(g))
 
   const rm = () => {
     try {

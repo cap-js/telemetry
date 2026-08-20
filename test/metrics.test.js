@@ -4,31 +4,17 @@
 // log output. The formatting of those metrics is unit-tested in console-metric-exporter.test.js.
 
 const cds = require('@sap/cds')
-const { setTimeout: wait } = require('node:timers/promises')
 
 const { captured, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
+const { eventually } = require('./bookshop/lib/test-utils')
 
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'metrics')
 
-// State-based wait: force the wired meter provider to collect + export, then re-run the assertion
-// block. Replaces fixed-time sleeps — the loop completes the instant the captured datapoints
-// reflect the asserted state. forceFlush() throws fast if the provider isn't wired, so a
-// misconfigured profile fails loudly instead of busy-spinning the full timeout.
-async function expectEventually(assertion, { timeout = 10000, interval = 25 } = {}) {
-  const start = Date.now()
-  let lastError
-  while (true) {
-    await forceFlush()
-    try {
-      assertion()
-      return
-    } catch (err) {
-      lastError = err
-      if (Date.now() - start >= timeout) throw lastError
-      await wait(interval)
-    }
-  }
-}
+// State-based wait for metric assertions: force the wired meter provider (forceFlush) to collect +
+// export, then re-run the assertion block. Replaces fixed-time sleeps — the loop completes the
+// instant the captured datapoints reflect the asserted state. forceFlush() throws fast if the
+// provider isn't wired, so a misconfigured profile fails loudly instead of busy-spinning the timeout.
+const expectEventually = assertion => eventually(assertion, { flush: forceFlush, timeout: 10000, interval: 25 })
 
 // All metric descriptor names present across every captured export.
 function capturedMetricNames() {
