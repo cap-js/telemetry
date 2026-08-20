@@ -1,9 +1,8 @@
-// Force CAP to use native fetch for outbound remote calls (instead of the cloud sdk).
-// This must be set before @sap/cds is loaded, so it lives at the very top of the file.
-process.env.cds_remote_native__fetch = 'true'
-
+// Force CAP to use native fetch for outbound remote calls (instead of the cloud sdk) via the
+// `native-fetch` profile (cds.env.remote.native_fetch = true) in test/bookshop/.cdsrc.json,
+// composed with `tracing-in-memory`.
 const cds = require('@sap/cds')
-const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
+const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory, native-fetch')
 const http = require('http')
 
 // The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures

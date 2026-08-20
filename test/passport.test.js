@@ -2,11 +2,11 @@ process.env.SAP_PASSPORT = 'true'
 
 // CDS v10 enables scheduling by default; its periodic outbox reads run in
 // their own transactions and cause spurious SAP_PASSPORT set/reset pairs on
-// the connection, breaking the deterministic _count assertions below.
-process.env.cds_requires_scheduling = 'false'
-
+// the connection, breaking the deterministic _count assertions below. The
+// `no-scheduling` profile (requires.scheduling: false) in test/bookshop/.cdsrc.json
+// disables it.
 const cds = require('@sap/cds')
-const { expect, GET } = cds.test().in(__dirname + '/bookshop')
+const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'no-scheduling')
 
 describe('SAP Passport', () => {
   if (cds.env.requires.db.kind === 'sqlite') return test.skip('n/a for SQLite', () => {})

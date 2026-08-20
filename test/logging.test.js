@@ -1,14 +1,13 @@
 /* eslint-disable no-console */
 
-// REVISIT: even with profile "logging", cls_custom_fields from package.json wins
-process.env.cds_log = JSON.stringify({ cls_custom_fields: ['foo'] })
-
-// This test asserts the exported LogRecords only. Disable the tracing signal (no exporter →
-// lib/tracing/index.js bails out early) so the queue SchedulingService's outbox-scan "elapsed
-// times:" trace primer is never produced and can't land in the console.dir spy window. Without
-// this, on HANA the outbox poll fires later than any fixed drain and the primer flakes the count.
-process.env.cds_requires_telemetry_tracing = JSON.stringify({ exporter: false })
-
+// Config lives in the `[logging]` profile of test/bookshop/.cdsrc.json:
+//   - log.cls_custom_fields: ['foo'] (the base default from package.json's cds.log moved to
+//     .cdsrc.json so this profile can win — see #486; package.json config loads after .cdsrc.json
+//     and would otherwise override the profile)
+//   - requires.telemetry.tracing.exporter: false to disable the tracing signal (no exporter →
+//     lib/tracing/index.js bails out early) so the queue SchedulingService's outbox-scan "elapsed
+//     times:" trace primer is never produced and can't land in the console.dir spy window. Without
+//     this, on HANA the outbox poll fires later than any fixed drain and the primer flakes the count.
 const cds = require('@sap/cds')
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'logging')
 

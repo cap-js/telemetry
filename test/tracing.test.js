@@ -1,10 +1,12 @@
 // REVISIT: jest breaks otel's patching of incoming request handling -> we can't ignore via ignoreIncomingRequestHook
-process.env.cds_requires_telemetry_tracing_sampler = JSON.stringify({
-  ignoreIncomingPaths: ['/odata/v4/admin/Authors']
-})
-
+// The sampler's ignoreIncomingPaths (/odata/v4/admin/Authors) is configured via the
+// `sampler-ignore-authors` profile in test/bookshop/.cdsrc.json, composed with `tracing-in-memory`.
 const cds = require('@sap/cds')
-const { expect, GET, POST } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
+const { expect, GET, POST } = cds.test(
+  __dirname + '/bookshop',
+  '--profile',
+  'tracing-in-memory, sampler-ignore-authors'
+)
 
 // Assert against the structured ReadableSpan objects captured by MyInMemorySpanExporter
 // (configured via the tracing-in-memory profile in test/bookshop/.cdsrc.json) — no

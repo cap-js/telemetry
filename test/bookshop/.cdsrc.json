@@ -1,8 +1,19 @@
 {
+  "requires": {
+    "messaging": {
+      "kind": "local-messaging",
+      "_kind": "file-based-messaging",
+      "file": "../msg-box"
+    }
+  },
+  "log": {
+    "cls_custom_fields": ["tenant_id"]
+  },
   "[logging]": {
     "requires": {
       "telemetry": {
         "tracing": {
+          "exporter": false,
           "sampler": {
             "ignoreIncomingPaths": ["/odata/v4/admin/Genres"]
           }
@@ -85,6 +96,27 @@
           }
         }
       }
+    }
+  },
+  "[sampler-ignore-authors]": {
+    "requires": {
+      "telemetry": {
+        "tracing": {
+          "sampler": {
+            "ignoreIncomingPaths": ["/odata/v4/admin/Authors"]
+          }
+        }
+      }
+    }
+  },
+  "[native-fetch]": {
+    "remote": {
+      "native_fetch": true
+    }
+  },
+  "[no-scheduling]": {
+    "requires": {
+      "scheduling": false
     }
   },
   "[persistent-outbox]": {

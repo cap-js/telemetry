@@ -1,8 +1,8 @@
 // Use native fetch in CDS OQ so @opentelemetry/instrumentation-undici can see outbound calls
-process.env.cds_remote_native__fetch = 'true'
-
+// (cds.env.remote.native_fetch = true), configured via the `native-fetch` profile in
+// test/bookshop/.cdsrc.json, composed with `tracing-in-memory`.
 const cds = require('@sap/cds')
-const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
+const { expect, data } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory, native-fetch')
 const http = require('http')
 
 // The tracing-in-memory profile (see test/bookshop/.cdsrc.json) configures

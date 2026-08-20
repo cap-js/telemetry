@@ -2,11 +2,8 @@ const CASE = 'persistent-outbox'
 
 const otel = require('@opentelemetry/api')
 
-// REVISIT: even with profile "persistent-outbox", messaging kind and file from package.json wins
-process.env.cds_requires_messaging = JSON.stringify({
-  kind: 'file-based-messaging',
-  file: `../${CASE}`
-})
+// Messaging config (kind/file) comes from the `persistent-outbox` profile in
+// test/bookshop/.cdsrc.json, composed with `tracing-in-memory` by the shared harness.
 
 // --- Span hierarchy for the persistent-outbox case ---------------------------------------
 //
