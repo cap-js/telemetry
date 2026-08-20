@@ -99,11 +99,8 @@ const CHECK = ({ expect, rootSpans, groupedByTrace }) => {
 }
 
 describe(`tracing messaging - ${CASE}`, () => {
-  // Queue-worker spans need cds.spawn on sqlite (pending cds fix). REMOVE with follow-up PR.
-  // Detect the DB via the env var set by vitest.config.mjs for the HANA job, NOT via cds.env:
-  // reading cds.env at collection time would freeze the singleton before cds.test() applies its
-  // `--profile`, so the tracer provider would be built with the default ConsoleSpanExporter and
-  // MyInMemorySpanExporter would never receive spans.
+  // Queue-worker tracing needs cds.spawn on sqlite — skipped here, tracked in #477 §1.
+  // See TESTING.md → Sanctioned skips (and HANA signalling: why we branch on TELEMETRY_TEST_HANA, not cds.env).
   if (!process.env.TELEMETRY_TEST_HANA) {
     test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
     return

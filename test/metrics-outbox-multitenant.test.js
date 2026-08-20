@@ -25,9 +25,8 @@ function metricValue(tenant, metric) {
 // wired, so a misconfigured profile fails loudly instead of busy-spinning the full timeout.
 const expectEventually = makeExpectEventually(forceFlush, { timeout: 10000, interval: 25 })
 
-// Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI containers.
-// The HANA CI runs against a single pre-provisioned HDI container with no Service Manager, so this
-// suite is excluded from the HANA job in vitest.config.mjs. It runs on sqlite (in-memory tenants).
+// Multitenancy runs on sqlite only; excluded from the HANA job (needs a bound Service Manager).
+// See TESTING.md → Sanctioned skips.
 describe('queue metrics for multi tenant service', () => {
   const T1 = 'tenant_1'
   const T2 = 'tenant_2'
