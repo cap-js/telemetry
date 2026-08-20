@@ -11,6 +11,14 @@ const { expect, GET, POST } = cds.test(__dirname + '/bookshop', '--profile', 'tr
 // console spying, no string-regex matching of formatted output.
 const { reset, rootSpans, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
 const otel = require('@opentelemetry/api')
+const { suppressTracing } = require('@opentelemetry/core')
+
+// The test's HTTP client runs in-process and, with outgoing HTTP instrumentation now enabled,
+// would itself create a CLIENT span for every request — an artificial extra root that also
+// overwrites any manually-set `traceparent` header. Real callers are separate, un-instrumented
+// processes, so we run client-side requests under suppressTracing to model that: the outgoing
+// CLIENT span is skipped, the incoming SERVER span is created normally by the server handler.
+const asExternalClient = fn => otel.context.with(suppressTracing(otel.context.active()), fn)
 
 const wait = require('node:timers/promises').setTimeout
 
@@ -67,12 +75,22 @@ describe('tracing', () => {
     expect(rootSpans().length).to.be.gte(1)
   })
 
-  // REVISIT: jest breaks otel's patching of incoming request handling -> no span for 'GET' -> behavior to test not reproducible
-  xtest('GET with traceparent is traced', async () => {
-    const config = { ...admin, headers: { traceparent: '00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01' } }
-    const { status } = await GET('/odata/v4/admin/Books', config)
+  // With incoming HTTP instrumentation on, the SERVER span adopts the W3C trace context from the
+  // request's `traceparent` header: the whole request trace continues the given trace id and the
+  // SERVER span is a child of the given (external) span id.
+  test('GET with traceparent is traced', async () => {
+    const traceId = '0af7651916cd43dd8448eb211c80319c'
+    const parentSpanId = 'b7ad6b7169203331'
+    const config = { ...admin, headers: { traceparent: `00-${traceId}-${parentSpanId}-01` } }
+    const { status } = await asExternalClient(() => GET('/odata/v4/admin/Books', config))
     expect(status).to.equal(200)
     expect(captured.some(s => s.name === 'AdminService - READ AdminService.Books')).to.be.true
+    // The incoming SERVER span continued the propagated trace and parented off the external span id.
+    await eventually(() => {
+      const server = captured.find(s => s.kind === otel.SpanKind.SERVER && s.spanContext().traceId === traceId)
+      expect(server, 'incoming SERVER span adopting the propagated trace').to.exist
+      expect(server.parentSpanContext?.spanId).to.equal(parentSpanId)
+    })
   })
 
   test('custom GET is traced', async () => {
@@ -97,24 +115,60 @@ describe('tracing', () => {
     })
   })
 
-  // REVISIT: jest breaks otel's patching of incoming request handling -> behavior to test not reproducible
-  xtest('instrumentation hooks', async () => {})
+  // Incoming HTTP instrumentation produces a SERVER span (SpanKind.SERVER === 1) per request,
+  // carrying the mount-relative `url.path`. Two independent mechanisms suppress that span:
+  //   - the sampler's `ignoreIncomingPaths` (set at the top of this file for /odata/v4/admin/Authors)
+  //   - the `ignoreIncomingRequestHook` (MyIgnoreIncomingRequestHook: /odata/v4/admin/Authors + /Books(252))
+  // A non-ignored path still produces a SERVER span; the ignored paths must produce none.
+  test('instrumentation hooks', async () => {
+    const serverSpansFor = path =>
+      captured.filter(s => s.kind === otel.SpanKind.SERVER && s.attributes['url.path'] === path)
+
+    // Baseline: a non-ignored path DOES yield an incoming SERVER span.
+    await asExternalClient(() => GET('/odata/v4/admin/Books', admin))
+    await eventually(() => expect(serverSpansFor('/Books')).to.have.lengthOf(1))
+
+    // Sampler path: /odata/v4/admin/Authors is in ignoreIncomingPaths -> no SERVER span.
+    reset()
+    await asExternalClient(() => GET('/odata/v4/admin/Authors?$select=ID', admin))
+    await eventually(() => {
+      expect(captured.some(s => s.kind === otel.SpanKind.SERVER && s.attributes['url.path']?.includes('/Authors'))).to
+        .be.false
+    })
+
+    // ignoreIncomingRequestHook path: /Books(252) is ignored by the hook (not the sampler) -> no SERVER span.
+    reset()
+    await asExternalClient(() => GET('/odata/v4/admin/Books(252)', admin))
+    await eventually(() => {
+      expect(serverSpansFor('/Books(252)')).to.have.lengthOf(0)
+    })
+  })
 
   test('$batch is traced', async () => {
-    await POST(
-      '/odata/v4/genre/$batch',
-      {
-        requests: [
-          { id: 'r1', method: 'POST', url: '/Genres', headers: { 'content-type': 'application/json' }, body: {} },
-          { id: 'r2', method: 'GET', url: '/Genres', headers: {} }
-        ]
-      },
-      admin
+    await asExternalClient(() =>
+      POST(
+        '/odata/v4/genre/$batch',
+        {
+          requests: [
+            { id: 'r1', method: 'POST', url: '/Genres', headers: { 'content-type': 'application/json' }, body: {} },
+            { id: 'r2', method: 'GET', url: '/Genres', headers: {} }
+          ]
+        },
+        admin
+      )
     )
-    // With the tx wrap (lib/tracing/cds.js), each batch request's tx becomes a single root —
-    // the previously-visible 4 sub-roots (POST: CREATE + read-after-write; GET: read actives +
-    // read drafts) are now nested under 2 root tx spans, one per batch entry.
-    await eventually(() => expect(meaningfulRoots()).to.have.lengthOf(2))
+    // With incoming HTTP instrumentation on, the single $batch POST produces one incoming SERVER
+    // span that becomes the trace root. Both batch sub-requests (the POST -> CREATE Genres draft
+    // and the GET -> READ Genres) run within that request context, so their tx spans reparent
+    // under the SERVER span rather than surfacing as separate roots. Result: exactly 1 meaningful
+    // root (the SERVER span), containing both the CREATE and the READ sub-operations.
+    await eventually(() => {
+      const roots = meaningfulRoots()
+      expect(roots).to.have.lengthOf(1)
+      expect(roots[0].kind).to.equal(otel.SpanKind.SERVER)
+      expect(captured.some(s => s.name === 'GenreService - CREATE GenreService.Genres.drafts')).to.be.true
+      expect(captured.some(s => s.name === 'GenreService - READ GenreService.Genres')).to.be.true
+    })
   })
 
   test('cds.spawn is traced', async () => {
