@@ -9,6 +9,7 @@ const { setTimeout: wait } = require('node:timers/promises')
 // Exported metric data is captured in-memory by MyInMemoryMetricReader (wired via the
 // metrics-outbox profile in .cdsrc.json) instead of scraping ConsoleMetricExporter's console.dir.
 const { latestDataPointValue, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
+const { clearOutbox, makeExpectEventually } = require('./utils')
 
 const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox')
 axios.defaults.validateStatus = () => true
@@ -17,25 +18,11 @@ function metricValue(metric, queuedServiceName) {
   return latestDataPointValue(metric, { 'queue.name': queuedServiceName })
 }
 
-// Best-effort outbox clear that can NEVER hang the surrounding hook. On the shared HANA HDI
-// container a background queue worker may be holding the connection pool (draining/retrying),
-// so a bare `DELETE` can block indefinitely — which previously turned into a 100s hook timeout
-// that starved the pool and cascaded into ECONNREFUSED for the NEXT test file's server. Race the
-// DELETE against a short timeout and swallow errors: if it can't complete quickly, the leftover
-// rows are handled by the next file's own beforeEach clear anyway.
-async function clearOutbox(timeout = 5000) {
-  try {
-    await Promise.race([DELETE.from('cds.outbox.Messages'), wait(timeout)])
-  } catch {
-    // pool draining / server shutting down — nothing left to clean matters
-  }
-}
-
-// State-based wait: force the wired meter provider to collect + export, then re-run the assertion
-// block. Replaces all fixed-time `wait(150)` sleeps — the loop completes the instant the in-memory
-// queue statistics (kept fresh by the queue-stats cds.spawn poller) reflect the asserted state.
-// forceFlush() throws fast if the provider isn't wired, so a misconfigured profile fails loudly
-// instead of busy-spinning the full timeout.
+// State-based wait for metric assertions: force the wired meter provider (forceFlush) to collect +
+// export, then re-run the assertion block. Replaces all fixed-time `wait(150)` sleeps — the loop
+// completes the instant the in-memory queue statistics (kept fresh by the queue-stats cds.spawn
+// poller) reflect the asserted state. forceFlush() throws fast if the provider isn't wired, so a
+// misconfigured profile fails loudly instead of busy-spinning the full timeout.
 //
 // interval is 500ms (NOT a few ms): each forceFlush() triggers a metric collection that runs the
 // queue-stats poller's SELECTs against the DB. On the SHARED HANA HDI container a tight poll loop
@@ -45,21 +32,7 @@ async function clearOutbox(timeout = 5000) {
 // Polling at 500ms (with the profile's exportIntervalMillis raised to 1000ms) leaves the worker
 // enough DB headroom to make all its attempts. The loop still returns the instant the state holds,
 // so sqlite (per-file in-memory DB) still satisfies in well under a second.
-async function expectEventually(assertion, { timeout = 30000, interval = 500 } = {}) {
-  const start = Date.now()
-  let lastError
-  while (true) {
-    await forceFlush()
-    try {
-      assertion()
-      return
-    } catch (err) {
-      lastError = err
-      if (Date.now() - start >= timeout) throw lastError
-      await wait(interval)
-    }
-  }
-}
+const expectEventually = makeExpectEventually(forceFlush, { timeout: 30000, interval: 500 })
 
 const debugLog = (cds.log('telemetry').debug = vi.fn(() => {}))
 

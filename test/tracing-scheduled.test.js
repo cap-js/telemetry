@@ -23,45 +23,7 @@ const cds = require('@sap/cds')
 const { expect, POST } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'tracing-in-memory')
 const { reset, captured, groupedByTrace, rootSpans } = require('./bookshop/lib/MyInMemorySpanExporter')
 const otel = require('@opentelemetry/api')
-const { suppressTracing } = require('@opentelemetry/core')
-
-const wait = require('node:timers/promises').setTimeout
-
-// With incoming HTTP instrumentation on, the in-process test client would otherwise emit its own
-// outgoing CLIENT span for the POST — an artifact that pollutes the producer trace and can even be
-// picked as its root. Real callers are separate, un-instrumented processes, so run client requests
-// under suppressTracing to model that: the CLIENT span is skipped and the genuine incoming SERVER
-// span is the producer trace's root.
-const asExternalClient = fn => otel.context.with(suppressTracing(otel.context.active()), fn)
-
-// Force-flush the tracer provider's span processor so any spans buffered by background
-// queue/worker activity are exported into `captured`. The global provider is a
-// ProxyTracerProvider (no forceFlush) whose delegate is the real NodeTracerProvider;
-// guard for the no-op provider so a misconfigured profile fails loudly, not silently.
-async function flushSpans() {
-  const provider = otel.trace.getTracerProvider()
-  const delegate = provider.getDelegate?.() ?? provider
-  if (typeof delegate.forceFlush === 'function') await delegate.forceFlush()
-}
-
-// State-based wait: repeatedly flush + re-run the assertion until it holds or times out.
-// Replaces fixed `wait(...)` sleeps that flake on HANA, where the worker flushes spans after
-// the sleep window.
-async function eventually(fn, { timeout = 15000, interval = 50 } = {}) {
-  const start = Date.now()
-  let lastError
-  while (true) {
-    await flushSpans()
-    try {
-      await fn()
-      return
-    } catch (err) {
-      lastError = err
-      if (Date.now() - start >= timeout) throw lastError
-      await wait(interval)
-    }
-  }
-}
+const { asExternalClient, eventually } = require('./utils')
 
 describe('tracing for scheduled tasks', () => {
   // Queue-worker spans (cds.spawn - run task root) require @sap/cds to route the sqlite

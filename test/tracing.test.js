@@ -11,55 +11,9 @@ const { expect, GET, POST } = cds.test(__dirname + '/bookshop', '--profile', 'tr
 // console spying, no string-regex matching of formatted output.
 const { reset, rootSpans, groupedByTrace, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
 const otel = require('@opentelemetry/api')
-const { suppressTracing } = require('@opentelemetry/core')
+const { asExternalClient, eventually, meaningful } = require('./utils')
 
-// The test's HTTP client runs in-process and, with outgoing HTTP instrumentation now enabled,
-// would itself create a CLIENT span for every request — an artificial extra root that also
-// overwrites any manually-set `traceparent` header. Real callers are separate, un-instrumented
-// processes, so we run client-side requests under suppressTracing to model that: the outgoing
-// CLIENT span is skipped, the incoming SERVER span is created normally by the server handler.
-const asExternalClient = fn => otel.context.with(suppressTracing(otel.context.active()), fn)
-
-const wait = require('node:timers/promises').setTimeout
-
-// Force-flush the tracer provider's span processor so any spans buffered by background
-// activity are exported into `captured`. The global provider is a ProxyTracerProvider (no
-// forceFlush) whose delegate is the real NodeTracerProvider; guard for the no-op provider
-// so a misconfigured profile fails loudly, not silently.
-async function flushSpans() {
-  const provider = otel.trace.getTracerProvider()
-  const delegate = provider.getDelegate?.() ?? provider
-  if (typeof delegate.forceFlush === 'function') await delegate.forceFlush()
-}
-
-// State-based wait: repeatedly flush + re-run the assertion until it holds or times out.
-// Replaces fixed `wait(...)` sleeps that flake on HANA, where spawned/emitted work flushes
-// spans after the sleep window.
-async function eventually(fn, { timeout = 15000, interval = 50 } = {}) {
-  const start = Date.now()
-  let lastError
-  while (true) {
-    await flushSpans()
-    try {
-      await fn()
-      return
-    } catch (err) {
-      lastError = err
-      if (Date.now() - start >= timeout) throw lastError
-      await wait(interval)
-    }
-  }
-}
-
-// On HANA the persistent-outbox queue poller periodically scans `cds.outbox.Messages` in its
-// own `db - tx`, producing an extra root trace that is unrelated to what these tests exercise.
-// Filter those bookkeeping traces out so root-count assertions stay stable across both DBs.
-const isOutboxScanTrace = g =>
-  g.root.name === 'db - tx' && g.all.every(s => s.name === 'db - tx' || s.name.includes('cds.outbox.Messages'))
-const meaningfulRoots = () =>
-  groupedByTrace()
-    .filter(g => !isOutboxScanTrace(g))
-    .flatMap(g => g.roots)
+const meaningfulRoots = () => meaningful(groupedByTrace()).flatMap(g => g.roots)
 
 describe('tracing', () => {
   const admin = { auth: { username: 'alice' } }
