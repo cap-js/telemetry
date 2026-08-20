@@ -9,7 +9,7 @@ const { setTimeout: wait } = require('node:timers/promises')
 // Exported metric data is captured in-memory by MyInMemoryMetricReader (wired via the
 // metrics-outbox profile in .cdsrc.json) instead of scraping ConsoleMetricExporter's console.dir.
 const { latestDataPointValue, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
-const { clearOutbox, eventually } = require('./bookshop/lib/test-utils')
+const { clearOutbox, makeExpectEventually } = require('./bookshop/lib/test-utils')
 
 const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox')
 axios.defaults.validateStatus = () => true
@@ -32,7 +32,7 @@ function metricValue(metric, queuedServiceName) {
 // Polling at 500ms (with the profile's exportIntervalMillis raised to 1000ms) leaves the worker
 // enough DB headroom to make all its attempts. The loop still returns the instant the state holds,
 // so sqlite (per-file in-memory DB) still satisfies in well under a second.
-const expectEventually = assertion => eventually(assertion, { flush: forceFlush, timeout: 30000, interval: 500 })
+const expectEventually = makeExpectEventually(forceFlush, { timeout: 30000, interval: 500 })
 
 const debugLog = (cds.log('telemetry').debug = vi.fn(() => {}))
 

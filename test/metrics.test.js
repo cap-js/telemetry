@@ -6,7 +6,7 @@
 const cds = require('@sap/cds')
 
 const { captured, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
-const { eventually } = require('./bookshop/lib/test-utils')
+const { makeExpectEventually } = require('./bookshop/lib/test-utils')
 
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'metrics')
 
@@ -14,7 +14,7 @@ const { expect, GET } = cds.test(__dirname + '/bookshop', '--profile', 'metrics'
 // export, then re-run the assertion block. Replaces fixed-time sleeps — the loop completes the
 // instant the captured datapoints reflect the asserted state. forceFlush() throws fast if the
 // provider isn't wired, so a misconfigured profile fails loudly instead of busy-spinning the timeout.
-const expectEventually = assertion => eventually(assertion, { flush: forceFlush, timeout: 10000, interval: 25 })
+const expectEventually = makeExpectEventually(forceFlush, { timeout: 10000, interval: 25 })
 
 // All metric descriptor names present across every captured export.
 function capturedMetricNames() {

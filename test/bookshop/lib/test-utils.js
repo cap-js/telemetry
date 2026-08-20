@@ -67,6 +67,13 @@ async function eventually(fn, { flush = flushSpans, timeout = 15000, interval = 
   }
 }
 
+// Build an `expectEventually(assertion)` bound to a specific flush target + poll defaults, so the
+// metric suites don't each re-declare the same one-line wrapper. Metric callers pass the meter
+// provider's `forceFlush` and their own {timeout, interval} (which vary per suite); the returned
+// helper takes just the assertion. Equivalent to `a => eventually(a, { flush, timeout, interval })`.
+const makeExpectEventually = (flush, { timeout, interval } = {}) => assertion =>
+  eventually(assertion, { flush, timeout, interval })
+
 // On HANA the persistent-outbox queue scheduler periodically scans `cds.outbox.Messages` in its own
 // `db - tx` (a SELECT + optional UPDATE that finds nothing to dispatch). Those land as extra root
 // traces unrelated to the emit under test — and because the single HDI container is shared across all
@@ -84,6 +91,7 @@ module.exports = {
   clearOutbox,
   flushSpans,
   eventually,
+  makeExpectEventually,
   isOutboxScanTrace,
   meaningful
 }
