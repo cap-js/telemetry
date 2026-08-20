@@ -24,13 +24,8 @@ const otel = require('@opentelemetry/api')
 //
 // Tolerated: allow one extra root for the scheduling-service bookkeeping startup scan.
 
-// REVISIT: profile config wins for kind/file, but explicit env override sidesteps it.
-process.env.cds_requires_messaging = JSON.stringify({
-  kind: 'file-based-messaging',
-  file: `../${CASE}`,
-  inboxed: true
-})
-
+// Messaging config (kind/file/inboxed) comes from the `inboxed` profile in
+// test/bookshop/.cdsrc.json, composed with `tracing-in-memory` by the shared harness.
 const CHECK = ({ expect, rootSpans, groupedByTrace }) => {
   // Producer trace
   const producer = groupedByTrace.find(g => g.all.some(s => s.name === 'AdminService - handle test_emit'))

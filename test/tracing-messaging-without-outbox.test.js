@@ -2,12 +2,8 @@ const CASE = 'without-outbox'
 
 const otel = require('@opentelemetry/api')
 
-// REVISIT: even with profile "without-outbox", messaging kind and file from package.json wins
-process.env.cds_requires_messaging = JSON.stringify({
-  kind: 'file-based-messaging',
-  file: `../${CASE}`,
-  outboxed: false
-})
+// Messaging config (kind/file/outboxed) comes from the `without-outbox` profile in
+// test/bookshop/.cdsrc.json, composed with `tracing-in-memory` by the shared harness.
 
 // Without outbox, file-based messaging writes directly to the file from the producer's
 // transaction (no queue worker). The file watcher delivers asynchronously as a new
