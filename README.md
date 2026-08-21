@@ -562,8 +562,6 @@ For this, you need to create your own tracer via [TraceAPI.getTracer()](https://
 
 This project is open to feature requests/suggestions, bug reports etc. via [GitHub issues](https://github.com/cap-js/telemetry/issues). Contribution and feedback are encouraged and always welcome. For more information about how to contribute, the project structure, as well as additional contribution information, see our [Contribution Guidelines](CONTRIBUTING.md).
 
-For running and writing tests (sqlite vs HANA, profiles, in-memory test infrastructure, and caveats), see [TESTING.md](TESTING.md).
-
 
 
 ## Code of Conduct
