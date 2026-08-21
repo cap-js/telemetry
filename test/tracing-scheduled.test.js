@@ -26,14 +26,8 @@ const otel = require('@opentelemetry/api')
 const { asExternalClient, eventually } = require('./utils')
 
 describe('tracing for scheduled tasks', () => {
-  // Queue-worker spans (cds.spawn - run task root) require @sap/cds to route the sqlite
-  // queue worker through cds.spawn. Published cds uses a raw setTimeout bypass on sqlite
-  // (to avoid a single-writer deadlock), so those spans never appear. Skip until the cds
-  // fix lands (cap/cds test/queue-spawn-sqlite-extended-tenant). REMOVE with follow-up PR.
-  // Detect the DB via the env var set by vitest.config.mjs for the HANA job, NOT via cds.env:
-  // reading cds.env at collection time would freeze the singleton before cds.test() applies its
-  // `--profile`, so the tracer provider would be built with the default ConsoleSpanExporter and
-  // MyInMemorySpanExporter would never receive spans (captured stays empty).
+  // Queue-worker tracing needs cds.spawn on sqlite — skipped here, tracked in #477 §1.
+  // See TESTING.md → Sanctioned skips (and HANA signalling: why we branch on TELEMETRY_TEST_HANA, not cds.env).
   if (!process.env.TELEMETRY_TEST_HANA) {
     test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
     return
@@ -45,10 +39,8 @@ describe('tracing for scheduled tasks', () => {
   })
 
   beforeEach(async () => {
-    // Clear outbox rows left by a prior test file BEFORE resetting the span buffer — the HANA
-    // HDI container is shared across all files, so a leftover message would be dispatched by this
-    // file's worker and add a foreign `cds.spawn - run task` root. Reset AFTER so the DELETE's own
-    // spans aren't captured. (No-op on sqlite: per-file in-memory DB.)
+    // Clear the shared outbox before resetting the span buffer; no-op on sqlite.
+    // See TESTING.md → sqlite vs HANA (outbox bleed on the shared HANA container).
     await DELETE.from('cds.outbox.Messages')
     reset()
   })

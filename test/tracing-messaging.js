@@ -22,11 +22,8 @@ module.exports = (CASE, CHECK) => {
   })
 
   afterAll(async () => {
-    // On the shared HANA HDI container, a still-draining background queue worker from THIS file
-    // would dispatch into the NEXT file's run and add foreign `cds.spawn - run task` roots that
-    // break its exact root-count CHECKs. Clear the shared outbox, let the last worker settle, then
-    // clear again. Every clear is timeout-bounded (clearOutbox) so a draining pool can't hang the
-    // hook. HANA-only: sqlite gets a fresh in-memory DB per file, so the settle is pointless there.
+    // HANA-only outbox settle so a draining worker can't bleed into the next file; no-op on sqlite.
+    // See TESTING.md → sqlite vs HANA (outbox bleed on the shared HANA container).
     if (process.env.TELEMETRY_TEST_HANA) {
       await clearOutbox()
       await wait(5000)
@@ -36,11 +33,8 @@ module.exports = (CASE, CHECK) => {
   })
 
   beforeEach(async () => {
-    // Clear any outbox rows left behind by a prior test file BEFORE resetting the span buffer.
-    // The single HANA HDI container is shared across all files, so a leftover message would be
-    // dispatched by THIS file's queue worker — producing a foreign `cds.spawn - run task` root
-    // that breaks the exact root-count CHECKs. Reset AFTER so the DELETE's own spans aren't
-    // captured. (No-op on sqlite, where each file gets its own in-memory DB.)
+    // Clear the shared outbox before resetting the span buffer; no-op on sqlite.
+    // See TESTING.md → sqlite vs HANA (outbox bleed on the shared HANA container).
     await clearOutbox()
     reset()
   })
