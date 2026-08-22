@@ -12,5 +12,8 @@
 
   if (!!process.env.NO_TELEMETRY && process.env.NO_TELEMETRY !== 'false') return
 
-  require('./lib')()
+  // Setup is async to support ZTI initialization (waits for SVID files)
+  require('./lib')().catch(err => {
+    cds.log('telemetry')._error && cds.log('telemetry').error('Telemetry setup failed:', err)
+  })
 })()
