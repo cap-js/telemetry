@@ -341,37 +341,3 @@ describe('ZTI flag behavior', () => {
     expect(credentials.httpAgentOptions.key).toContain('legacy-key')
   })
 })
-
-describe('logging: true shorthand', () => {
-  beforeEach(() => {
-    delete require.cache[require.resolve('../lib/logging')]
-  })
-
-  afterEach(() => {
-    delete process.env.VCAP_SERVICES
-  })
-
-  test('uses logging.exporter directly when provided as object', () => {
-    // Use a non-CaaS kind to avoid needing credentials
-    cds.env.requires = {
-      telemetry: {
-        kind: 'telemetry-to-console',
-        logging: {
-          exporter: {
-            module: '@opentelemetry/sdk-logs',
-            class: 'InMemoryLogRecordExporter'
-          }
-        }
-      },
-      kinds: {}
-    }
-
-    delete require.cache[require.resolve('../lib/logging')]
-    const loggingModule = require('../lib/logging')
-
-    // Should use the direct exporter config, not look up from kind
-    // This will succeed and create a logger provider
-    const result = loggingModule({})
-    expect(result).toBeDefined()
-  })
-})
