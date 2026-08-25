@@ -351,6 +351,40 @@ describe('logging: true shorthand', () => {
     delete process.env.VCAP_SERVICES
   })
 
+  test('sets up log interception immediately for ZTI timing (served already fired)', () => {
+    // Simulate ZTI scenario: logging module is initialized AFTER cds.on('served') has fired
+    // This happens because await initializeZTI() takes time while the server starts
+    cds.env.requires = {
+      telemetry: {
+        kind: 'telemetry-to-console',
+        logging: {
+          exporter: {
+            module: '@opentelemetry/sdk-logs',
+            class: 'InMemoryLogRecordExporter'
+          }
+        }
+      },
+      kinds: {}
+    }
+
+    // Save original cds.log.format
+    const originalFormat = cds.log.format
+
+    delete require.cache[require.resolve('../lib/logging')]
+    const loggingModule = require('../lib/logging')
+
+    // Call logging module - simulates what happens after ZTI init completes
+    const result = loggingModule({})
+    expect(result).toBeDefined()
+
+    // The format function should be replaced immediately, not waiting for 'served'
+    // This is the key fix - in ZTI flow, 'served' has already fired
+    expect(cds.log.format).not.toBe(originalFormat)
+
+    // Cleanup
+    cds.log.format = originalFormat
+  })
+
   test('resolves exporter from kind config when logging: true', () => {
     cds.env.requires = {
       telemetry: {
