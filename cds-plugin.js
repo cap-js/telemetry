@@ -12,7 +12,5 @@
 
   if (!!process.env.NO_TELEMETRY && process.env.NO_TELEMETRY !== 'false') return
 
-  // Sync setup - for CaaS with ZTI, exporters use LazyExporter to buffer
-  // telemetry until mTLS credentials become available
   require('./lib')()
 })()
