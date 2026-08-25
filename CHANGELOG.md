@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
-- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service) with automatic mTLS certificate management via Zero Trust Identity Service (ZTI/SPIFFE). Falls back to base64-encoded certificates from environment variables when ZTI is not available.
+- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service) with automatic mTLS certificate management and rotation via Zero Trust Identity Service (ZTI/SPIFFE). Falls back to base64-encoded certificates from environment variables when ZTI is not available.
 
 ## Version 2.0.1 - 2026-07-03
 

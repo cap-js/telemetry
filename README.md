@@ -292,7 +292,7 @@ If you are binding your app to SAP Cloud Logging via a [user-provided service in
 
 ### `telemetry-to-caas`
 
-Exports traces and metrics to CaaS (Collector as a Service).
+Exports traces, metrics, and logs to CaaS (Collector as a Service).
 CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
 
 Use via `cds.requires.telemetry.kind = 'to-caas'`.
@@ -300,8 +300,42 @@ Use via `cds.requires.telemetry.kind = 'to-caas'`.
 Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
+- `@opentelemetry/exporter-logs-otlp-proto` (if using log export)
 
-CaaS requires mTLS authentication with SAP-signed certificates. You need to:
+CaaS requires mTLS authentication. There are two ways to provide the mTLS certificates:
+
+#### Option 1: Zero Trust Identity (ZTI) with SPIRE (Recommended)
+
+ZTI with SPIRE sidecar automatically provisions and rotates mTLS certificates (SVID files). This is the recommended approach for production.
+
+1. **Bind ZTI service** to your app:
+```yaml
+# mta.yaml
+requires:
+  - name: my-zti-instance
+```
+
+2. **Bind CaaS service** to your app:
+```yaml
+# mta.yaml
+requires:
+  - name: my-caas-instance
+```
+
+That's it! The plugin automatically detects ZTI and uses the SVID files provisioned by the SPIRE sidecar for mTLS authentication.
+
+**How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` uses a lazy exporter that buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
+
+> **Note**: For optimal buffering behavior in production, ensure `NODE_ENV=production` is set. This enables batch processing with periodic export intervals (5s for traces/logs, 60s for metrics), ensuring buffered telemetry is flushed shortly after ZTI credentials become ready. In development mode, traces and logs use immediate export per-request.
+
+To explicitly disable ZTI (e.g., for testing), set:
+```bash
+CDS_REQUIRES_TELEMETRY_USE_ZTI=false
+```
+
+#### Option 2: Manual Certificate Configuration (Legacy)
+
+For environments without ZTI, you can provide mTLS credentials manually:
 
 1. **Bind the CaaS service** to your app with subject/issuer configuration:
 ```yaml
