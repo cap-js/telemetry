@@ -12,8 +12,7 @@
 
   if (!!process.env.NO_TELEMETRY && process.env.NO_TELEMETRY !== 'false') return
 
-  // Setup is async to support ZTI initialization (waits for SVID files)
-  require('./lib')().catch(err => {
-    cds.log('telemetry')._error && cds.log('telemetry').error('Telemetry setup failed:', err)
-  })
+  // Sync setup - for CaaS with ZTI, exporters use LazyExporter to buffer
+  // telemetry until mTLS credentials become available
+  require('./lib')()
 })()

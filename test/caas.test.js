@@ -162,25 +162,33 @@ describe('ZTI SVID File Loading', () => {
     delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
   })
 
-  test('loads SVID files on first call', async () => {
+  test('loads SVID files when they exist', () => {
     // Create SVID files
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
     let creds
-    // jest.isolateModulesAsync gives each test a fresh zti module with reset internal state
-    // (cached credentials, init promise, file paths). Without isolation, state from previous
-    // tests would leak and cause failures when tests run in sequence.
-    await jest.isolateModulesAsync(async () => {
-      const { initializeZTI, getCredsForCaaSMtls } = require('../lib/zti')
-      await initializeZTI()
+    jest.isolateModules(() => {
+      const { getCredsForCaaSMtls } = require('../lib/zti')
       creds = getCredsForCaaSMtls()
     })
 
     expect(creds).toBeDefined()
     expect(creds.cert).toContain('BEGIN CERTIFICATE')
     expect(creds.key).toContain('BEGIN PRIVATE KEY')
+  })
+
+  test('returns null when SVID files do not exist', () => {
+    // Don't create SVID files
+
+    let creds
+    jest.isolateModules(() => {
+      const { getCredsForCaaSMtls } = require('../lib/zti')
+      creds = getCredsForCaaSMtls()
+    })
+
+    expect(creds).toBeNull()
   })
 
   test('reloads when mtime changes', async () => {
@@ -195,13 +203,12 @@ describe('ZTI SVID File Loading', () => {
 
     let creds1, creds2
     await jest.isolateModulesAsync(async () => {
-      const { initializeZTI, getCredsForCaaSMtls } = require('../lib/zti')
+      const { getCredsForCaaSMtls } = require('../lib/zti')
 
-      await initializeZTI()
       creds1 = getCredsForCaaSMtls()
 
-      // Wait to ensure mtime changes
-      await new Promise(resolve => setTimeout(resolve, 10))
+      // Wait to ensure mtime changes (filesystem mtime resolution can be ~1s on some systems)
+      await new Promise(resolve => setTimeout(resolve, 50))
 
       // Update files (simulating ZTI rotation)
       fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\nv2\n-----END CERTIFICATE-----')
@@ -214,28 +221,6 @@ describe('ZTI SVID File Loading', () => {
     expect(creds2.cert).toContain('v2')
     expect(creds2.key).toContain('v2')
   })
-
-  test('retries if files not ready on initialization', async () => {
-    const certPath = path.join(svidDir, 'test-svid.svid.pem')
-    const keyPath = path.join(svidDir, 'test-svid.svid.key')
-    const bundlePath = path.join(svidDir, 'test-svid.bundle.pem')
-
-    await jest.isolateModulesAsync(async () => {
-      const { initializeZTI } = require('../lib/zti')
-
-      // Start initialization (files don't exist yet)
-      const initPromise = initializeZTI()
-
-      // Wait 2.5 seconds, then create files (should succeed on 2nd retry)
-      await new Promise(resolve => setTimeout(resolve, 2500))
-      fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-      fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-      fs.writeFileSync(bundlePath, '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-
-      // Should complete successfully
-      await expect(initPromise).resolves.toBeUndefined()
-    })
-  }, 10000)
 })
 
 describe('ZTI flag behavior', () => {
@@ -291,7 +276,7 @@ describe('ZTI flag behavior', () => {
     expect(Buffer.from(creds.cert, 'base64').toString()).toContain('legacy')
   })
 
-  test('augmentCaaSCreds handles PEM format from ZTI', async () => {
+  test('augmentCaaSCreds handles PEM format from ZTI', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zti-test-'))
     const svidDir = path.join(tmpDir, 'spire-svids')
     fs.mkdirSync(svidDir)
@@ -304,11 +289,8 @@ describe('ZTI flag behavior', () => {
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\nzti-key\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
-    await jest.isolateModulesAsync(async () => {
+    jest.isolateModules(() => {
       const { augmentCaaSCreds } = require('../lib/utils')
-      const { initializeZTI } = require('../lib/zti')
-
-      await initializeZTI()
 
       const credentials = {
         otlp: { http: 'https://caas.example.com/otlp' }
@@ -344,5 +326,148 @@ describe('ZTI flag behavior', () => {
     expect(credentials.httpAgentOptions).toBeDefined()
     expect(credentials.httpAgentOptions.cert).toContain('legacy-cert')
     expect(credentials.httpAgentOptions.key).toContain('legacy-key')
+  })
+})
+
+describe('LazyExporter', () => {
+  beforeEach(() => {
+    delete require.cache[require.resolve('../lib/exporter/LazyExporter')]
+  })
+
+  test('buffers items when exporter creation fails', () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+
+    let createCalled = 0
+    const lazyExporter = createLazyExporter(() => {
+      createCalled++
+      throw new Error('SVID credentials not ready')
+    })
+
+    const items = [{ name: 'span1' }, { name: 'span2' }]
+    let callbackResult
+    lazyExporter.export(items, result => { callbackResult = result })
+
+    expect(callbackResult).toEqual({ code: 0 }) // SUCCESS
+    expect(lazyExporter._getBufferSize()).toBe(1) // Items buffered as single array
+    expect(lazyExporter._isExporterCreated()).toBe(false)
+    expect(createCalled).toBe(1)
+  })
+
+  test('flushes buffer when exporter becomes ready', () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+
+    let ready = false
+    const exportedItems = []
+    const mockExporter = {
+      export: (items, cb) => {
+        exportedItems.push(items)
+        cb({ code: 0 })
+      }
+    }
+
+    const lazyExporter = createLazyExporter(() => {
+      if (!ready) throw new Error('SVID credentials not ready')
+      return mockExporter
+    })
+
+    // First export - buffers
+    lazyExporter.export([{ name: 'span1' }], () => {})
+    expect(lazyExporter._getBufferSize()).toBe(1)
+
+    // Make exporter ready
+    ready = true
+
+    // Second export - should flush buffer and export new items
+    lazyExporter.export([{ name: 'span2' }], () => {})
+
+    expect(lazyExporter._isExporterCreated()).toBe(true)
+    expect(lazyExporter._getBufferSize()).toBe(0)
+    expect(exportedItems).toHaveLength(2) // buffered + new
+    expect(exportedItems[0]).toEqual([{ name: 'span1' }])
+    expect(exportedItems[1]).toEqual([{ name: 'span2' }])
+  })
+
+  test('respects maxBufferSize', () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+
+    const lazyExporter = createLazyExporter(
+      () => { throw new Error('SVID credentials not ready') },
+      { maxBufferSize: 2 }
+    )
+
+    // Fill buffer beyond max
+    lazyExporter.export([{ name: 'span1' }], () => {})
+    lazyExporter.export([{ name: 'span2' }], () => {})
+    lazyExporter.export([{ name: 'span3' }], () => {})
+
+    // Should only have 2 items (oldest dropped)
+    expect(lazyExporter._getBufferSize()).toBe(2)
+  })
+
+  test('shutdown clears buffer', async () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+
+    const lazyExporter = createLazyExporter(() => {
+      throw new Error('SVID credentials not ready')
+    })
+
+    lazyExporter.export([{ name: 'span1' }], () => {})
+    expect(lazyExporter._getBufferSize()).toBe(1)
+
+    await lazyExporter.shutdown()
+    expect(lazyExporter._getBufferSize()).toBe(0)
+  })
+
+  test('forceFlush creates exporter and flushes if ready', async () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+
+    let ready = false
+    const exportedItems = []
+    const mockExporter = {
+      export: (items, cb) => {
+        exportedItems.push(items)
+        cb({ code: 0 })
+      },
+      forceFlush: jest.fn().mockResolvedValue()
+    }
+
+    const lazyExporter = createLazyExporter(() => {
+      if (!ready) throw new Error('SVID credentials not ready')
+      return mockExporter
+    })
+
+    // Buffer some items
+    lazyExporter.export([{ name: 'span1' }], () => {})
+
+    // forceFlush when not ready - should not throw
+    await lazyExporter.forceFlush()
+    expect(lazyExporter._getBufferSize()).toBe(1) // Still buffered
+
+    // Make ready and forceFlush
+    ready = true
+    await lazyExporter.forceFlush()
+
+    expect(lazyExporter._isExporterCreated()).toBe(true)
+    expect(lazyExporter._getBufferSize()).toBe(0)
+    expect(exportedItems).toHaveLength(1)
+    expect(mockExporter.forceFlush).toHaveBeenCalled()
+  })
+
+  test('does not retry after permanent failure', () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+
+    let createCalled = 0
+    const lazyExporter = createLazyExporter(() => {
+      createCalled++
+      throw new Error('Permanent configuration error')
+    })
+
+    // First export - tries to create
+    lazyExporter.export([{ name: 'span1' }], () => {})
+    expect(createCalled).toBe(1)
+
+    // Second export - should not retry (permanent failure)
+    lazyExporter.export([{ name: 'span2' }], () => {})
+    expect(createCalled).toBe(1) // Still 1, not retried
   })
 })

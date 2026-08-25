@@ -1,13 +1,9 @@
 /**
- * Integration tests for ZTI + Tracing
+ * Integration tests for ZTI + Tracing with LazyExporter
  *
- * Tests the fix for: "HTTP instrumentation caches NoopTracer if TracerProvider isn't registered early"
- *
- * The problem: When ZTI credentials take ~10 seconds to load, HTTP instrumentation would cache
- * a NoopTracer before the real TracerProvider was registered, causing all traces to be lost.
- *
- * The solution: Register TracerProvider early with BufferingSpanProcessor, then add the real
- * exporter after ZTI credentials are ready.
+ * With the lazy exporter refactor, the complexity of waiting for ZTI credentials
+ * is moved into the exporter layer. The app starts immediately with sync initialization,
+ * and telemetry is buffered until SVID files become available.
  */
 
 const cds = require('@sap/cds')
@@ -81,6 +77,7 @@ describe('Tracing with ZTI integration', () => {
     delete require.cache[require.resolve('../lib/tracing')]
     delete require.cache[require.resolve('../lib/metrics')]
     delete require.cache[require.resolve('../lib/logging')]
+    delete require.cache[require.resolve('../lib/exporter/LazyExporter')]
   })
 
   afterEach(() => {
@@ -95,25 +92,9 @@ describe('Tracing with ZTI integration', () => {
     delete process.env.cds_requires_telemetry_tracing_exporter
   })
 
-  test('needsZTIWait() detects ZTI scenario correctly', () => {
-    const { needsZTIWait } = require('../lib/zti')
+  test('telemetry setup completes synchronously even without SVID files', () => {
+    // SVID files don't exist yet - but setup should still complete (sync)
 
-    expect(needsZTIWait()).toBe(true)
-
-    // Should return false if USE_ZTI=false
-    process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
-    delete require.cache[require.resolve('../lib/zti')]
-    const { needsZTIWait: needsZTIWait2 } = require('../lib/zti')
-    expect(needsZTIWait2()).toBe(false)
-  })
-
-  test('BufferingSpanProcessor buffers spans until delegate is set', async () => {
-    // Create SVID files immediately (so ZTI succeeds)
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
-
-    // Setup minimal CDS env for tracing
     cds.env.requires = {
       telemetry: {
         kind: 'to-caas',
@@ -131,42 +112,27 @@ describe('Tracing with ZTI integration', () => {
             kind: 'AlwaysOnSampler'
           },
           propagators: []
-        }
+        },
+        instrumentations: {}
       }
     }
 
-    const tracing = require('../lib/tracing')
-    const { getResource } = require('../lib/utils')
-    const resource = getResource()
+    // Setup should be sync and not throw
+    const setup = require('../lib/index')
+    expect(() => setup()).not.toThrow()
 
-    // Step 1: Create TracerProvider with buffering (simulating ZTI wait)
-    const tracerProvider = tracing.createTracerProvider(resource)
-    expect(tracerProvider).toBeDefined()
-    expect(tracerProvider._bufferingProcessor).toBeDefined()
-
-    // Step 2: Create spans BEFORE exporter is added (they should buffer)
+    // We should have a real tracer (not NoopTracer)
     const tracer = trace.getTracer('test')
-    const span1 = tracer.startSpan('test-span-1')
-    span1.end()
-    const span2 = tracer.startSpan('test-span-2')
-    span2.end()
+    expect(tracer).toBeDefined()
 
-    // At this point, spans are in the buffer
-    expect(tracerProvider._bufferingProcessor._buffer.length).toBe(2)
-
-    // Step 3: Add exporter (simulating ZTI ready)
-    tracing.addTracingExporter(tracerProvider)
-
-    // Buffer should now be flushed
-    expect(tracerProvider._bufferingProcessor._buffer.length).toBe(0)
-    expect(tracerProvider._bufferingProcessor._delegate).toBeDefined()
+    const span = tracer.startSpan('test-span')
+    expect(span.spanContext().traceId).toBeDefined()
+    expect(span.spanContext().traceId).not.toBe('00000000000000000000000000000000')
+    span.end()
   })
 
-  test('TracerProvider is created before HTTP instrumentation in ZTI flow', async () => {
-    // This test verifies the fix: TracerProvider must be registered BEFORE
-    // HTTP instrumentation loads, otherwise HTTP caches NoopTracer
-
-    // Create SVID files immediately
+  test('TracerProvider is registered immediately (no NoopTracer caching)', () => {
+    // Create SVID files
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
@@ -193,153 +159,22 @@ describe('Tracing with ZTI integration', () => {
       }
     }
 
-    // Initialize telemetry (this triggers the ZTI flow)
+    // Setup telemetry
     const setup = require('../lib/index')
-    await setup()
+    setup()
 
     // Verify we can get a tracer (not NoopTracer)
     const tracer = trace.getTracer('test')
     expect(tracer).toBeDefined()
 
-    // Create a span and verify it's a real span
+    // Create a span and verify it's a real span (NoopTracer returns zeros for traceId)
     const span = tracer.startSpan('test-span')
     expect(span.spanContext().traceId).toBeDefined()
-    expect(span.spanContext().traceId).not.toBe('00000000000000000000000000000000') // NoopTracer returns zeros
+    expect(span.spanContext().traceId).not.toBe('00000000000000000000000000000000')
     span.end()
   })
 
-  test('ZTI initialization waits for SVID files with retry', async () => {
-    // Don't create files immediately - test retry logic
-    await jest.isolateModulesAsync(async () => {
-      const { initializeZTI } = require('../lib/zti')
-
-      // Start initialization (files don't exist yet)
-      const initPromise = initializeZTI()
-
-      // Wait 1 second, then create files (should succeed on retry)
-      setTimeout(() => {
-        fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-        fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-        fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
-      }, 1000)
-
-      // Should eventually succeed (within retry timeout of 60 seconds)
-      await expect(initPromise).resolves.not.toThrow()
-    })
-  }, 65000) // Test timeout > retry timeout
-
-  test('createTracerProvider and addTracingExporter work together', async () => {
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
-
-    cds.env.requires = {
-      telemetry: {
-        kind: 'to-caas',
-        credentials: {
-          otlp: {
-            http: 'https://caas.example.com/otlp'
-          }
-        },
-        tracing: {
-          exporter: {
-            module: '@opentelemetry/sdk-trace-base',
-            class: 'InMemorySpanExporter'
-          },
-          sampler: {
-            kind: 'AlwaysOnSampler'
-          },
-          propagators: []
-        }
-      }
-    }
-
-    const tracing = require('../lib/tracing')
-    const { getResource } = require('../lib/utils')
-    const { initializeZTI } = require('../lib/zti')
-    const resource = getResource()
-
-    // Simulate ZTI flow
-    // 1. Create TracerProvider early
-    const tracerProvider = tracing.createTracerProvider(resource)
-    expect(tracerProvider).toBeDefined()
-
-    // 2. Wait for ZTI
-    await initializeZTI()
-
-    // 3. Add exporter
-    tracing.addTracingExporter(tracerProvider)
-
-    // Verify the buffering processor got a delegate
-    expect(tracerProvider._bufferingProcessor._delegate).toBeDefined()
-  })
-
-  test('ZTI flow updates instrumentations with meterProvider and loggerProvider', async () => {
-    // This test verifies the fix for: instrumentations not receiving meterProvider/loggerProvider
-    // when created before ZTI credentials are ready.
-    //
-    // The problem: In the ZTI path, registerInstrumentations() was called with
-    // meterProvider: undefined and loggerProvider: undefined BEFORE those providers
-    // were created, causing metrics and logs to not be exported.
-
-    // Create SVID files immediately
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
-
-    cds.env.requires = {
-      telemetry: {
-        kind: 'to-caas',
-        credentials: {
-          otlp: { http: 'https://caas.example.com/otlp' }
-        },
-        tracing: {
-          exporter: {
-            module: '@opentelemetry/sdk-trace-base',
-            class: 'InMemorySpanExporter'
-          },
-          sampler: { kind: 'AlwaysOnSampler' },
-          propagators: []
-        },
-        metrics: {
-          exporter: {
-            module: '@opentelemetry/sdk-metrics',
-            class: 'InMemoryMetricExporter'
-          },
-          config: {}
-        },
-        logging: {
-          exporter: {
-            module: '@opentelemetry/sdk-logs',
-            class: 'InMemoryLogRecordExporter'
-          }
-        },
-        instrumentations: {}
-      }
-    }
-
-    // Verify ZTI is needed
-    const { needsZTIWait } = require('../lib/zti')
-    expect(needsZTIWait()).toBe(true)
-
-    // Run setup
-    const setup = require('../lib/index')
-    await setup()
-
-    // Verify meterProvider was set globally (this is what the fix ensures)
-    const { metrics } = require('@opentelemetry/api')
-    const meterProvider = metrics.getMeterProvider()
-    expect(meterProvider).toBeDefined()
-    expect(meterProvider.constructor.name).not.toBe('NoopMeterProvider')
-
-    // Verify loggerProvider was set globally
-    const { logs } = require('@opentelemetry/api-logs')
-    const loggerProvider = logs.getLoggerProvider()
-    expect(loggerProvider).toBeDefined()
-    expect(loggerProvider.constructor.name).not.toBe('NoopLoggerProvider')
-  })
-
-  test('standard flow works without ZTI', async () => {
+  test('standard flow works without ZTI binding', () => {
     // Remove ZTI from VCAP_SERVICES
     process.env.VCAP_SERVICES = JSON.stringify({
       'caas-service': [{
@@ -379,18 +214,64 @@ describe('Tracing with ZTI integration', () => {
     }
 
     delete require.cache[require.resolve('../lib/zti')]
-    const { needsZTIWait } = require('../lib/zti')
-
-    // Should NOT need ZTI wait (no ZTI binding)
-    expect(needsZTIWait()).toBe(false)
 
     // Standard setup should work
     const setup = require('../lib/index')
-    await setup()
+    setup()
 
     const tracer = trace.getTracer('test')
     const span = tracer.startSpan('test-span')
     expect(span.spanContext().traceId).toBeDefined()
     span.end()
+  })
+
+  test('getCredsForCaaSMtls returns null when SVID files not ready', () => {
+    // Don't create SVID files
+
+    jest.isolateModules(() => {
+      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const creds = getCredsForCaaSMtls()
+
+      // Should return null (not throw) when files don't exist
+      expect(creds).toBeNull()
+    })
+  })
+
+  test('getCredsForCaaSMtls returns credentials when SVID files exist', () => {
+    // Create SVID files
+    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
+    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
+    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
+
+    jest.isolateModules(() => {
+      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const creds = getCredsForCaaSMtls()
+
+      expect(creds).toBeDefined()
+      expect(creds.cert).toContain('BEGIN CERTIFICATE')
+      expect(creds.key).toContain('BEGIN PRIVATE KEY')
+    })
+  })
+
+  test('legacy x509 credentials work when USE_ZTI=false', () => {
+    process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
+
+    // Need to set up cds.env inside isolateModules since cds is re-required there
+    delete require.cache[require.resolve('../lib/zti')]
+
+    cds.env.requires = {
+      telemetry: {
+        x509: {
+          cert: Buffer.from('-----BEGIN CERTIFICATE-----\nlegacy\n-----END CERTIFICATE-----').toString('base64'),
+          key: Buffer.from('-----BEGIN PRIVATE KEY-----\nlegacy\n-----END PRIVATE KEY-----').toString('base64')
+        }
+      }
+    }
+
+    const { getCredsForCaaSMtls } = require('../lib/zti')
+    const creds = getCredsForCaaSMtls()
+
+    expect(creds).toBeDefined()
+    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('legacy')
   })
 })
