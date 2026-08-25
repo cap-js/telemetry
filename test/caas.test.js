@@ -169,7 +169,8 @@ describe('ZTI SVID File Loading', () => {
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
-    const { initializeZTI, getCredsForCaaSMtls, _resetZTIState } = require('../lib/utils')
+    delete require.cache[require.resolve('../lib/zti')]
+    const { initializeZTI, getCredsForCaaSMtls, _resetZTIState } = require('../lib/zti')
     _resetZTIState()
 
     await initializeZTI()
@@ -190,7 +191,8 @@ describe('ZTI SVID File Loading', () => {
     fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\nv1\n-----END PRIVATE KEY-----')
     fs.writeFileSync(bundlePath, '-----BEGIN CERTIFICATE-----\nv1\n-----END CERTIFICATE-----')
 
-    const { initializeZTI, getCredsForCaaSMtls, _resetZTIState } = require('../lib/utils')
+    delete require.cache[require.resolve('../lib/zti')]
+    const { initializeZTI, getCredsForCaaSMtls, _resetZTIState } = require('../lib/zti')
     _resetZTIState()
 
     await initializeZTI()
@@ -214,7 +216,8 @@ describe('ZTI SVID File Loading', () => {
     const keyPath = path.join(svidDir, 'test-svid.svid.key')
     const bundlePath = path.join(svidDir, 'test-svid.bundle.pem')
 
-    const { initializeZTI, _resetZTIState } = require('../lib/utils')
+    delete require.cache[require.resolve('../lib/zti')]
+    const { initializeZTI, _resetZTIState } = require('../lib/zti')
     _resetZTIState()
 
     // Start initialization (files don't exist yet)
@@ -274,7 +277,7 @@ describe('ZTI flag behavior', () => {
     }
     delete require.cache[require.resolve('../lib/utils')]
 
-    const { getCredsForCaaSMtls } = require('../lib/utils')
+    const { getCredsForCaaSMtls } = require('../lib/zti')
     const creds = getCredsForCaaSMtls()
 
     expect(creds).toBeDefined()
@@ -296,7 +299,9 @@ describe('ZTI flag behavior', () => {
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\nzti-key\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
-    const { initializeZTI, augmentCaaSCreds, _resetZTIState } = require('../lib/utils')
+    const { augmentCaaSCreds } = require('../lib/utils')
+    delete require.cache[require.resolve('../lib/zti')]
+    const { initializeZTI, _resetZTIState } = require('../lib/zti')
     _resetZTIState()
 
     await initializeZTI()

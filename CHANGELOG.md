@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 2.1.0
+
+### Added
+
+- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service) with automatic mTLS certificate management via Zero Trust Identity Service (ZTI/SPIFFE). Falls back to base64-encoded certificates from environment variables when ZTI is not available.
+
 ## Version 2.0.1 - 2026-07-03
 
 ### Fixed
@@ -18,7 +24,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Support for OpenTelemetry SDK 2.0
 - `@opentelemetry/instrumentation-undici` added to the list of default instrumentations
 - Support for `@sap/cds^10`
-- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service)
 
 ### Changed
 
