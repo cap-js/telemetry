@@ -153,7 +153,6 @@ describe('ZTI SVID File Loading', () => {
 
     cds.env.requires = cds.env.requires || {}
     cds.env.requires.telemetry = {}
-    delete require.cache[require.resolve('../lib/utils')]
   })
 
   afterEach(() => {
@@ -169,12 +168,15 @@ describe('ZTI SVID File Loading', () => {
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
-    delete require.cache[require.resolve('../lib/zti')]
-    const { initializeZTI, getCredsForCaaSMtls, _resetZTIState } = require('../lib/zti')
-    _resetZTIState()
-
-    await initializeZTI()
-    const creds = getCredsForCaaSMtls()
+    let creds
+    // jest.isolateModulesAsync gives each test a fresh zti module with reset internal state
+    // (cached credentials, init promise, file paths). Without isolation, state from previous
+    // tests would leak and cause failures when tests run in sequence.
+    await jest.isolateModulesAsync(async () => {
+      const { initializeZTI, getCredsForCaaSMtls } = require('../lib/zti')
+      await initializeZTI()
+      creds = getCredsForCaaSMtls()
+    })
 
     expect(creds).toBeDefined()
     expect(creds.cert).toContain('BEGIN CERTIFICATE')
@@ -191,22 +193,24 @@ describe('ZTI SVID File Loading', () => {
     fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\nv1\n-----END PRIVATE KEY-----')
     fs.writeFileSync(bundlePath, '-----BEGIN CERTIFICATE-----\nv1\n-----END CERTIFICATE-----')
 
-    delete require.cache[require.resolve('../lib/zti')]
-    const { initializeZTI, getCredsForCaaSMtls, _resetZTIState } = require('../lib/zti')
-    _resetZTIState()
+    let creds1, creds2
+    await jest.isolateModulesAsync(async () => {
+      const { initializeZTI, getCredsForCaaSMtls } = require('../lib/zti')
 
-    await initializeZTI()
-    const creds1 = getCredsForCaaSMtls()
+      await initializeZTI()
+      creds1 = getCredsForCaaSMtls()
+
+      // Wait to ensure mtime changes
+      await new Promise(resolve => setTimeout(resolve, 10))
+
+      // Update files (simulating ZTI rotation)
+      fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\nv2\n-----END CERTIFICATE-----')
+      fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\nv2\n-----END PRIVATE KEY-----')
+
+      creds2 = getCredsForCaaSMtls()
+    })
+
     expect(creds1.cert).toContain('v1')
-
-    // Wait to ensure mtime changes
-    await new Promise(resolve => setTimeout(resolve, 10))
-
-    // Update files (simulating ZTI rotation)
-    fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\nv2\n-----END CERTIFICATE-----')
-    fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\nv2\n-----END PRIVATE KEY-----')
-
-    const creds2 = getCredsForCaaSMtls()
     expect(creds2.cert).toContain('v2')
     expect(creds2.key).toContain('v2')
   })
@@ -216,21 +220,21 @@ describe('ZTI SVID File Loading', () => {
     const keyPath = path.join(svidDir, 'test-svid.svid.key')
     const bundlePath = path.join(svidDir, 'test-svid.bundle.pem')
 
-    delete require.cache[require.resolve('../lib/zti')]
-    const { initializeZTI, _resetZTIState } = require('../lib/zti')
-    _resetZTIState()
+    await jest.isolateModulesAsync(async () => {
+      const { initializeZTI } = require('../lib/zti')
 
-    // Start initialization (files don't exist yet)
-    const initPromise = initializeZTI()
+      // Start initialization (files don't exist yet)
+      const initPromise = initializeZTI()
 
-    // Wait 2.5 seconds, then create files (should succeed on 2nd retry)
-    await new Promise(resolve => setTimeout(resolve, 2500))
-    fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-    fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-    fs.writeFileSync(bundlePath, '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
+      // Wait 2.5 seconds, then create files (should succeed on 2nd retry)
+      await new Promise(resolve => setTimeout(resolve, 2500))
+      fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
+      fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
+      fs.writeFileSync(bundlePath, '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
 
-    // Should complete successfully
-    await expect(initPromise).resolves.toBeUndefined()
+      // Should complete successfully
+      await expect(initPromise).resolves.toBeUndefined()
+    })
   }, 10000)
 })
 
@@ -248,24 +252,26 @@ describe('ZTI flag behavior', () => {
 
   test('detects ZTI config from VCAP_SERVICES', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
-    delete require.cache[require.resolve('../lib/utils')]
 
-    const { getZTIConfig } = require('../lib/utils')
-    const config = getZTIConfig()
+    jest.isolateModules(() => {
+      const { getZTIConfig } = require('../lib/utils')
+      const config = getZTIConfig()
 
-    expect(config).not.toBeNull()
-    expect(config.svidName).toBe('test-svid')
-    expect(config.svidDir).toBe('/home/vcap/app/spire-svids')
+      expect(config).not.toBeNull()
+      expect(config.svidName).toBe('test-svid')
+      expect(config.svidDir).toBe('/home/vcap/app/spire-svids')
+    })
   })
 
   test('returns null when no ZTI binding', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-    delete require.cache[require.resolve('../lib/utils')]
 
-    const { getZTIConfig } = require('../lib/utils')
-    const config = getZTIConfig()
+    jest.isolateModules(() => {
+      const { getZTIConfig } = require('../lib/utils')
+      const config = getZTIConfig()
 
-    expect(config).toBeNull()
+      expect(config).toBeNull()
+    })
   })
 
   test('uses legacy env vars when USE_ZTI=false', () => {
@@ -275,8 +281,8 @@ describe('ZTI flag behavior', () => {
       cert: Buffer.from('-----BEGIN CERTIFICATE-----\nlegacy\n-----END CERTIFICATE-----').toString('base64'),
       key: Buffer.from('-----BEGIN PRIVATE KEY-----\nlegacy\n-----END PRIVATE KEY-----').toString('base64')
     }
-    delete require.cache[require.resolve('../lib/utils')]
 
+    // Legacy path doesn't involve ZTI state, just reads from cds.env
     const { getCredsForCaaSMtls } = require('../lib/zti')
     const creds = getCredsForCaaSMtls()
 
@@ -292,28 +298,27 @@ describe('ZTI flag behavior', () => {
 
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
     process.env.CDS_REQUIRES_TELEMETRY_ZTI_DIR = svidDir
-    delete require.cache[require.resolve('../lib/utils')]
 
     // Create SVID files
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\nzti-cert\n-----END CERTIFICATE-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\nzti-key\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
-    const { augmentCaaSCreds } = require('../lib/utils')
-    delete require.cache[require.resolve('../lib/zti')]
-    const { initializeZTI, _resetZTIState } = require('../lib/zti')
-    _resetZTIState()
+    await jest.isolateModulesAsync(async () => {
+      const { augmentCaaSCreds } = require('../lib/utils')
+      const { initializeZTI } = require('../lib/zti')
 
-    await initializeZTI()
+      await initializeZTI()
 
-    const credentials = {
-      otlp: { http: 'https://caas.example.com/otlp' }
-    }
-    augmentCaaSCreds(credentials)
+      const credentials = {
+        otlp: { http: 'https://caas.example.com/otlp' }
+      }
+      augmentCaaSCreds(credentials)
 
-    expect(credentials.httpAgentOptions).toBeDefined()
-    expect(credentials.httpAgentOptions.cert).toContain('zti-cert')
-    expect(credentials.httpAgentOptions.key).toContain('zti-key')
+      expect(credentials.httpAgentOptions).toBeDefined()
+      expect(credentials.httpAgentOptions.cert).toContain('zti-cert')
+      expect(credentials.httpAgentOptions.key).toContain('zti-key')
+    })
 
     // Cleanup
     delete process.env.CDS_REQUIRES_TELEMETRY_ZTI_DIR
@@ -327,8 +332,8 @@ describe('ZTI flag behavior', () => {
       cert: Buffer.from('-----BEGIN CERTIFICATE-----\nlegacy-cert\n-----END CERTIFICATE-----').toString('base64'),
       key: Buffer.from('-----BEGIN PRIVATE KEY-----\nlegacy-key\n-----END PRIVATE KEY-----').toString('base64')
     }
-    delete require.cache[require.resolve('../lib/utils')]
 
+    // Legacy path doesn't involve ZTI state
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {

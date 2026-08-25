@@ -210,21 +210,22 @@ describe('Tracing with ZTI integration', () => {
 
   test('ZTI initialization waits for SVID files with retry', async () => {
     // Don't create files immediately - test retry logic
-    const { initializeZTI, _resetZTIState } = require('../lib/zti')
-    _resetZTIState()
+    await jest.isolateModulesAsync(async () => {
+      const { initializeZTI } = require('../lib/zti')
 
-    // Start initialization (files don't exist yet)
-    const initPromise = initializeZTI()
+      // Start initialization (files don't exist yet)
+      const initPromise = initializeZTI()
 
-    // Wait 1 second, then create files (should succeed on retry)
-    setTimeout(() => {
-      fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-      fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-      fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
-    }, 1000)
+      // Wait 1 second, then create files (should succeed on retry)
+      setTimeout(() => {
+        fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
+        fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
+        fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
+      }, 1000)
 
-    // Should eventually succeed (within retry timeout of 60 seconds)
-    await expect(initPromise).resolves.not.toThrow()
+      // Should eventually succeed (within retry timeout of 60 seconds)
+      await expect(initPromise).resolves.not.toThrow()
+    })
   }, 65000) // Test timeout > retry timeout
 
   test('createTracerProvider and addTracingExporter work together', async () => {
@@ -318,13 +319,10 @@ describe('Tracing with ZTI integration', () => {
     }
 
     // Verify ZTI is needed
-    delete require.cache[require.resolve('../lib/zti')]
-    const { needsZTIWait, _resetZTIState } = require('../lib/zti')
-    _resetZTIState()
+    const { needsZTIWait } = require('../lib/zti')
     expect(needsZTIWait()).toBe(true)
 
     // Run setup
-    delete require.cache[require.resolve('../lib/index')]
     const setup = require('../lib/index')
     await setup()
 
