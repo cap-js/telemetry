@@ -14,7 +14,6 @@ const cds = require('@sap/cds')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
-const { InMemorySpanExporter } = require('@opentelemetry/sdk-trace-base')
 const { trace } = require('@opentelemetry/api')
 
 // Mock VCAP_SERVICES with ZTI and CaaS
@@ -272,6 +271,74 @@ describe('Tracing with ZTI integration', () => {
 
     // Verify the buffering processor got a delegate
     expect(tracerProvider._bufferingProcessor._delegate).toBeDefined()
+  })
+
+  test('ZTI flow updates instrumentations with meterProvider and loggerProvider', async () => {
+    // This test verifies the fix for: instrumentations not receiving meterProvider/loggerProvider
+    // when created before ZTI credentials are ready.
+    //
+    // The problem: In the ZTI path, registerInstrumentations() was called with
+    // meterProvider: undefined and loggerProvider: undefined BEFORE those providers
+    // were created, causing metrics and logs to not be exported.
+
+    // Create SVID files immediately
+    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
+    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
+    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
+
+    cds.env.requires = {
+      telemetry: {
+        kind: 'to-caas',
+        credentials: {
+          otlp: { http: 'https://caas.example.com/otlp' }
+        },
+        tracing: {
+          exporter: {
+            module: '@opentelemetry/sdk-trace-base',
+            class: 'InMemorySpanExporter'
+          },
+          sampler: { kind: 'AlwaysOnSampler' },
+          propagators: []
+        },
+        metrics: {
+          exporter: {
+            module: '@opentelemetry/sdk-metrics',
+            class: 'InMemoryMetricExporter'
+          },
+          config: {}
+        },
+        logging: {
+          exporter: {
+            module: '@opentelemetry/sdk-logs',
+            class: 'InMemoryLogRecordExporter'
+          }
+        },
+        instrumentations: {}
+      }
+    }
+
+    // Verify ZTI is needed
+    delete require.cache[require.resolve('../lib/zti')]
+    const { needsZTIWait, _resetZTIState } = require('../lib/zti')
+    _resetZTIState()
+    expect(needsZTIWait()).toBe(true)
+
+    // Run setup
+    delete require.cache[require.resolve('../lib/index')]
+    const setup = require('../lib/index')
+    await setup()
+
+    // Verify meterProvider was set globally (this is what the fix ensures)
+    const { metrics } = require('@opentelemetry/api')
+    const meterProvider = metrics.getMeterProvider()
+    expect(meterProvider).toBeDefined()
+    expect(meterProvider.constructor.name).not.toBe('NoopMeterProvider')
+
+    // Verify loggerProvider was set globally
+    const { logs } = require('@opentelemetry/api-logs')
+    const loggerProvider = logs.getLoggerProvider()
+    expect(loggerProvider).toBeDefined()
+    expect(loggerProvider.constructor.name).not.toBe('NoopLoggerProvider')
   })
 
   test('standard flow works without ZTI', async () => {
