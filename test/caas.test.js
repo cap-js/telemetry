@@ -100,7 +100,7 @@ describe('augmentCaaSCreds', () => {
     delete require.cache[require.resolve('../lib/utils')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
-    expect(() => augmentCaaSCreds({})).toThrow('No OTLP HTTP endpoint found')
+    expect(() => augmentCaaSCreds({})).toThrow('No OTLP HTTP endpoint in CaaS credentials')
   })
 
   test('does not augment twice', () => {
@@ -170,11 +170,11 @@ describe('ZTI SVID File Loading', () => {
 
     let creds
     jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const { getCredsForCaaSMtls } = require('../lib/utils')
       creds = getCredsForCaaSMtls()
     })
 
-    expect(creds).toBeDefined()
+    expect(creds.status).toBe('ready')
     expect(creds.cert).toContain('BEGIN CERTIFICATE')
     expect(creds.key).toContain('BEGIN PRIVATE KEY')
   })
@@ -184,11 +184,11 @@ describe('ZTI SVID File Loading', () => {
 
     let creds
     jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const { getCredsForCaaSMtls } = require('../lib/utils')
       creds = getCredsForCaaSMtls()
     })
 
-    expect(creds).toBeNull()
+    expect(creds).toEqual({ status: 'not_ready' })
   })
 
   test('reloads when mtime changes', async () => {
@@ -203,7 +203,7 @@ describe('ZTI SVID File Loading', () => {
 
     let creds1, creds2
     await jest.isolateModulesAsync(async () => {
-      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const { getCredsForCaaSMtls } = require('../lib/utils')
 
       creds1 = getCredsForCaaSMtls()
 
@@ -217,7 +217,9 @@ describe('ZTI SVID File Loading', () => {
       creds2 = getCredsForCaaSMtls()
     })
 
+    expect(creds1.status).toBe('ready')
     expect(creds1.cert).toContain('v1')
+    expect(creds2.status).toBe('ready')
     expect(creds2.cert).toContain('v2')
     expect(creds2.key).toContain('v2')
   })
@@ -239,7 +241,7 @@ describe('ZTI flag behavior', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
 
     jest.isolateModules(() => {
-      const { getZTIConfig } = require('../lib/utils')
+      const { getZTIConfig } = require('../lib/zti')
       const config = getZTIConfig()
 
       expect(config).not.toBeNull()
@@ -252,28 +254,27 @@ describe('ZTI flag behavior', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
 
     jest.isolateModules(() => {
-      const { getZTIConfig } = require('../lib/utils')
+      const { getZTIConfig } = require('../lib/zti')
       const config = getZTIConfig()
 
       expect(config).toBeNull()
     })
   })
 
-  test('uses legacy env vars when USE_ZTI=false', () => {
+  test('uses env var credentials when USE_ZTI=false', () => {
     process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
     cds.env.requires.telemetry.x509 = {
-      cert: Buffer.from('-----BEGIN CERTIFICATE-----\nlegacy\n-----END CERTIFICATE-----').toString('base64'),
-      key: Buffer.from('-----BEGIN PRIVATE KEY-----\nlegacy\n-----END PRIVATE KEY-----').toString('base64')
+      cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar\n-----END CERTIFICATE-----').toString('base64'),
+      key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar\n-----END PRIVATE KEY-----').toString('base64')
     }
 
-    // Legacy path doesn't involve ZTI state, just reads from cds.env
-    const { getCredsForCaaSMtls } = require('../lib/zti')
+    const { getCredsForCaaSMtls } = require('../lib/utils')
     const creds = getCredsForCaaSMtls()
 
     expect(creds).toBeDefined()
-    // Legacy credentials are still base64 at this point
-    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('legacy')
+    // Env var credentials are still base64 at this point
+    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('envvar')
   })
 
   test('augmentCaaSCreds handles PEM format from ZTI', () => {
@@ -307,15 +308,15 @@ describe('ZTI flag behavior', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
-  test('augmentCaaSCreds handles base64 format from legacy', () => {
+  test('augmentCaaSCreds handles base64 format from env vars', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
     cds.env.requires.telemetry.x509 = {
-      cert: Buffer.from('-----BEGIN CERTIFICATE-----\nlegacy-cert\n-----END CERTIFICATE-----').toString('base64'),
-      key: Buffer.from('-----BEGIN PRIVATE KEY-----\nlegacy-key\n-----END PRIVATE KEY-----').toString('base64')
+      cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
+      key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
     }
 
-    // Legacy path doesn't involve ZTI state
+    // Env var fallback doesn't involve ZTI state
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {
@@ -324,8 +325,8 @@ describe('ZTI flag behavior', () => {
     augmentCaaSCreds(credentials)
 
     expect(credentials.httpAgentOptions).toBeDefined()
-    expect(credentials.httpAgentOptions.cert).toContain('legacy-cert')
-    expect(credentials.httpAgentOptions.key).toContain('legacy-key')
+    expect(credentials.httpAgentOptions.cert).toContain('envvar-cert')
+    expect(credentials.httpAgentOptions.key).toContain('envvar-key')
   })
 })
 
@@ -340,7 +341,7 @@ describe('LazyExporter', () => {
     let createCalled = 0
     const lazyExporter = createLazyExporter(() => {
       createCalled++
-      throw new Error('SVID credentials not ready')
+      return { status: 'not_ready' }
     })
 
     const items = [{ name: 'span1' }, { name: 'span2' }]
@@ -366,8 +367,8 @@ describe('LazyExporter', () => {
     }
 
     const lazyExporter = createLazyExporter(() => {
-      if (!ready) throw new Error('SVID credentials not ready')
-      return mockExporter
+      if (!ready) return { status: 'not_ready' }
+      return { status: 'ready', exporter: mockExporter }
     })
 
     // First export - buffers
@@ -391,7 +392,7 @@ describe('LazyExporter', () => {
     const { createLazyExporter } = require('../lib/exporter/LazyExporter')
 
     const lazyExporter = createLazyExporter(
-      () => { throw new Error('SVID credentials not ready') },
+      () => { return { status: 'not_ready' } },
       { maxBufferSize: 2 }
     )
 
@@ -408,7 +409,7 @@ describe('LazyExporter', () => {
     const { createLazyExporter } = require('../lib/exporter/LazyExporter')
 
     const lazyExporter = createLazyExporter(() => {
-      throw new Error('SVID credentials not ready')
+      return { status: 'not_ready' }
     })
 
     lazyExporter.export([{ name: 'span1' }], () => {})
@@ -432,8 +433,8 @@ describe('LazyExporter', () => {
     }
 
     const lazyExporter = createLazyExporter(() => {
-      if (!ready) throw new Error('SVID credentials not ready')
-      return mockExporter
+      if (!ready) return { status: 'not_ready' }
+      return { status: 'ready', exporter: mockExporter }
     })
 
     // Buffer some items
@@ -459,7 +460,7 @@ describe('LazyExporter', () => {
     let createCalled = 0
     const lazyExporter = createLazyExporter(() => {
       createCalled++
-      throw new Error('Permanent configuration error')
+      return { status: 'error', error: 'Permanent configuration error' }
     })
 
     // First export - tries to create

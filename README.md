@@ -333,9 +333,9 @@ To explicitly disable ZTI (e.g., for testing), set:
 CDS_REQUIRES_TELEMETRY_USE_ZTI=false
 ```
 
-#### Option 2: Manual Certificate Configuration (Legacy)
+#### Option 2: Manual Certificate Configuration (Fallback)
 
-For environments without ZTI, you can provide mTLS credentials manually:
+For environments without ZTI or when you want to manage certificates externally, you can provide mTLS credentials manually:
 
 1. **Bind the CaaS service** to your app with subject/issuer configuration:
 ```yaml

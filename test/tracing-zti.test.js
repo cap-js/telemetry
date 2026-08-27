@@ -229,11 +229,11 @@ describe('Tracing with ZTI integration', () => {
     // Don't create SVID files
 
     jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const { getCredsForCaaSMtls } = require('../lib/utils')
       const creds = getCredsForCaaSMtls()
 
       // Should return null (not throw) when files don't exist
-      expect(creds).toBeNull()
+      expect(creds).toEqual({ status: 'not_ready' })
     })
   })
 
@@ -244,34 +244,34 @@ describe('Tracing with ZTI integration', () => {
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
     jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/zti')
+      const { getCredsForCaaSMtls } = require('../lib/utils')
       const creds = getCredsForCaaSMtls()
 
-      expect(creds).toBeDefined()
+      expect(creds.status).toBe('ready')
       expect(creds.cert).toContain('BEGIN CERTIFICATE')
       expect(creds.key).toContain('BEGIN PRIVATE KEY')
     })
   })
 
-  test('legacy x509 credentials work when USE_ZTI=false', () => {
+  test('x509 env var credentials work when USE_ZTI=false', () => {
     process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
 
-    // Need to set up cds.env inside isolateModules since cds is re-required there
     delete require.cache[require.resolve('../lib/zti')]
+    delete require.cache[require.resolve('../lib/utils')]
 
     cds.env.requires = {
       telemetry: {
         x509: {
-          cert: Buffer.from('-----BEGIN CERTIFICATE-----\nlegacy\n-----END CERTIFICATE-----').toString('base64'),
-          key: Buffer.from('-----BEGIN PRIVATE KEY-----\nlegacy\n-----END PRIVATE KEY-----').toString('base64')
+          cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar\n-----END CERTIFICATE-----').toString('base64'),
+          key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar\n-----END PRIVATE KEY-----').toString('base64')
         }
       }
     }
 
-    const { getCredsForCaaSMtls } = require('../lib/zti')
+    const { getCredsForCaaSMtls } = require('../lib/utils')
     const creds = getCredsForCaaSMtls()
 
-    expect(creds).toBeDefined()
-    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('legacy')
+    expect(creds.status).toBe('ready')
+    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('envvar')
   })
 })
