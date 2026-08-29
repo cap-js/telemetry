@@ -59,11 +59,13 @@ describe('augmentCaaSCreds', () => {
       }
     }
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
   })
 
   test('sets baseUrl from otlp.http', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {
@@ -81,6 +83,7 @@ describe('augmentCaaSCreds', () => {
   test('sets httpAgentOptions when mTLS credentials found', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {
@@ -90,14 +93,13 @@ describe('augmentCaaSCreds', () => {
     augmentCaaSCreds(credentials)
 
     expect(credentials.httpAgentOptions).toBeDefined()
-    expect(credentials.httpAgentOptions.cert).toContain('BEGIN CERTIFICATE')
-    expect(credentials.httpAgentOptions.key).toContain('BEGIN PRIVATE KEY')
-    expect(credentials.httpAgentOptions.keepAlive).toBe(true)
+    expect(typeof credentials.httpAgentOptions).toBe('function')
   })
 
   test('throws when no OTLP endpoints', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
     expect(() => augmentCaaSCreds({})).toThrow('No OTLP HTTP endpoint in CaaS credentials')
@@ -106,6 +108,7 @@ describe('augmentCaaSCreds', () => {
   test('does not augment twice', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {
@@ -125,6 +128,7 @@ describe('augmentCaaSCreds', () => {
     cds.env.requires.telemetry = {} // No x509 credentials
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {
@@ -162,36 +166,40 @@ describe('ZTI SVID File Loading', () => {
     delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
   })
 
-  test('loads SVID files when they exist', () => {
+  test('createZTIAgentFactory returns factory when SVID files exist', () => {
     // Create SVID files
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
 
-    let creds
+    let factory
     jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/utils')
-      creds = getCredsForCaaSMtls()
+      const { createZTIAgentFactory } = require('../lib/utils')
+      factory = createZTIAgentFactory()
     })
 
-    expect(creds.status).toBe('ready')
-    expect(creds.cert).toContain('BEGIN CERTIFICATE')
-    expect(creds.key).toContain('BEGIN PRIVATE KEY')
+    expect(factory).not.toBeNull()
+    expect(typeof factory).toBe('function')
   })
 
-  test('returns null when SVID files do not exist', () => {
-    // Don't create SVID files
+  test('createZTIAgentFactory returns factory even when SVID files do not exist yet', () => {
+    // Don't create SVID files - but factory is still created
+    // The factory will throw when called if files don't exist
 
-    let creds
+    let factory
     jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/utils')
-      creds = getCredsForCaaSMtls()
+      const { createZTIAgentFactory } = require('../lib/utils')
+      factory = createZTIAgentFactory()
     })
 
-    expect(creds).toEqual({ status: 'not_ready' })
+    // Factory is created (ZTI is configured via VCAP_SERVICES)
+    expect(factory).not.toBeNull()
+    expect(typeof factory).toBe('function')
+    // Calling it throws because files don't exist
+    expect(() => factory()).toThrow()
   })
 
-  test('reloads when mtime changes', async () => {
+  test('getCert/getKey reload when mtime changes', async () => {
     const certPath = path.join(svidDir, 'test-svid.svid.pem')
     const keyPath = path.join(svidDir, 'test-svid.svid.key')
     const bundlePath = path.join(svidDir, 'test-svid.bundle.pem')
@@ -201,11 +209,13 @@ describe('ZTI SVID File Loading', () => {
     fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\nv1\n-----END PRIVATE KEY-----')
     fs.writeFileSync(bundlePath, '-----BEGIN CERTIFICATE-----\nv1\n-----END CERTIFICATE-----')
 
-    let creds1, creds2
+    let cert1, cert2
     await jest.isolateModulesAsync(async () => {
-      const { getCredsForCaaSMtls } = require('../lib/utils')
+      const { initializeZTI, getCert, _reset } = require('../lib/zti')
+      _reset()
+      initializeZTI()
 
-      creds1 = getCredsForCaaSMtls()
+      cert1 = getCert()
 
       // Wait to ensure mtime changes (filesystem mtime resolution can be ~1s on some systems)
       await new Promise(resolve => setTimeout(resolve, 50))
@@ -214,14 +224,11 @@ describe('ZTI SVID File Loading', () => {
       fs.writeFileSync(certPath, '-----BEGIN CERTIFICATE-----\nv2\n-----END CERTIFICATE-----')
       fs.writeFileSync(keyPath, '-----BEGIN PRIVATE KEY-----\nv2\n-----END PRIVATE KEY-----')
 
-      creds2 = getCredsForCaaSMtls()
+      cert2 = getCert()
     })
 
-    expect(creds1.status).toBe('ready')
-    expect(creds1.cert).toContain('v1')
-    expect(creds2.status).toBe('ready')
-    expect(creds2.cert).toContain('v2')
-    expect(creds2.key).toContain('v2')
+    expect(cert1).toContain('v1')
+    expect(cert2).toContain('v2')
   })
 })
 
@@ -230,6 +237,7 @@ describe('ZTI flag behavior', () => {
     cds.env.requires = { telemetry: {} }
     delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
     delete require.cache[require.resolve('../lib/utils')]
+    delete require.cache[require.resolve('../lib/zti')]
   })
 
   afterEach(() => {
@@ -261,7 +269,7 @@ describe('ZTI flag behavior', () => {
     })
   })
 
-  test('uses env var credentials when USE_ZTI=false', () => {
+  test('createStaticAgentFactory returns factory when x509 configured', () => {
     process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
     cds.env.requires.telemetry.x509 = {
@@ -269,15 +277,14 @@ describe('ZTI flag behavior', () => {
       key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar\n-----END PRIVATE KEY-----').toString('base64')
     }
 
-    const { getCredsForCaaSMtls } = require('../lib/utils')
-    const creds = getCredsForCaaSMtls()
+    const { createStaticAgentFactory } = require('../lib/utils')
+    const factory = createStaticAgentFactory()
 
-    expect(creds).toBeDefined()
-    // Env var credentials are still base64 at this point
-    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('envvar')
+    expect(factory).toBeDefined()
+    expect(typeof factory).toBe('function')
   })
 
-  test('augmentCaaSCreds handles PEM format from ZTI', () => {
+  test('augmentCaaSCreds sets httpAgentOptions factory from ZTI', () => {
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zti-test-'))
     const svidDir = path.join(tmpDir, 'spire-svids')
     fs.mkdirSync(svidDir)
@@ -299,8 +306,8 @@ describe('ZTI flag behavior', () => {
       augmentCaaSCreds(credentials)
 
       expect(credentials.httpAgentOptions).toBeDefined()
-      expect(credentials.httpAgentOptions.cert).toContain('zti-cert')
-      expect(credentials.httpAgentOptions.key).toContain('zti-key')
+      // httpAgentOptions is now a factory function
+      expect(typeof credentials.httpAgentOptions).toBe('function')
     })
 
     // Cleanup
@@ -308,7 +315,7 @@ describe('ZTI flag behavior', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true })
   })
 
-  test('augmentCaaSCreds handles base64 format from env vars', () => {
+  test('augmentCaaSCreds sets httpAgentOptions factory from x509 config', () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
     process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
     cds.env.requires.telemetry.x509 = {
@@ -316,7 +323,7 @@ describe('ZTI flag behavior', () => {
       key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
     }
 
-    // Env var fallback doesn't involve ZTI state
+    // x509 fallback doesn't involve ZTI state
     const { augmentCaaSCreds } = require('../lib/utils')
 
     const credentials = {
@@ -325,150 +332,178 @@ describe('ZTI flag behavior', () => {
     augmentCaaSCreds(credentials)
 
     expect(credentials.httpAgentOptions).toBeDefined()
-    expect(credentials.httpAgentOptions.cert).toContain('envvar-cert')
-    expect(credentials.httpAgentOptions.key).toContain('envvar-key')
+    // httpAgentOptions is now a factory function
+    expect(typeof credentials.httpAgentOptions).toBe('function')
   })
 })
 
-describe('LazyExporter', () => {
+describe('ZTI Certificate Rotation', () => {
+  let tmpDir, svidDir
+  let originalEnv
+
+  const CERT_V1 = '-----BEGIN CERTIFICATE-----\nCERT_VERSION_1\n-----END CERTIFICATE-----'
+  const KEY_V1 = '-----BEGIN PRIVATE KEY-----\nKEY_VERSION_1\n-----END PRIVATE KEY-----'
+  const BUNDLE_V1 = '-----BEGIN CERTIFICATE-----\nBUNDLE_V1\n-----END CERTIFICATE-----'
+
+  const CERT_V2 = '-----BEGIN CERTIFICATE-----\nCERT_VERSION_2\n-----END CERTIFICATE-----'
+  const KEY_V2 = '-----BEGIN PRIVATE KEY-----\nKEY_VERSION_2\n-----END PRIVATE KEY-----'
+  const BUNDLE_V2 = '-----BEGIN CERTIFICATE-----\nBUNDLE_V2\n-----END CERTIFICATE-----'
+
+  beforeAll(() => {
+    originalEnv = { ...process.env }
+  })
+
   beforeEach(() => {
-    delete require.cache[require.resolve('../lib/exporter/LazyExporter')]
+    // Create temp directory for SVID files
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'zti-rotation-test-'))
+    svidDir = path.join(tmpDir, 'spire-svids')
+    fs.mkdirSync(svidDir)
+
+    // Set up environment
+    process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
+    process.env.CDS_REQUIRES_TELEMETRY_ZTI_DIR = svidDir
+    delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
+
+    cds.env.requires = { telemetry: {} }
   })
 
-  test('buffers items when exporter creation fails', () => {
-    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true })
+    process.env = { ...originalEnv }
+  })
 
-    let createCalled = 0
-    const lazyExporter = createLazyExporter(() => {
-      createCalled++
-      return { status: 'not_ready' }
+  function writeSVIDFiles(cert, key, bundle) {
+    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), cert)
+    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), key)
+    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), bundle)
+  }
+
+  function touchWithNewMtime(filepath) {
+    // Ensure mtime changes (some filesystems have 1-second resolution)
+    const now = new Date()
+    now.setSeconds(now.getSeconds() + 2)
+    fs.utimesSync(filepath, now, now)
+  }
+
+  test('returns initial certificate on first call', () => {
+    writeSVIDFiles(CERT_V1, KEY_V1, BUNDLE_V1)
+
+    jest.isolateModules(() => {
+      const { initializeZTI, getCert, getKey } = require('../lib/zti')
+      initializeZTI()
+
+      expect(getCert()).toBe(CERT_V1)
+      expect(getKey()).toBe(KEY_V1)
     })
-
-    const items = [{ name: 'span1' }, { name: 'span2' }]
-    let callbackResult
-    lazyExporter.export(items, result => { callbackResult = result })
-
-    expect(callbackResult).toEqual({ code: 0 }) // SUCCESS
-    expect(lazyExporter._getBufferSize()).toBe(1) // Items buffered as single array
-    expect(lazyExporter._isExporterCreated()).toBe(false)
-    expect(createCalled).toBe(1)
   })
 
-  test('flushes buffer when exporter becomes ready', () => {
-    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+  test('returns cached certificate when mtime unchanged', () => {
+    writeSVIDFiles(CERT_V1, KEY_V1, BUNDLE_V1)
 
-    let ready = false
-    const exportedItems = []
-    const mockExporter = {
-      export: (items, cb) => {
-        exportedItems.push(items)
-        cb({ code: 0 })
-      }
-    }
+    jest.isolateModules(() => {
+      const { initializeZTI, getCert, _reset } = require('../lib/zti')
+      _reset()
+      initializeZTI()
 
-    const lazyExporter = createLazyExporter(() => {
-      if (!ready) return { status: 'not_ready' }
-      return { status: 'ready', exporter: mockExporter }
+      // First call - reads from disk
+      const cert1 = getCert()
+
+      // Second call without any file changes - should return cached value
+      const cert2 = getCert()
+
+      expect(cert1).toBe(CERT_V1)
+      expect(cert2).toBe(CERT_V1) // Still cached, same mtime
     })
-
-    // First export - buffers
-    lazyExporter.export([{ name: 'span1' }], () => {})
-    expect(lazyExporter._getBufferSize()).toBe(1)
-
-    // Make exporter ready
-    ready = true
-
-    // Second export - should flush buffer and export new items
-    lazyExporter.export([{ name: 'span2' }], () => {})
-
-    expect(lazyExporter._isExporterCreated()).toBe(true)
-    expect(lazyExporter._getBufferSize()).toBe(0)
-    expect(exportedItems).toHaveLength(2) // buffered + new
-    expect(exportedItems[0]).toEqual([{ name: 'span1' }])
-    expect(exportedItems[1]).toEqual([{ name: 'span2' }])
   })
 
-  test('respects maxBufferSize', () => {
-    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+  test('reloads certificate when mtime changes (rotation)', () => {
+    writeSVIDFiles(CERT_V1, KEY_V1, BUNDLE_V1)
 
-    const lazyExporter = createLazyExporter(
-      () => { return { status: 'not_ready' } },
-      { maxBufferSize: 2 }
-    )
+    jest.isolateModules(() => {
+      const { initializeZTI, getCert, getKey } = require('../lib/zti')
+      initializeZTI()
 
-    // Fill buffer beyond max
-    lazyExporter.export([{ name: 'span1' }], () => {})
-    lazyExporter.export([{ name: 'span2' }], () => {})
-    lazyExporter.export([{ name: 'span3' }], () => {})
+      // First call - reads V1
+      expect(getCert()).toBe(CERT_V1)
+      expect(getKey()).toBe(KEY_V1)
 
-    // Should only have 2 items (oldest dropped)
-    expect(lazyExporter._getBufferSize()).toBe(2)
-  })
+      // Simulate certificate rotation: write new files with new mtime
+      writeSVIDFiles(CERT_V2, KEY_V2, BUNDLE_V2)
+      touchWithNewMtime(path.join(svidDir, 'test-svid.svid.pem'))
 
-  test('shutdown clears buffer', async () => {
-    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
-
-    const lazyExporter = createLazyExporter(() => {
-      return { status: 'not_ready' }
+      // Second call - should detect mtime change and reload
+      expect(getCert()).toBe(CERT_V2)
+      expect(getKey()).toBe(KEY_V2)
     })
-
-    lazyExporter.export([{ name: 'span1' }], () => {})
-    expect(lazyExporter._getBufferSize()).toBe(1)
-
-    await lazyExporter.shutdown()
-    expect(lazyExporter._getBufferSize()).toBe(0)
   })
 
-  test('forceFlush creates exporter and flushes if ready', async () => {
-    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+  test('serves cached cert during transient read failure', () => {
+    writeSVIDFiles(CERT_V1, KEY_V1, BUNDLE_V1)
 
-    let ready = false
-    const exportedItems = []
-    const mockExporter = {
-      export: (items, cb) => {
-        exportedItems.push(items)
-        cb({ code: 0 })
-      },
-      forceFlush: jest.fn().mockResolvedValue()
-    }
+    jest.isolateModules(() => {
+      const { initializeZTI, getCert } = require('../lib/zti')
+      initializeZTI()
 
-    const lazyExporter = createLazyExporter(() => {
-      if (!ready) return { status: 'not_ready' }
-      return { status: 'ready', exporter: mockExporter }
+      // First call - cache V1
+      expect(getCert()).toBe(CERT_V1)
+
+      // Simulate mid-rotation: touch mtime but make key file unreadable
+      touchWithNewMtime(path.join(svidDir, 'test-svid.svid.pem'))
+      fs.unlinkSync(path.join(svidDir, 'test-svid.svid.key'))
+
+      // Should serve cached V1 despite read failure
+      expect(getCert()).toBe(CERT_V1)
     })
-
-    // Buffer some items
-    lazyExporter.export([{ name: 'span1' }], () => {})
-
-    // forceFlush when not ready - should not throw
-    await lazyExporter.forceFlush()
-    expect(lazyExporter._getBufferSize()).toBe(1) // Still buffered
-
-    // Make ready and forceFlush
-    ready = true
-    await lazyExporter.forceFlush()
-
-    expect(lazyExporter._isExporterCreated()).toBe(true)
-    expect(lazyExporter._getBufferSize()).toBe(0)
-    expect(exportedItems).toHaveLength(1)
-    expect(mockExporter.forceFlush).toHaveBeenCalled()
   })
 
-  test('does not retry after permanent failure', () => {
-    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+  test('throws when files missing and no cache', () => {
+    // Don't create SVID files
 
-    let createCalled = 0
-    const lazyExporter = createLazyExporter(() => {
-      createCalled++
-      return { status: 'error', error: 'Permanent configuration error' }
+    jest.isolateModules(() => {
+      const { initializeZTI, getCert } = require('../lib/zti')
+      initializeZTI()
+
+      expect(() => getCert()).toThrow()
     })
+  })
 
-    // First export - tries to create
-    lazyExporter.export([{ name: 'span1' }], () => {})
-    expect(createCalled).toBe(1)
+  test('getCert/getKey return rotated values when mtime changes', () => {
+    writeSVIDFiles(CERT_V1, KEY_V1, BUNDLE_V1)
 
-    // Second export - should not retry (permanent failure)
-    lazyExporter.export([{ name: 'span2' }], () => {})
-    expect(createCalled).toBe(1) // Still 1, not retried
+    jest.isolateModules(() => {
+      const { initializeZTI, getCert, getKey } = require('../lib/zti')
+
+      initializeZTI()
+
+      // First call - returns V1
+      expect(getCert()).toBe(CERT_V1)
+      expect(getKey()).toBe(KEY_V1)
+
+      // Simulate certificate rotation: write new files with new mtime
+      writeSVIDFiles(CERT_V2, KEY_V2, BUNDLE_V2)
+      touchWithNewMtime(path.join(svidDir, 'test-svid.svid.pem'))
+
+      // Second call - returns V2 (rotation detected)
+      expect(getCert()).toBe(CERT_V2)
+      expect(getKey()).toBe(KEY_V2)
+    })
+  })
+
+  test('createZTIAgentFactory returns sync factory that uses getCert/getKey', () => {
+    writeSVIDFiles(CERT_V1, KEY_V1, BUNDLE_V1)
+
+    jest.isolateModules(() => {
+      const { createZTIAgentFactory } = require('../lib/utils')
+
+      const factory = createZTIAgentFactory()
+      expect(factory).not.toBeNull()
+      expect(typeof factory).toBe('function')
+
+      // Factory is sync and returns an Agent with current certs
+      const agent = factory()
+      expect(agent.options.cert).toBe(CERT_V1)
+      expect(agent.options.key).toBe(KEY_V1)
+      expect(agent.options.keepAlive).toBe(true)
+    })
   })
 })

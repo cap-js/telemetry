@@ -1,9 +1,9 @@
 /**
- * Integration tests for ZTI + Tracing with LazyExporter
+ * Integration tests for ZTI + Tracing with dynamic certificate rotation
  *
- * With the lazy exporter refactor, the complexity of waiting for ZTI credentials
- * is moved into the exporter layer. The app starts immediately with sync initialization,
- * and telemetry is buffered until SVID files become available.
+ * With dynamic https.Agent cert/key functions, certificates are loaded on-demand
+ * when new TCP connections are established. The mtime-based caching ensures
+ * minimal disk reads while supporting automatic certificate rotation.
  */
 
 const cds = require('@sap/cds')
@@ -77,7 +77,6 @@ describe('Tracing with ZTI integration', () => {
     delete require.cache[require.resolve('../lib/tracing')]
     delete require.cache[require.resolve('../lib/metrics')]
     delete require.cache[require.resolve('../lib/logging')]
-    delete require.cache[require.resolve('../lib/exporter/LazyExporter')]
   })
 
   afterEach(() => {
@@ -92,46 +91,7 @@ describe('Tracing with ZTI integration', () => {
     delete process.env.cds_requires_telemetry_tracing_exporter
   })
 
-  test('telemetry setup completes synchronously even without SVID files', () => {
-    // SVID files don't exist yet - but setup should still complete (sync)
-
-    cds.env.requires = {
-      telemetry: {
-        kind: 'to-caas',
-        credentials: {
-          otlp: {
-            http: 'https://caas.example.com/otlp'
-          }
-        },
-        tracing: {
-          exporter: {
-            module: '@opentelemetry/sdk-trace-base',
-            class: 'InMemorySpanExporter'
-          },
-          sampler: {
-            kind: 'AlwaysOnSampler'
-          },
-          propagators: []
-        },
-        instrumentations: {}
-      }
-    }
-
-    // Setup should be sync and not throw
-    const setup = require('../lib/index')
-    expect(() => setup()).not.toThrow()
-
-    // We should have a real tracer (not NoopTracer)
-    const tracer = trace.getTracer('test')
-    expect(tracer).toBeDefined()
-
-    const span = tracer.startSpan('test-span')
-    expect(span.spanContext().traceId).toBeDefined()
-    expect(span.spanContext().traceId).not.toBe('00000000000000000000000000000000')
-    span.end()
-  })
-
-  test('TracerProvider is registered immediately (no NoopTracer caching)', () => {
+  test('TracerProvider is registered with ZTI credentials', () => {
     // Create SVID files
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
     fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
@@ -174,7 +134,50 @@ describe('Tracing with ZTI integration', () => {
     span.end()
   })
 
-  test('standard flow works without ZTI binding', () => {
+  test('throws when mTLS credentials are missing (no ZTI files, no x509)', () => {
+    // Remove ZTI binding from VCAP_SERVICES (so no ZTI agent)
+    process.env.VCAP_SERVICES = JSON.stringify({
+      'caas-service': [{
+        name: 'test-caas',
+        credentials: {
+          otlp: {
+            http: 'https://caas.example.com/otlp'
+          }
+        }
+      }]
+    })
+
+    // No x509 credentials either
+    cds.env.requires = {
+      telemetry: {
+        kind: 'telemetry-to-caas',
+        credentials: {
+          otlp: {
+            http: 'https://caas.example.com/otlp'
+          }
+        },
+        tracing: {
+          exporter: {
+            module: '@opentelemetry/sdk-trace-base',
+            class: 'InMemorySpanExporter'
+          },
+          sampler: {
+            kind: 'AlwaysOnSampler'
+          },
+          propagators: []
+        },
+        instrumentations: {}
+      }
+    }
+
+    delete require.cache[require.resolve('../lib/zti')]
+
+    // Setup should throw because mTLS is required but no credentials available
+    const setup = require('../lib/index')
+    expect(() => setup()).toThrow('CaaS requires mTLS')
+  })
+
+  test('standard flow works without ZTI binding using x509 credentials', () => {
     // Remove ZTI from VCAP_SERVICES
     process.env.VCAP_SERVICES = JSON.stringify({
       'caas-service': [{
@@ -225,34 +228,6 @@ describe('Tracing with ZTI integration', () => {
     span.end()
   })
 
-  test('getCredsForCaaSMtls returns null when SVID files not ready', () => {
-    // Don't create SVID files
-
-    jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/utils')
-      const creds = getCredsForCaaSMtls()
-
-      // Should return null (not throw) when files don't exist
-      expect(creds).toEqual({ status: 'not_ready' })
-    })
-  })
-
-  test('getCredsForCaaSMtls returns credentials when SVID files exist', () => {
-    // Create SVID files
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.pem'), '-----BEGIN CERTIFICATE-----\ntest\n-----END CERTIFICATE-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.svid.key'), '-----BEGIN PRIVATE KEY-----\ntest\n-----END PRIVATE KEY-----')
-    fs.writeFileSync(path.join(svidDir, 'test-svid.bundle.pem'), '-----BEGIN CERTIFICATE-----\nbundle\n-----END CERTIFICATE-----')
-
-    jest.isolateModules(() => {
-      const { getCredsForCaaSMtls } = require('../lib/utils')
-      const creds = getCredsForCaaSMtls()
-
-      expect(creds.status).toBe('ready')
-      expect(creds.cert).toContain('BEGIN CERTIFICATE')
-      expect(creds.key).toContain('BEGIN PRIVATE KEY')
-    })
-  })
-
   test('x509 env var credentials work when USE_ZTI=false', () => {
     process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
 
@@ -261,17 +236,36 @@ describe('Tracing with ZTI integration', () => {
 
     cds.env.requires = {
       telemetry: {
+        kind: 'to-caas',
+        credentials: {
+          otlp: {
+            http: 'https://caas.example.com/otlp'
+          }
+        },
         x509: {
           cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar\n-----END CERTIFICATE-----').toString('base64'),
           key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar\n-----END PRIVATE KEY-----').toString('base64')
-        }
+        },
+        tracing: {
+          exporter: {
+            module: '@opentelemetry/sdk-trace-base',
+            class: 'InMemorySpanExporter'
+          },
+          sampler: {
+            kind: 'AlwaysOnSampler'
+          },
+          propagators: []
+        },
+        instrumentations: {}
       }
     }
 
-    const { getCredsForCaaSMtls } = require('../lib/utils')
-    const creds = getCredsForCaaSMtls()
+    const setup = require('../lib/index')
+    setup()
 
-    expect(creds.status).toBe('ready')
-    expect(Buffer.from(creds.cert, 'base64').toString()).toContain('envvar')
+    const tracer = trace.getTracer('test')
+    const span = tracer.startSpan('test-span')
+    expect(span.spanContext().traceId).toBeDefined()
+    span.end()
   })
 })
