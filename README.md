@@ -322,11 +322,22 @@ requires:
   - name: my-caas-instance
 ```
 
-That's it! The plugin automatically detects ZTI and uses the SVID files provisioned by the SPIRE sidecar for mTLS authentication.
+3. **After first deployment**, extract the certificate identity from the SVID and rebind CaaS with it:
+```bash
+# Extract subject/issuer from SVID certificate
+cf ssh my-app -c "openssl x509 -in /home/vcap/app/spire-svids/caas-svid.svid.pem -noout -subject -issuer -nameopt RFC2253"
+
+# Rebind CaaS with the extracted identity
+cf unbind-service my-app my-caas-instance
+cf bind-service my-app my-caas-instance -c '{"subject": "<extracted-subject>", "issuer": "<extracted-issuer>"}'
+cf restage my-app
+```
+
+This is a one-time step. The subject/issuer remain stable across certificate rotations.
 
 **How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` uses a lazy exporter that buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
 
-> **Note**: For optimal buffering behavior in production, ensure `NODE_ENV=production` is set. This enables batch processing with periodic export intervals (5s for traces/logs, 60s for metrics), ensuring buffered telemetry is flushed shortly after ZTI credentials become ready. In development mode, traces and logs use immediate export per-request.
+> **Important**: `NODE_ENV=production` is recommended for CaaS deployments. Log export requires `cds.log()`'s JSON formatter, which is only active in production. Additionally, production mode enables batch processing with periodic export intervals (5s for traces/logs, 60s for metrics), ensuring buffered telemetry is flushed shortly after ZTI credentials become ready. In development mode, buffered telemetry is only flushed on the next request.
 
 To explicitly disable ZTI (e.g., for testing), set:
 ```bash
@@ -335,7 +346,7 @@ CDS_REQUIRES_TELEMETRY_USE_ZTI=false
 
 #### Option 2: Manual Certificate Configuration (Fallback)
 
-For environments without ZTI or when you want to manage certificates externally, you can provide mTLS credentials manually:
+For environments without ZTI, you can provide mTLS credentials manually:
 
 1. **Bind the CaaS service** to your app with subject/issuer configuration:
 ```yaml
@@ -348,7 +359,7 @@ requires:
         issuer: "CN=SAP PKI Certificate Service Client CA,..."
 ```
 
-2. **Provide mTLS credentials** via environment variables (base64 encoded):
+2. **Provide mTLS credentials** via environment variables (base64 encoded or PEM):
 ```yaml
 # mta.yaml
 properties:
@@ -356,13 +367,13 @@ properties:
   CDS_REQUIRES_TELEMETRY_X509_KEY: '<base64-encoded-private-key>'
 ```
 
-Or set directly via Cloud Foundry CLI:
+Or via Cloud Foundry CLI:
 ```bash
 cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_CERT "<base64-cert>"
 cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_KEY "<base64-key>"
 ```
 
-The mTLS certificate must be SAP-signed through the BTP Certificate Service. Certificates can be created with validity from 7 days up to 1 year and must be renewed before expiration. For detailed certificate setup and renewal instructions, refer to your project's certificate management documentation.
+The mTLS certificate must be SAP-signed through the BTP Certificate Service.
 
 ### `telemetry-to-jaeger`
 
