@@ -440,6 +440,9 @@ Default: `BatchSpanProcessor`, except in the `[development]` profile, which uses
 }
 ```
 
+> [!NOTE]
+> The `ConsoleSpanExporter` (the default `telemetry-to-console` exporter) has only been tested with the `SimpleSpanProcessor`. Combining it with the `BatchSpanProcessor` is not recommended.
+
 
 ### Exporters
 
