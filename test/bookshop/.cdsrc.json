@@ -144,5 +144,16 @@
         "outboxed": false
       }
     }
+  },
+  "[tracing-batch-processor]": {
+    "requires": {
+      "telemetry": {
+        "tracing": {
+          "processor": {
+            "kind": "BatchSpanProcessor"
+          }
+        }
+      }
+    }
   }
 }

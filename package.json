@@ -81,11 +81,17 @@
               "W3CTraceContextPropagator",
               "W3CBaggagePropagator"
             ],
-            "[development]": {
-              "hrtime": true
+            "processor": {
+              "kind": "BatchSpanProcessor"
             },
             "_tx": false,
-            "_hana_prom": true
+            "_hana_prom": true,
+            "[development]": {
+              "hrtime": true,
+              "processor": {
+                "kind": "SimpleSpanProcessor"
+              }
+            }
           },
           "metrics": {
             "config": {
