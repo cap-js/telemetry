@@ -1,22 +1,13 @@
-// Mock console.dir to capture logs ConsoleMetricExporter writes
-const consoleDirLogs = []
-jest.spyOn(console, 'dir').mockImplementation((...args) => {
-  consoleDirLogs.push(args)
-})
-
 const cds = require('@sap/cds')
-const { setTimeout: wait } = require('node:timers/promises')
+
+// With queue metrics disabled (_queue: false in the metrics-outbox-disabled profile) the
+// in-memory reader should never capture any `queue.*` datapoints.
+const { latestDataPointValue, forceFlush, reset } = require('./bookshop/lib/MyInMemoryMetricReader')
 
 const { expect, GET } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox-disabled')
 
 function metricValue(metric) {
-  const mostRecentMetricLog = consoleDirLogs.findLast(
-    metricLog => metricLog[0].descriptor.name === `queue.${metric}`
-  )?.[0]
-
-  if (!mostRecentMetricLog) return null
-
-  return mostRecentMetricLog.dataPoints[0].value
+  return latestDataPointValue(metric)
 }
 
 describe('queue metrics is disabled', () => {
@@ -34,12 +25,15 @@ describe('queue metrics is disabled', () => {
     externalServiceOne.before('*', () => {})
   })
 
-  beforeEach(() => (consoleDirLogs.length = 0))
+  beforeEach(() => reset())
 
   test('metrics are not collected', async () => {
     await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', admin)
 
-    await wait(150) // Wait for metrics to be collected
+    // Assert absence: with _queue disabled no queue.* instrument is ever registered, so nothing can
+    // be exported. Force a few export cycles (rather than a fixed sleep) to give the app every chance
+    // to emit a queue metric — none must appear.
+    for (let i = 0; i < 5; i++) await forceFlush()
 
     expect(metricValue('cold_entries')).to.eq(null)
     expect(metricValue('remaining_entries')).to.eq(null)
