@@ -443,6 +443,143 @@ describe('LazyExporter', () => {
     // Should report error
     expect(callback).toHaveBeenCalledWith(expect.objectContaining({ code: 1 }))
   })
+
+  test('proxies selectAggregationTemporality to real exporter when ready', () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+    const { InstrumentType } = require('@opentelemetry/sdk-metrics')
+
+    let ready = false
+    const mockSelectAggregationTemporality = jest.fn(instrumentType => {
+      // Mock returns unique values we can verify
+      if (instrumentType === InstrumentType.COUNTER) return 99
+      if (instrumentType === InstrumentType.UP_DOWN_COUNTER) return 88
+      return 77
+    })
+
+    const mockExporter = {
+      export: jest.fn((_, cb) => cb({ code: 0 })),
+      shutdown: jest.fn(() => Promise.resolve()),
+      forceFlush: jest.fn(() => Promise.resolve()),
+      selectAggregationTemporality: mockSelectAggregationTemporality
+    }
+
+    const lazy = createLazyExporter(() => {
+      if (!ready) return { status: 'not_ready' }
+      return { status: 'ok', exporter: mockExporter }
+    })
+
+    // Before ready: uses fallback, doesn't call mock
+    lazy.export(['item1'], () => {})
+    const beforeReady = lazy.selectAggregationTemporality(InstrumentType.COUNTER)
+    expect(beforeReady).toBe(0) // Fallback returns DELTA
+    expect(mockSelectAggregationTemporality).not.toHaveBeenCalled()
+
+    // Trigger exporter creation
+    ready = true
+    lazy.export(['item2'], () => {})
+
+    // After exporter ready: should proxy to mock and return its values
+    const counterResult = lazy.selectAggregationTemporality(InstrumentType.COUNTER)
+    expect(mockSelectAggregationTemporality).toHaveBeenCalledWith(InstrumentType.COUNTER)
+    expect(counterResult).toBe(99) // Mock's return value, not our fallback
+
+    const upDownResult = lazy.selectAggregationTemporality(InstrumentType.UP_DOWN_COUNTER)
+    expect(mockSelectAggregationTemporality).toHaveBeenCalledWith(InstrumentType.UP_DOWN_COUNTER)
+    expect(upDownResult).toBe(88) // Mock's return value, not our fallback
+
+    // Verify it truly delegates, not using our logic
+    expect(mockSelectAggregationTemporality).toHaveBeenCalledTimes(2)
+  })
+
+  test('returns correct temporality fallback when exporter not ready', () => {
+    const { createLazyExporter } = require('../lib/exporter/LazyExporter')
+    const { InstrumentType, AggregationTemporality } = require('@opentelemetry/sdk-metrics')
+
+    // Exporter never becomes ready
+    const lazy = createLazyExporter(() => ({ status: 'not_ready' }))
+
+    // COUNTER and HISTOGRAM should get DELTA (0)
+    expect(lazy.selectAggregationTemporality(InstrumentType.COUNTER))
+      .toBe(AggregationTemporality.DELTA)
+    expect(lazy.selectAggregationTemporality(InstrumentType.HISTOGRAM))
+      .toBe(AggregationTemporality.DELTA)
+
+    // UP_DOWN_COUNTER should get CUMULATIVE (1)
+    expect(lazy.selectAggregationTemporality(InstrumentType.UP_DOWN_COUNTER))
+      .toBe(AggregationTemporality.CUMULATIVE)
+    expect(lazy.selectAggregationTemporality(InstrumentType.OBSERVABLE_UP_DOWN_COUNTER))
+      .toBe(AggregationTemporality.CUMULATIVE)
+  })
+})
+
+describe('Logging exporter error handling', () => {
+  beforeEach(() => {
+    delete require.cache[require.resolve('../lib/logging')]
+    delete require.cache[require.resolve('../lib/utils')]
+  })
+
+  test('gracefully handles missing logs exporter module (MODULE_NOT_FOUND)', () => {
+    const logInfoSpy = jest.fn()
+
+    // Mock cds.log before requiring the logging module
+    jest.isolateModules(() => {
+      const cds = require('@sap/cds')
+      const originalLog = cds.log
+      cds.log = (name) => {
+        if (name === 'telemetry') {
+          return { _info: true, info: logInfoSpy, _debug: false, _warn: false }
+        }
+        return originalLog(name)
+      }
+
+      cds.env.requires = {
+        telemetry: {
+          kind: 'telemetry-to-caas',
+          logging: {
+            exporter: {
+              module: '@opentelemetry/non-existent-module-12345',
+              class: 'OTLPLogExporter'
+            }
+          }
+        }
+      }
+
+      const loggingSetup = require('../lib/logging')
+      const result = loggingSetup({})
+
+      // Should return null and not throw
+      expect(result).toBeNull()
+
+      // Should log helpful message
+      expect(logInfoSpy).toHaveBeenCalled()
+      const logMessage = logInfoSpy.mock.calls[0][0]
+      expect(logMessage).toContain('not found')
+      expect(logMessage).toContain('@opentelemetry/non-existent-module-12345')
+
+      cds.log = originalLog
+    })
+  })
+
+  test('throws when exporter class not found in module', () => {
+    jest.isolateModules(() => {
+      const cds = require('@sap/cds')
+      cds.env.requires = {
+        telemetry: {
+          kind: 'telemetry-to-caas',
+          logging: {
+            exporter: {
+              module: '@opentelemetry/sdk-logs',
+              class: 'NonExistentExporter'
+            }
+          }
+        }
+      }
+
+      const loggingSetup = require('../lib/logging')
+
+      expect(() => loggingSetup({})).toThrow('Unknown logs exporter "NonExistentExporter"')
+    })
+  })
 })
 
 describe('CaaS integration', () => {
@@ -498,5 +635,57 @@ describe('CaaS integration', () => {
     expect(span.spanContext().traceId).toBeDefined()
     expect(span.spanContext().traceId).not.toBe('00000000000000000000000000000000')
     span.end()
+  })
+
+  test('Metrics use DELTA aggregation temporality with ZTI', () => {
+    ctx.writeSVIDFiles()
+
+    cds.env.requires = {
+      telemetry: {
+        kind: 'to-caas',
+        credentials: {
+          otlp: { http: 'https://caas.example.com/otlp' }
+        },
+        metrics: {
+          exporter: {
+            module: '@opentelemetry/exporter-metrics-otlp-proto',
+            class: 'OTLPMetricExporter'
+          }
+        },
+        instrumentations: {}
+      }
+    }
+
+    const { AggregationTemporality, InstrumentType } = require('@opentelemetry/sdk-metrics')
+    const { getResource } = require('../lib/utils')
+    const metricsSetup = require('../lib/metrics')
+
+    // Setup metrics with resource
+    const resource = getResource()
+    const meterProvider = metricsSetup(resource)
+
+    // Verify metrics provider was created
+    expect(meterProvider).toBeDefined()
+
+    // Get the metric collectors (contains the reader)
+    const collectors = meterProvider._sharedState.metricCollectors
+    expect(collectors).toBeDefined()
+    expect(collectors.length).toBeGreaterThan(0)
+
+    const collector = collectors[0]
+    expect(collector.selectAggregationTemporality).toBeDefined()
+
+    // Verify DELTA temporality is used (not CUMULATIVE) for COUNTER
+    const counterTemporality = collector.selectAggregationTemporality(InstrumentType.COUNTER)
+    expect(counterTemporality).toBe(AggregationTemporality.DELTA)
+    expect(counterTemporality).not.toBe(AggregationTemporality.CUMULATIVE)
+
+    // Verify for HISTOGRAM as well
+    const histogramTemporality = collector.selectAggregationTemporality(InstrumentType.HISTOGRAM)
+    expect(histogramTemporality).toBe(AggregationTemporality.DELTA)
+
+    // UP_DOWN_COUNTER should be CUMULATIVE by design (this is correct OTel behavior)
+    const upDownCounterTemporality = collector.selectAggregationTemporality(InstrumentType.UP_DOWN_COUNTER)
+    expect(upDownCounterTemporality).toBe(AggregationTemporality.CUMULATIVE)
   })
 })
