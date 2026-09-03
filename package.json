@@ -30,7 +30,13 @@
     "@opentelemetry/semantic-conventions": "^1.41"
   },
   "peerDependencies": {
-    "@sap/cds": "^10 || ^9"
+    "@sap/cds": "^10 || ^9",
+    "@opentelemetry/sdk-logs": ">=0.221"
+  },
+  "peerDependenciesMeta": {
+    "@opentelemetry/sdk-logs": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1",
@@ -162,7 +168,6 @@
           "vcap": {
             "label": "caas-service"
           },
-          "mtls_service_pattern": "caas-mtls|caas-cert",
           "tracing": {
             "exporter": {
               "module": "@opentelemetry/exporter-trace-otlp-proto",
@@ -173,12 +178,6 @@
             "exporter": {
               "module": "@opentelemetry/exporter-metrics-otlp-proto",
               "class": "OTLPMetricExporter"
-            }
-          },
-          "logging": {
-            "exporter": {
-              "module": "@opentelemetry/exporter-logs-otlp-proto",
-              "class": "OTLPLogExporter"
             }
           }
         }

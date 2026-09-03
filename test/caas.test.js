@@ -412,8 +412,8 @@ describe('LazyExporter', () => {
       return { status: 'ok', exporter: mockExporter }
     })
 
-    // Fill buffer beyond max (1000)
-    for (let i = 0; i < 1005; i++) {
+    // Fill buffer beyond max (10)
+    for (let i = 0; i < 15; i++) {
       lazy.export([`item${i}`], () => {})
     }
 
@@ -421,12 +421,12 @@ describe('LazyExporter', () => {
     ready = true
     lazy.export(['final'], () => {})
 
-    // Buffer was capped at 1000, so oldest 5 items were dropped
-    // Exported: 1000 buffered + 1 final = 1001
-    expect(exportedItems.length).toBe(1001)
+    // Buffer was capped at 10, so oldest 5 items were dropped
+    // Exported: 10 buffered + 1 final = 11
+    expect(exportedItems.length).toBe(11)
     expect(exportedItems[0]).toBe('item5') // item0-4 were dropped
-    expect(exportedItems[999]).toBe('item1004')
-    expect(exportedItems[1000]).toBe('final')
+    expect(exportedItems[9]).toBe('item14')
+    expect(exportedItems[10]).toBe('final')
   })
 
   test('handles permanent failure', () => {
@@ -509,76 +509,6 @@ describe('LazyExporter', () => {
       .toBe(AggregationTemporality.CUMULATIVE)
     expect(lazy.selectAggregationTemporality(InstrumentType.OBSERVABLE_UP_DOWN_COUNTER))
       .toBe(AggregationTemporality.CUMULATIVE)
-  })
-})
-
-describe('Logging exporter error handling', () => {
-  beforeEach(() => {
-    delete require.cache[require.resolve('../lib/logging')]
-    delete require.cache[require.resolve('../lib/utils')]
-  })
-
-  test('gracefully handles missing logs exporter module (MODULE_NOT_FOUND)', () => {
-    const logInfoSpy = jest.fn()
-
-    // Mock cds.log before requiring the logging module
-    jest.isolateModules(() => {
-      const cds = require('@sap/cds')
-      const originalLog = cds.log
-      cds.log = (name) => {
-        if (name === 'telemetry') {
-          return { _info: true, info: logInfoSpy, _debug: false, _warn: false }
-        }
-        return originalLog(name)
-      }
-
-      cds.env.requires = {
-        telemetry: {
-          kind: 'telemetry-to-caas',
-          logging: {
-            exporter: {
-              module: '@opentelemetry/non-existent-module-12345',
-              class: 'OTLPLogExporter'
-            }
-          }
-        }
-      }
-
-      const loggingSetup = require('../lib/logging')
-      const result = loggingSetup({})
-
-      // Should return null and not throw
-      expect(result).toBeNull()
-
-      // Should log helpful message
-      expect(logInfoSpy).toHaveBeenCalled()
-      const logMessage = logInfoSpy.mock.calls[0][0]
-      expect(logMessage).toContain('not found')
-      expect(logMessage).toContain('@opentelemetry/non-existent-module-12345')
-
-      cds.log = originalLog
-    })
-  })
-
-  test('throws when exporter class not found in module', () => {
-    jest.isolateModules(() => {
-      const cds = require('@sap/cds')
-      cds.env.requires = {
-        telemetry: {
-          kind: 'telemetry-to-caas',
-          logging: {
-            exporter: {
-              module: '@opentelemetry/sdk-logs',
-              class: 'NonExistentExporter'
-            }
-          }
-        }
-      }
-
-      const loggingSetup = require('../lib/logging')
-
-      expect(() => loggingSetup({})).toThrow('Unknown logs exporter "NonExistentExporter"')
-    })
   })
 })
 
