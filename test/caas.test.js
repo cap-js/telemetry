@@ -242,27 +242,30 @@ describe('ZTI', () => {
       })
     })
 
-    test('factory throws when SVID files do not exist', () => {
+    test('factory returns null when SVID files do not exist', () => {
       jest.isolateModules(() => {
         const { createZTIAgentFactory } = require('../lib/utils')
         const factory = createZTIAgentFactory()
 
-        expect(factory).not.toBeNull()
-        expect(() => factory()).toThrow()
+        // With unified RotatingCertAgent that reads from cds.env, factory returns null
+        // if initial certs can't be loaded. LazyExporter handles deferred initialization.
+        expect(factory).toBeNull()
       })
     })
   })
 
   // Certificate rotation works for both interval-based exports (production, metrics) and
   // on-demand exports (tracing/logging in development). The test verifies this by checking
-  // that the factory returns a singleton: after _rotate() updates the agent's certs,
+  // that the factory returns a singleton: after rotation via 'svid' event updates the agent's certs,
   // any subsequent factory() call - whether from a scheduled interval or an immediate
   // span.end() - returns the same agent instance with the rotated certificates.
   describe('certificate rotation', () => {
-    test('agent reloads certificate when mtime changes', () => {
+    test('agent rotates certificate when svid event is emitted', () => {
       ctx.writeSVIDFiles()
 
       jest.isolateModules(() => {
+        // Use cds from isolated module context — same instance that agent registered listener on
+        const cds = require('@sap/cds')
         const { createZTIAgentFactory } = require('../lib/utils')
         const { reset } = require('../lib/zti')
 
@@ -271,10 +274,8 @@ describe('ZTI', () => {
         expect(agent.options.cert).toBe(CERT_V1)
         expect(agent.options.key).toBe(KEY_V1)
 
-        // Simulate certificate rotation
-        ctx.writeSVIDFiles(CERT_V2, KEY_V2, BUNDLE_V2)
-        ctx.touchCertFile()
-        agent._rotate()
+        // Simulate certificate rotation via event (as SVID watcher does in production)
+        cds.emit('svid', { cert: CERT_V2, key: KEY_V2 })
 
         expect(agent.options.cert).toBe(CERT_V2)
         expect(agent.options.key).toBe(KEY_V2)
@@ -286,10 +287,12 @@ describe('ZTI', () => {
       })
     })
 
-    test('agent serves cached cert during transient read failure', () => {
+    test('agent rotates by re-reading cds.env when svid event has no payload', () => {
       ctx.writeSVIDFiles()
 
       jest.isolateModules(() => {
+        // Use cds from isolated module context
+        const cds = require('@sap/cds')
         const { createZTIAgentFactory } = require('../lib/utils')
         const { reset } = require('../lib/zti')
 
@@ -297,12 +300,32 @@ describe('ZTI', () => {
         const agent = factory()
         expect(agent.options.cert).toBe(CERT_V1)
 
-        // Simulate mid-rotation: touch mtime but make key file unreadable
-        ctx.touchCertFile()
-        fs.unlinkSync(path.join(ctx.svidDir, 'test-svid.svid.key'))
+        // Simulate manual rotation: update cds.env and emit event without payload
+        cds.env.requires.telemetry.x509 = { cert: CERT_V2, key: KEY_V2 }
+        cds.emit('svid')
 
-        // _rotate should fail but agent should keep old certs
-        agent._rotate()
+        expect(agent.options.cert).toBe(CERT_V2)
+        expect(agent.options.key).toBe(KEY_V2)
+
+        reset()
+      })
+    })
+
+    test('agent keeps cached cert when rotation event has invalid payload', () => {
+      ctx.writeSVIDFiles()
+
+      jest.isolateModules(() => {
+        // Use cds from isolated module context
+        const cds = require('@sap/cds')
+        const { createZTIAgentFactory } = require('../lib/utils')
+        const { reset } = require('../lib/zti')
+
+        const factory = createZTIAgentFactory()
+        const agent = factory()
+        expect(agent.options.cert).toBe(CERT_V1)
+
+        // Emit event with invalid payload — agent should keep old certs
+        cds.emit('svid', { cert: null, key: null })
         expect(agent.options.cert).toBe(CERT_V1)
 
         // Factory returns same singleton — on-demand exports still work with cached certs
