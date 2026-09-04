@@ -242,14 +242,19 @@ describe('ZTI', () => {
       })
     })
 
-    test('factory returns null when SVID files do not exist', () => {
+    test('factory is returned even when SVID files do not exist yet', () => {
       jest.isolateModules(() => {
         const { createZTIAgentFactory } = require('../lib/utils')
+        const { certsAvailable } = require('../lib/zti')
         const factory = createZTIAgentFactory()
 
-        // With unified RotatingCertAgent that reads from cds.env, factory returns null
-        // if initial certs can't be loaded. LazyExporter handles deferred initialization.
-        expect(factory).toBeNull()
+        // Factory is returned to enable LazyExporter buffering,
+        // but certsAvailable() returns false until certs appear
+        expect(factory).not.toBeNull()
+        expect(typeof factory).toBe('function')
+        expect(certsAvailable()).toBe(false)
+
+        require('../lib/zti').reset()
       })
     })
   })
