@@ -30,19 +30,26 @@
     "@opentelemetry/semantic-conventions": "^1.41"
   },
   "peerDependencies": {
-    "@sap/cds": "^10 || ^9"
+    "@sap/cds": "^10 || ^9",
+    "@opentelemetry/sdk-logs": ">=0.221"
+  },
+  "peerDependenciesMeta": {
+    "@opentelemetry/sdk-logs": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@cap-js/cds-test": "^1",
     "@cap-js/sqlite": "^3",
     "@cap-js/telemetry": "file:.",
     "@grpc/grpc-js": "^1.9.14",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.219",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.219",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.219",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.219",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.221",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.221",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.221",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.221",
     "@opentelemetry/instrumentation-host-metrics": "^0.2.0",
     "@opentelemetry/instrumentation-runtime-node": "^0.32.0",
+    "@opentelemetry/sdk-logs": "^0.221",
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
@@ -156,6 +163,23 @@
           },
           "metrics": {
             "exporter": "env"
+          }
+        },
+        "telemetry-to-caas": {
+          "vcap": {
+            "label": "caas-service"
+          },
+          "tracing": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-trace-otlp-proto",
+              "class": "OTLPTraceExporter"
+            }
+          },
+          "metrics": {
+            "exporter": {
+              "module": "@opentelemetry/exporter-metrics-otlp-proto",
+              "class": "OTLPMetricExporter"
+            }
           }
         }
       }

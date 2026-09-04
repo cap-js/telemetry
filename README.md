@@ -25,6 +25,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-console`](#telemetry-to-console)
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
+  - [`telemetry-to-caas`](#telemetry-to-caas)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
@@ -200,7 +201,7 @@ Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`
 
 ## Predefined Kinds
 
-There are five predefined kinds as follows:
+There are six predefined kinds as follows:
 
 
 ### `telemetry-to-console`
@@ -283,11 +284,134 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 
 If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has the tag `Cloud Logging`.
 
-> Tip: To add the required tag to an existing user-provided service, you can use: 
+> Tip: To add the required tag to an existing user-provided service, you can use:
 > ```
 > cf update-user-provided-service {service-name} -t "Cloud Logging"
 > ```
 > For detailed information about binding resolution in CAP, consult [`cds.connect()` → Service Bindings](https://cap.cloud.sap/docs/node.js/cds-connect#service-bindings).
+
+### `telemetry-to-caas`
+
+Exports traces and metrics to CaaS (Collector as a Service). Log export is optional and requires additional configuration.
+CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
+
+Use via `cds.requires.telemetry.kind = 'to-caas'`.
+
+Required dependencies:
+- `@opentelemetry/exporter-trace-otlp-proto`
+- `@opentelemetry/exporter-metrics-otlp-proto`
+
+Optional (for log export):
+- `@opentelemetry/exporter-logs-otlp-proto`
+
+To enable log export to CaaS, install the dependency above and add:
+```json
+{
+  "cds": {
+    "requires": {
+      "telemetry": {
+        "kind": "to-caas",
+        "logging": {
+          "exporter": {
+            "module": "@opentelemetry/exporter-logs-otlp-proto",
+            "class": "OTLPLogExporter"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Note: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. See the [Logs](#logs) section for details.
+
+CaaS requires mTLS authentication. There are two ways to provide the mTLS certificates:
+
+#### Option 1: Zero Trust Identity (ZTI) with SPIRE (Recommended)
+
+ZTI with SPIRE sidecar automatically provisions and rotates mTLS certificates (SVID files). This is the recommended approach for production.
+
+1. **Bind ZTI service** to your app:
+```yaml
+# mta.yaml
+requires:
+  - name: my-zti-instance
+```
+
+2. **Bind CaaS service** to your app:
+```yaml
+# mta.yaml
+requires:
+  - name: my-caas-instance
+```
+
+3. **After first deployment**, extract the certificate identity from the SVID and rebind CaaS with it:
+```bash
+# Extract subject/issuer from SVID certificate
+cf ssh my-app -c "openssl x509 -in /home/vcap/app/spire-svids/caas-svid.svid.pem -noout -subject -issuer -nameopt RFC2253"
+
+# Rebind CaaS with the extracted identity
+cf unbind-service my-app my-caas-instance
+cf bind-service my-app my-caas-instance -c '{"subject": "<extracted-subject>", "issuer": "<extracted-issuer>"}'
+cf restage my-app
+```
+
+This is a one-time step. The subject/issuer remain stable across certificate rotations.
+
+**How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` uses a lazy exporter that buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
+
+> **Note**: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. Traces and metrics work in both development and production modes. In production, batch processing uses periodic export intervals (5s for traces/logs, 60s for metrics). In development, traces and metrics use simpler processors that export immediately.
+
+To explicitly disable ZTI (e.g., for testing), set:
+```bash
+CDS_REQUIRES_TELEMETRY_USE_ZTI=false
+```
+
+#### Option 2: Manual Certificate Configuration (Fallback)
+
+For environments without ZTI, you can provide mTLS credentials manually:
+
+1. **Bind the CaaS service** to your app with subject/issuer configuration:
+```yaml
+# mta.yaml
+requires:
+  - name: my-caas-instance
+    parameters:
+      config:
+        subject: "CN=my-app,..."
+        issuer: "CN=SAP PKI Certificate Service Client CA,..."
+```
+
+2. **Provide mTLS credentials** via environment variables (base64 encoded or PEM):
+```yaml
+# mta.yaml
+properties:
+  CDS_REQUIRES_TELEMETRY_X509_CERT: '<base64-encoded-certificate-chain>'
+  CDS_REQUIRES_TELEMETRY_X509_KEY: '<base64-encoded-private-key>'
+```
+
+Or via Cloud Foundry CLI:
+```bash
+cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_CERT "<base64-cert>"
+cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_KEY "<base64-key>"
+```
+
+The mTLS certificate must be SAP-signed through the BTP Certificate Service.
+
+**Certificate Rotation (Advanced)**: Static x509 credentials can be rotated at runtime without restarting the application:
+```js
+// Update credentials in cds.env
+cds.env.requires.telemetry.x509 = { cert: newCert, key: newKey }
+
+// Trigger rotation event
+cds.emit('svid', { cert: newCert, key: newKey })
+```
+
+Alternatively, you can restart the application to pick up the new certificates.
+
+This is an advanced feature for custom certificate management systems. For most deployments:
+- **ZTI (Option 1)**: Automatic rotation - no action needed
+- **Static x509 (Option 2)**: Restart the application when certificates expire
 
 ### `telemetry-to-jaeger`
 
