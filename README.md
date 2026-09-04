@@ -292,15 +292,38 @@ If you are binding your app to SAP Cloud Logging via a [user-provided service in
 
 ### `telemetry-to-caas`
 
-Exports traces, metrics, and logs to CaaS (Collector as a Service).
+Exports traces and metrics to CaaS (Collector as a Service). Log export is optional and requires additional configuration.
 CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
 
 Use via `cds.requires.telemetry.kind = 'to-caas'`.
 
-Required additional dependencies:
+Required dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
-- `@opentelemetry/exporter-logs-otlp-proto` (if using log export)
+
+Optional (for log export):
+- `@opentelemetry/exporter-logs-otlp-proto`
+
+To enable log export to CaaS, install the dependency above and add:
+```json
+{
+  "cds": {
+    "requires": {
+      "telemetry": {
+        "kind": "to-caas",
+        "logging": {
+          "exporter": {
+            "module": "@opentelemetry/exporter-logs-otlp-proto",
+            "class": "OTLPLogExporter"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Note: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. See the [Logs](#logs) section for details.
 
 CaaS requires mTLS authentication. There are two ways to provide the mTLS certificates:
 
@@ -337,7 +360,7 @@ This is a one-time step. The subject/issuer remain stable across certificate rot
 
 **How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` uses a lazy exporter that buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
 
-> **Important**: `NODE_ENV=production` is recommended for CaaS deployments. Log export requires `cds.log()`'s JSON formatter, which is only active in production. Additionally, production mode enables batch processing with periodic export intervals (5s for traces/logs, 60s for metrics), ensuring buffered telemetry is flushed shortly after ZTI credentials become ready. In development mode, buffered telemetry is only flushed on the next request.
+> **Note**: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. Traces and metrics work in both development and production modes. In production, batch processing uses periodic export intervals (5s for traces/logs, 60s for metrics). In development, traces and metrics use simpler processors that export immediately.
 
 To explicitly disable ZTI (e.g., for testing), set:
 ```bash
@@ -374,6 +397,21 @@ cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_KEY "<base64-key>"
 ```
 
 The mTLS certificate must be SAP-signed through the BTP Certificate Service.
+
+**Certificate Rotation (Advanced)**: Static x509 credentials can be rotated at runtime without restarting the application:
+```js
+// Update credentials in cds.env
+cds.env.requires.telemetry.x509 = { cert: newCert, key: newKey }
+
+// Trigger rotation event
+cds.emit('svid', { cert: newCert, key: newKey })
+```
+
+Alternatively, you can restart the application to pick up the new certificates.
+
+This is an advanced feature for custom certificate management systems. For most deployments:
+- **ZTI (Option 1)**: Automatic rotation - no action needed
+- **Static x509 (Option 2)**: Restart the application when certificates expire
 
 ### `telemetry-to-jaeger`
 
