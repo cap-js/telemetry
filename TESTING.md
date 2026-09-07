@@ -121,7 +121,7 @@ This is the inverse pairing: passport is sqlite-skip / HANA-run; multitenancy is
 
 Other skips are **debt tracked in #477**, not sanctioned exceptions:
 
-- **§1 — queue-worker tracing on sqlite:** `tracing-scheduled`, `tracing-outboxed-batch`, `tracing-messaging-inboxed`, `tracing-messaging-persistent-outbox` skip their worker-span cases on sqlite. Published `@sap/cds` uses a raw `setTimeout` bypass (not `cds.spawn`) for the sqlite queue worker to avoid a single-writer deadlock, so the `cds.spawn - run task` root span never appears. Gated on a cds queue-spawn fix landing; remove with a follow-up.
+- **§1 — queue-worker tracing on sqlite:** `tracing-scheduled`, `tracing-outboxed-batch`, `tracing-messaging-inboxed`, `tracing-messaging-persistent-outbox` skip their worker-span cases on sqlite **when `@sap/cds` < 10.1** (gated inline via `cds.version`). cds 10.1 routes the sqlite queue worker through `cds.spawn` (the queue-spawn fix), so the `cds.spawn - run task` root span appears and the tests run; on earlier cds it's absent. Both CI matrix legs are currently below that bar — the cds-9 leg force-installs `@sap/cds@9`, and the cds-10 leg resolves `@sap/cds` 10.0.x transitively from the lockfile — so the cases stay **dormant (skipped) on CI** until the transitive `@sap/cds` reaches 10.1. HANA always runs regardless of version.
 - **§3 — unimplemented stubs:** placeholder `test.skip` cases in `tracing.test.js` and `tracing-mt.test.js` (individual handlers, remote, `$batch`, `srv.emit`, `cds.spawn` under multitenancy) — real coverage gaps to be written.
 
 ## Known caveats & gotchas

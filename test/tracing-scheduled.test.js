@@ -26,10 +26,12 @@ const otel = require('@opentelemetry/api')
 const { asExternalClient, eventually } = require('./utils')
 
 describe('tracing for scheduled tasks', () => {
-  // Queue-worker tracing needs cds.spawn on sqlite — skipped here, tracked in #477 §1.
+  // Queue-worker tracing needs the cds.spawn fix (@sap/cds >= 10.1) on sqlite; HANA always runs. Tracked in #477 §1.
+  // Dormant on CI until the transitive @sap/cds reaches 10.1 (the cds-10 leg resolves 10.0.x today); cds-9 always skips.
   // See TESTING.md → Sanctioned skips (and HANA signalling: why we branch on TELEMETRY_TEST_HANA, not cds.env).
-  if (!process.env.TELEMETRY_TEST_HANA) {
-    test.skip('queue-worker tracing needs cds.spawn on sqlite (pending cds fix)', () => {})
+  const [maj, min] = cds.version.split('.').map(Number)
+  if (!process.env.TELEMETRY_TEST_HANA && (maj < 10 || (maj === 10 && min < 1))) {
+    test.skip('queue-worker tracing needs @sap/cds >= 10.1 (cds.spawn fix) on sqlite', () => {})
     return
   }
 
