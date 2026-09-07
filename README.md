@@ -297,7 +297,7 @@ CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to 
 
 Use via `cds.requires.telemetry.kind = 'to-caas'`.
 
-Required dependencies:
+Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
