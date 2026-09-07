@@ -333,7 +333,7 @@ cf bind-service my-app my-caas-instance -c '{"subject": "<extracted-subject>", "
 cf restage my-app
 ```
 
-This is a one-time step. The subject/issuer remain stable across certificate rotations.
+This is a one-time step. The subject/issuer remain stable across certificate rotations. If you use MTA deployment, also add the extracted subject/issuer to your CaaS service binding's `parameters.config` in `mta.yaml` to persist them across redeployments.
 
 **How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
 
