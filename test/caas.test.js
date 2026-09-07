@@ -252,13 +252,22 @@ describe('ZTI', () => {
   })
 
   describe('certsAvailable', () => {
-    test('returns false when no certs', async () => {
+    test('returns false when no certs and no SVID files', async () => {
       cds.env.requires.telemetry = {}
       const { certsAvailable } = await import('../lib/zti.js')
       expect(certsAvailable()).toBe(false)
     })
 
-    test('returns true when certs in cds.env', async () => {
+    test('returns true when SVID files exist (ZTI enabled)', async () => {
+      ctx.writeSVIDFiles()
+      vi.resetModules()
+      const { certsAvailable, initializeZTI } = await import('../lib/zti.js')
+      initializeZTI()
+      expect(certsAvailable()).toBe(true)
+    })
+
+    test('returns true when certs in cds.env and ZTI disabled', async () => {
+      process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
       cds.env.requires = {
         telemetry: {
           x509: { cert: CERT_V1, key: KEY_V1 }
