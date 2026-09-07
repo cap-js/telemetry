@@ -301,29 +301,6 @@ Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
-Optional (for log export):
-- `@opentelemetry/exporter-logs-otlp-proto`
-
-To enable log export to CaaS, install the dependency above and add:
-```json
-{
-  "cds": {
-    "requires": {
-      "telemetry": {
-        "kind": "to-caas",
-        "logging": {
-          "exporter": {
-            "module": "@opentelemetry/exporter-logs-otlp-proto",
-            "class": "OTLPLogExporter"
-          }
-        }
-      }
-    }
-  }
-}
-```
-
-Note: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. See the [Logs](#logs) section for details.
 
 CaaS requires mTLS authentication. There are two ways to provide the mTLS certificates:
 
