@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 2.1.0 - tbd
+
+### Added
+
+- Queue worker transactions are traced as coherent `<service> - tx` spans under the `cds.spawn - run task` root, instead of orphaned per-call spans
+- The span processor is now configurable via `cds.requires.telemetry.tracing.processor = { kind, config? }` (`BatchSpanProcessor` or `SimpleSpanProcessor`); defaults to `BatchSpanProcessor`, and to `SimpleSpanProcessor` in the `[development]` profile
+
+### Changed
+
+### Fixed
+
+- Logging no longer recurses through `@opentelemetry/sdk-logs` 0.221's export path: the log-processor construction now adapts to the installed sdk-logs version (0.221+ takes an `{ exporter }` options object, earlier versions the positional exporter), and a re-entrancy guard was added to the `cds.log.format` interception
+- Cloud SDK outbound requests are traced again (patch getter-only `@sap-cloud-sdk/http-client` exports via `Object.defineProperty`)
+- Raw SQL no longer leaks into HANA INSERT `prepare` span names (now uses operation + table, matching SELECT)
+- Queue `*_storage_time_in_seconds` metrics are now correct on HANA (timezone-naive `min`/`max` timestamp aggregates were parsed as local time, skewing the values by the machine's UTC offset)
+
 ## Version 2.0.1 - 2026-07-03
 
 ### Fixed

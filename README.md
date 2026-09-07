@@ -33,6 +33,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
+  - [Span Processor](#span-processor)
   - [Exporters](#exporters)
   - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
   - [Environment Variables](#environment-variables)
@@ -426,6 +427,21 @@ Default:
 ```json
 ["W3CTraceContextPropagator", "W3CBaggagePropagator"]
 ```
+
+
+### Span Processor
+
+Configure via `cds.requires.telemetry.tracing.processor = { kind, config? }`, where `kind` is one of `BatchSpanProcessor` or `SimpleSpanProcessor` and `config` is passed through to the processor's constructor.
+
+Default: `BatchSpanProcessor`, except in the `[development]` profile, which uses `SimpleSpanProcessor` so spans are exported immediately.
+```json
+{
+  "kind": "BatchSpanProcessor"
+}
+```
+
+> [!NOTE]
+> The `ConsoleSpanExporter` (the default `telemetry-to-console` exporter) has only been tested with the `SimpleSpanProcessor`. Combining it with the `BatchSpanProcessor` is not recommended.
 
 
 ### Exporters

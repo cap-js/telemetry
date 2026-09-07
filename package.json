@@ -1,6 +1,6 @@
 {
   "name": "@cap-js/telemetry",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "CDS plugin providing observability features, incl. automatic OpenTelemetry instrumentation.",
   "repository": {
     "type": "git",
@@ -15,7 +15,9 @@
   ],
   "scripts": {
     "lint": "npx eslint . --max-warnings=0",
-    "test": "npx jest --silent"
+    "test": "vitest run --silent",
+    "format": "npx oxfmt",
+    "format:check": "npx oxfmt --check"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
@@ -37,16 +39,18 @@
     "@cap-js/sqlite": "^3",
     "@cap-js/telemetry": "file:.",
     "@grpc/grpc-js": "^1.9.14",
-    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.219",
-    "@opentelemetry/exporter-metrics-otlp-proto": "^0.219",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.219",
-    "@opentelemetry/exporter-trace-otlp-proto": "^0.219",
-    "@opentelemetry/instrumentation-host-metrics": "^0.2.0",
-    "@opentelemetry/instrumentation-runtime-node": "^0.32.0",
+    "@opentelemetry/exporter-metrics-otlp-grpc": "^0.221",
+    "@opentelemetry/exporter-metrics-otlp-proto": "^0.221",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.221",
+    "@opentelemetry/exporter-trace-otlp-proto": "^0.221",
+    "@opentelemetry/instrumentation-host-metrics": "^0.4.0",
+    "@opentelemetry/instrumentation-runtime-node": "^0.34.0",
+    "@sap-cloud-sdk/http-client": "^4",
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
-    "jest": "^30.4.2"
+    "oxfmt": "0.63.0",
+    "vitest": "^4"
   },
   "cds": {
     "requires": {
@@ -77,11 +81,17 @@
               "W3CTraceContextPropagator",
               "W3CBaggagePropagator"
             ],
-            "[development]": {
-              "hrtime": true
+            "processor": {
+              "kind": "BatchSpanProcessor"
             },
             "_tx": false,
-            "_hana_prom": true
+            "_hana_prom": true,
+            "[development]": {
+              "hrtime": true,
+              "processor": {
+                "kind": "SimpleSpanProcessor"
+              }
+            }
           },
           "metrics": {
             "config": {
@@ -107,8 +117,12 @@
         },
         "telemetry-to-dynatrace": {
           "vcap": [
-            { "label": "dynatrace" },
-            { "tag": "dynatrace" }
+            {
+              "label": "dynatrace"
+            },
+            {
+              "tag": "dynatrace"
+            }
           ],
           "tracing": {
             "exporter": {
@@ -126,8 +140,12 @@
         },
         "telemetry-to-cloud-logging": {
           "vcap": [
-            { "label": "cloud-logging" },
-            { "tag": "Cloud Logging" }
+            {
+              "label": "cloud-logging"
+            },
+            {
+              "tag": "Cloud Logging"
+            }
           ],
           "tracing": {
             "exporter": {
