@@ -308,21 +308,40 @@ CaaS requires mTLS authentication. There are two ways to provide the mTLS certif
 
 ZTI with SPIRE sidecar automatically provisions and rotates mTLS certificates (SVID files). This is the recommended approach for production.
 
-1. **Bind ZTI service** to your app:
+> **Two-step initial deployment**: ZTI certificates are provisioned at runtime, so the certificate identity (subject/issuer) is only known after the first deployment. You must extract it and update the CaaS binding before telemetry can be exported. This is a one-time setup.
+
+1. **Add ZTI sidecar buildpack** to your app (required for SVID file provisioning):
+```yaml
+# mta.yaml
+modules:
+  - name: my-app-srv
+    parameters:
+      buildpacks:
+        - zero_trust_sidecar_buildpack
+        - nodejs_buildpack
+```
+
+2. **Bind ZTI service** with SVID file configuration:
 ```yaml
 # mta.yaml
 requires:
   - name: my-zti-instance
+    parameters:
+      config:
+        app-identifier: my-app
+        svid-store:
+          file:
+            name: caas-svid
 ```
 
-2. **Bind CaaS service** to your app:
+3. **Bind CaaS service** to your app:
 ```yaml
 # mta.yaml
 requires:
   - name: my-caas-instance
 ```
 
-3. **After first deployment**, extract the certificate identity from the SVID and rebind CaaS with it:
+4. **After first deployment**, extract the certificate identity from the SVID and rebind CaaS with it:
 ```bash
 # Extract subject/issuer from SVID certificate
 cf ssh my-app -c "openssl x509 -in /home/vcap/app/spire-svids/caas-svid.svid.pem -noout -subject -issuer -nameopt RFC2253"
