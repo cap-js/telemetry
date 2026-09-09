@@ -302,57 +302,103 @@ Required additional dependencies:
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 
-CaaS requires mTLS authentication. There are two ways to provide the mTLS certificates:
+CaaS requires mTLS authentication using ZTI (Zero Trust Identity) with SPIRE sidecar, which automatically provisions and rotates mTLS certificates.
 
-#### Option 1: Zero Trust Identity (ZTI) with SPIRE (Recommended)
+#### Setup
 
-ZTI with SPIRE sidecar automatically provisions and rotates mTLS certificates (SVID files). This is the recommended approach for production.
+##### Step 1: Create config-policy service instance
 
-> **Two-step initial deployment**: ZTI certificates are provisioned at runtime, so the certificate identity (subject/issuer) is only known after the first deployment. You must extract it and update the CaaS binding before telemetry can be exported. This is a one-time setup.
+Create a `config-policy` service instance to obtain the certificate identity (subject/issuer) before deployment:
 
-1. **Add ZTI sidecar buildpack** to your app (required for SVID file provisioning):
+```bash
+cf create-service zero-trust-identity config-policy my-app-config-policy
+```
+
+Wait for the service to be created:
+```bash
+cf service my-app-config-policy
+# Wait until status shows: create succeeded
+```
+
+##### Step 2: Create service key and extract certificate identity
+
+```bash
+cf create-service-key my-app-config-policy config-key -c '{
+  "app-identifier": "my-app",
+  "type": "subject_dn"
+}'
+```
+
+Extract subject and issuer:
+```bash
+cf service-key my-app-config-policy config-key
+```
+
+The output contains `subject` and `issuer` values needed for the CaaS binding configuration.
+
+##### Step 3: Delete the config-policy service
+
+The config-policy service is only needed to extract the certificate identity. Delete it before deployment to free the ZTI quota for the standard plan:
+
+```bash
+cf delete-service-key my-app-config-policy config-key -f
+cf delete-service my-app-config-policy -f
+```
+
+##### Step 4: Configure mta.yaml
+
+Add the ZTI sidecar buildpack and configure the service bindings with the extracted subject/issuer:
+
 ```yaml
 # mta.yaml
+_schema-version: 3.3.0
+parameters:
+  ztis-cert-subject: "<subject-from-step-2>"
+  ztis-cert-issuer: "<issuer-from-step-2>"
+
 modules:
   - name: my-app-srv
     parameters:
       buildpacks:
         - zero_trust_sidecar_buildpack
         - nodejs_buildpack
-```
+    requires:
+      # CaaS service with certificate identity
+      - name: my-app-caas
+        parameters:
+          config:
+            subject: ${ztis-cert-subject}
+            issuer: ${ztis-cert-issuer}
+      # ZTI service for automatic certificate management
+      - name: my-app-zti
+        parameters:
+          config:
+            app-identifier: my-app
+            svid-store:
+              file:
+                name: caas-svid
 
-2. **Bind ZTI service** with SVID file configuration:
-```yaml
-# mta.yaml
-requires:
-  - name: my-zti-instance
+resources:
+  - name: my-app-caas
+    type: org.cloudfoundry.existing-service
     parameters:
-      config:
-        app-identifier: my-app
-        svid-store:
-          file:
-            name: caas-svid
+      service-name: my-app-caas
+  - name: my-app-zti
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: zero-trust-identity
+      service-plan: standard
 ```
 
-3. **Bind CaaS service** to your app:
-```yaml
-# mta.yaml
-requires:
-  - name: my-caas-instance
-```
+##### Step 5: Deploy
 
-4. **After first deployment**, extract the certificate identity from the SVID and rebind CaaS with it:
 ```bash
-# Extract subject/issuer from SVID certificate
-cf ssh my-app -c "openssl x509 -in /home/vcap/app/spire-svids/caas-svid.svid.pem -noout -subject -issuer -nameopt RFC2253"
-
-# Rebind CaaS with the extracted identity
-cf unbind-service my-app my-caas-instance
-cf bind-service my-app my-caas-instance -c '{"subject": "<extracted-subject>", "issuer": "<extracted-issuer>"}'
-cf restage my-app
+cds up
 ```
 
-This is a one-time step. The subject/issuer remain stable across certificate rotations. If you use MTA deployment, also add the extracted subject/issuer to your CaaS service binding's `parameters.config` in `mta.yaml` to persist them across redeployments.
+The app will start with working CaaS telemetry export immediately.
+
+> **Note**: In the future, MTA tooling may support service-key placeholders, which would eliminate the manual Steps 1-3 entirely.
 
 **How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
 
@@ -363,7 +409,7 @@ To explicitly disable ZTI (e.g., for testing), set:
 CDS_REQUIRES_TELEMETRY_USE_ZTI=false
 ```
 
-#### Option 2: Manual Certificate Configuration (Fallback)
+#### Fallback: Manual Certificate Configuration
 
 For environments without ZTI, you can provide mTLS credentials manually:
 
@@ -393,21 +439,6 @@ cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_KEY "<base64-key>"
 ```
 
 The mTLS certificate must be SAP-signed through the BTP Certificate Service.
-
-**Certificate Rotation (Advanced)**: Static x509 credentials can be rotated at runtime without restarting the application:
-```js
-// Update credentials in cds.env
-cds.env.requires.telemetry.x509 = { cert: newCert, key: newKey }
-
-// Trigger rotation event
-cds.emit('svid', { cert: newCert, key: newKey })
-```
-
-Alternatively, you can restart the application to pick up the new certificates.
-
-This is an advanced feature for custom certificate management systems. For most deployments:
-- **ZTI (Option 1)**: Automatic rotation - no action needed
-- **Static x509 (Option 2)**: Restart the application when certificates expire
 
 ### `telemetry-to-jaeger`
 
