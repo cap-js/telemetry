@@ -258,6 +258,8 @@ Hence, additional dependency `@opentelemetry/exporter-trace-otlp-proto` and scop
 Please note, however, that Dynatrace only exports traces triggered by incoming HTTP requests.
 That is, traces for background tasks started by `cds.spawn`, for example, would not be exported.
 
+**Sampling and context propagation under OneAgent.** When OneAgent transports the traces (i.e. `@opentelemetry/exporter-trace-otlp-proto` is *not* a dependency), `@cap-js/telemetry` does not register its own tracer provider — OneAgent's already-registered provider is used so that spans reach Dynatrace. As a consequence, the [`tracing.sampler`](#sampler) (including `ignoreIncomingPaths`) and [`tracing.propagators`](#propagators) settings have no effect; sampling and context propagation are governed by Dynatrace/OneAgent. Configure them on the Dynatrace side instead.
+
 If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
 
 
@@ -407,6 +409,8 @@ Default:
 
 Configure via `cds.requires.telemetry.tracing.sampler = { kind, root?, ratio?, ignoreIncomingPaths? }`
 
+> Note: this setting has no effect when Dynatrace OneAgent transports the traces — see [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent).
+
 Default:
 ```json
 {
@@ -422,6 +426,8 @@ Default:
 ### Propagators
 
 Configure via `cds.requires.telemetry.tracing.propagators = [<name> | { module, class, config? }]`
+
+> Note: this setting has no effect when Dynatrace OneAgent transports the traces — see [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent).
 
 Default:
 ```json
