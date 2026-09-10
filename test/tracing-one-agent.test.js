@@ -10,8 +10,8 @@
 // The fix restores the 1.6.0 behavior (Option A): on the OneAgent path we do not build/register our
 // own provider at all. OneAgent has already registered the global TracerProvider, and our spans
 // obtain their tracer via the global OpenTelemetry API (see lib/tracing/trace.js), so they flow into
-// OneAgent's provider. The factory returns OneAgent's provider (`getDelegate()`) and never touches an
-// undefined processor.
+// OneAgent's provider. The factory returns nothing and never touches an undefined processor;
+// registerInstrumentations() then falls back to the live global proxy, which delegates to OneAgent.
 //
 // We drive the factory directly rather than through a full boot: exercising `via_one_agent` needs
 // kind `*-to-dynatrace` (whose metrics/tracing exporters would otherwise demand real Dynatrace
@@ -71,8 +71,10 @@ describe('tracing setup with Dynatrace OneAgent (#502)', () => {
         returned = setupTracing(resourceFromAttributes({}))
       }).not.toThrow()
 
-      // Option A: the factory reuses OneAgent's provider and does not replace the global one.
-      expect(returned).toBe(oneAgentProvider)
+      // Option A: the factory registers no provider of its own — it returns nothing and leaves
+      // OneAgent's provider as the global delegate untouched. (registerInstrumentations() in
+      // lib/index.js then falls back to the live global proxy, which delegates to OneAgent.)
+      expect(returned).toBeUndefined()
       expect(proxy.getDelegate()).toBe(oneAgentProvider)
 
       // A span created via the global API (as lib/tracing/trace.js does for every CDS span) must
