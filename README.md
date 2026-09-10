@@ -301,7 +301,6 @@ Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
-
 CaaS requires mTLS authentication using ZTI (Zero Trust Identity) with SPIRE sidecar, which automatically provisions and rotates mTLS certificates.
 
 #### Setup
