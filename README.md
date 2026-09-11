@@ -403,11 +403,6 @@ The app will start with working CaaS telemetry export immediately.
 
 > **Note**: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. Traces and metrics work in both development and production modes. In production, batch processing uses periodic export intervals (5s for traces/logs, 60s for metrics). In development, traces and metrics use simpler processors that export immediately.
 
-To explicitly disable ZTI (e.g., for testing), set:
-```bash
-CDS_REQUIRES_TELEMETRY_USE_ZTI=false
-```
-
 #### Fallback: Manual Certificate Configuration
 
 For environments without ZTI, you can provide mTLS credentials manually:
