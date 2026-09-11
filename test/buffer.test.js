@@ -10,15 +10,15 @@ describe('wrapExporterWithBuffer', () => {
     vi.resetModules()
     // Clear env vars that affect ZTI detection
     delete process.env.VCAP_SERVICES
-    delete process.env.CDS_REQUIRES_TELEMETRY_ZTI_DIR
+    delete process.env.TELEMETRY_ZTI_DIR
     // Disable ZTI to test static x509 cert path
-    process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
+    process.env.TELEMETRY_USE_ZTI = 'false'
     // Clear cds.env singleton - especially x509 certs from prior tests
     cds.env.requires = { telemetry: {} }
   })
 
   afterEach(() => {
-    delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
+    delete process.env.TELEMETRY_USE_ZTI
   })
 
   test('buffers items until certs are available', async () => {

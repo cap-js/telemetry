@@ -73,8 +73,8 @@ function createZTITestContext() {
     },
     setupEnv() {
       process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
-      process.env.CDS_REQUIRES_TELEMETRY_ZTI_DIR = svidDir
-      delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
+      process.env.TELEMETRY_ZTI_DIR = svidDir
+      delete process.env.TELEMETRY_USE_ZTI
       cds.env.requires = { telemetry: {} }
     },
     clearModuleCache() {
@@ -83,8 +83,8 @@ function createZTITestContext() {
     cleanup() {
       fs.rmSync(tmpDir, { recursive: true, force: true })
       delete process.env.VCAP_SERVICES
-      delete process.env.CDS_REQUIRES_TELEMETRY_ZTI_DIR
-      delete process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI
+      delete process.env.TELEMETRY_ZTI_DIR
+      delete process.env.TELEMETRY_USE_ZTI
       vi.resetModules()
     }
   }
@@ -267,7 +267,7 @@ describe('ZTI', () => {
     })
 
     test('returns true when certs in cds.env and ZTI disabled', async () => {
-      process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
+      process.env.TELEMETRY_USE_ZTI = 'false'
       cds.env.requires = {
         telemetry: {
           x509: { cert: CERT_V1, key: KEY_V1 }
@@ -374,7 +374,7 @@ describe('ZTI', () => {
 
     test('augmentCaaSCreds uses x509 when ZTI disabled', async () => {
       process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-      process.env.CDS_REQUIRES_TELEMETRY_USE_ZTI = 'false'
+      process.env.TELEMETRY_USE_ZTI = 'false'
       cds.env.requires.telemetry.x509 = {
         cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
         key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
