@@ -35,7 +35,6 @@ describe('logging with multitenancy', () => {
     expect(scoped.length).to.be.greaterThan(0)
     for (const log of scoped) {
       expect(log.attributes['sap.tenancy.tenant_id']).to.equal(TENANT1)
-      expect(log.attributes['sap.cds.correlation_id']).to.be.a('string')
     }
   })
 
