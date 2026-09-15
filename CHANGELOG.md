@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service) with automatic mTLS certificate management and rotation via Zero Trust Identity Service (ZTI/SPIFFE).
 - Queue worker transactions are traced as coherent `<service> - tx` spans under the `cds.spawn - run task` root, instead of orphaned per-call spans
 - The span processor is now configurable via `cds.requires.telemetry.tracing.processor = { kind, config? }` (`BatchSpanProcessor` or `SimpleSpanProcessor`); defaults to `BatchSpanProcessor`, and to `SimpleSpanProcessor` in the `[development]` profile
 
