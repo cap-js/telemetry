@@ -1,8 +1,5 @@
 /* eslint-disable no-console */
 
-// REVISIT: even with profile "logging", cls_custom_fields from package.json wins
-process.env.cds_log = JSON.stringify({ cls_custom_fields: ['foo'] })
-
 const cds = require('@sap/cds')
 // prettier-ignore
 const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'logging,multitenancy')
@@ -20,7 +17,7 @@ describe('logging with multitenancy', () => {
     await mts.subscribe(TENANT2)
   })
   beforeEach(() => {
-    console.dir = jest.fn()
+    console.dir = vi.fn()
   })
   afterAll(() => {
     console.dir = dir
