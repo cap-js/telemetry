@@ -390,6 +390,29 @@ describe('ZTI', () => {
       expect(typeof credentials.httpAgentOptions).toBe('function')
       expect(credentials.useZTI).toBe(false)
     })
+
+    test('augmentCaaSCreds uses x509 when ZTI enabled-by-default but not bound', async () => {
+      // Manual-cert path as documented in the README: static x509 credentials, no
+      // zero-trust-identity binding, and TELEMETRY_USE_ZTI left at its default (enabled).
+      // certsAvailable() must still recognize the static certs so createCaaSExporter does
+      // not reject the setup as "missing mTLS".
+      process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
+      delete process.env.TELEMETRY_USE_ZTI
+      cds.env.requires.telemetry.x509 = {
+        cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
+        key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
+      }
+
+      ctx.clearModuleCache()
+      const { augmentCaaSCreds } = await import('../lib/utils.js')
+      const { certsAvailable } = await import('../lib/zti.js')
+
+      const credentials = { otlp: { http: 'https://caas.example.com/otlp' } }
+      augmentCaaSCreds(credentials)
+
+      expect(credentials.useZTI).toBe(false)
+      expect(certsAvailable()).toBe(true)
+    })
   })
 })
 

@@ -34,6 +34,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
+  - [Span Processor](#span-processor)
   - [Exporters](#exporters)
   - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
   - [Environment Variables](#environment-variables)
