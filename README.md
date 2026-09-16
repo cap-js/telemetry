@@ -530,6 +530,7 @@ Default:
 ["W3CTraceContextPropagator", "W3CBaggagePropagator"]
 ```
 
+
 ### Span Processor
 
 Configure via `cds.requires.telemetry.tracing.processor = { kind, config? }`, where `kind` is one of `BatchSpanProcessor` or `SimpleSpanProcessor` and `config` is passed through to the processor's constructor.
