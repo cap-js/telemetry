@@ -293,7 +293,7 @@ If you are binding your app to SAP Cloud Logging via a [user-provided service in
 
 ### `telemetry-to-caas`
 
-Exports traces and metrics to CaaS (Collector as a Service). Log export is optional and requires additional configuration.
+Exports traces and metrics to CaaS (Collector as a Service).
 CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
 
 Use via `cds.requires.telemetry.kind = 'to-caas'`.
@@ -302,13 +302,9 @@ Required additional dependencies:
 - `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
-CaaS requires mTLS authentication using ZTI (Zero Trust Identity) with SPIRE sidecar, which automatically provisions and rotates mTLS certificates.
-
-#### Deploy
-
 CaaS needs two things: a **CaaS collector instance** (created with its pipeline config) and an **app deployment** that authenticates to it over mTLS — automatically via ZTI (default), or with a manually provided certificate.
 
-##### Create the CaaS instance
+#### Create the CaaS instance
 
 The collector's `otelConfig` (receivers, exporters, pipelines) is fixed at creation — a binding can't change it later — so create and configure the instance up front, via the BTP cockpit or the CF CLI:
 
@@ -316,7 +312,7 @@ The collector's `otelConfig` (receivers, exporters, pipelines) is fixed at creat
 cf create-service caas <plan> my-app-caas -c '{
   "otelConfig": {
     "receivers": { "otlp": { "protocols": { "grpc": {}, "http": {} } } },
-    "exporters": { "otlp/sink": { /* your downstream sink */ } },
+    "exporters": { "otlp/sink": { "endpoint": "<your-downstream-otlp-endpoint>" } },
     "service": { "pipelines": {
       "traces":  { "receivers": ["otlp"], "exporters": ["otlp/sink"] },
       "metrics": { "receivers": ["otlp"], "exporters": ["otlp/sink"] }
@@ -327,9 +323,9 @@ cf create-service caas <plan> my-app-caas -c '{
 
 The `receivers` block is required. See the CaaS onboarding docs for the full `otelConfig` / `secrets` / PII-redaction options.
 
-##### Automatic certificates via ZTI (default)
+#### Automatic certificates via ZTI (default)
 
-`cds add mta` generates the base `mta.yaml`. Add the ZTI sidecar buildpack to your service module, bind the CaaS instance (as an `existing-service`, since it's pre-created) and a `zero-trust-identity` service, then `cds up`:
+`cds add mta` generates the base `mta.yaml`. Add the ZTI sidecar buildpack to your service module, bind the CaaS instance (as an `existing-service`, since it's pre-created) and a `zero-trust-identity` service:
 
 ```yaml
 modules:
@@ -363,7 +359,7 @@ resources:
       service-plan: standard
 ```
 
-###### Certificate identity (current workaround)
+##### Certificate identity (current workaround)
 
 `subject`/`issuer` identify the client certificate. Until MTA tooling supports service-key placeholders, extract them before deployment from a throwaway `config-policy` key:
 
@@ -374,7 +370,7 @@ cf service-key tmp-cp k          # copy subject/issuer into the CaaS binding abo
 cf delete-service-key tmp-cp k -f && cf delete-service tmp-cp -f
 ```
 
-##### Manual mTLS certificates (alternative)
+#### Manual mTLS certificates (alternative)
 
 For environments without ZTI, provide an SAP-signed certificate yourself instead of the `zero-trust-identity` binding:
 
