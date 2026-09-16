@@ -290,6 +290,7 @@ If you are binding your app to SAP Cloud Logging via a [user-provided service in
 > ```
 > For detailed information about binding resolution in CAP, consult [`cds.connect()` → Service Bindings](https://cap.cloud.sap/docs/node.js/cds-connect#service-bindings).
 
+
 ### `telemetry-to-caas`
 
 Exports traces and metrics to CaaS (Collector as a Service). Log export is optional and requires additional configuration.
@@ -303,85 +304,58 @@ Required additional dependencies:
 
 CaaS requires mTLS authentication using ZTI (Zero Trust Identity) with SPIRE sidecar, which automatically provisions and rotates mTLS certificates.
 
-#### Setup
+#### Deploy
 
-##### Step 1: Create config-policy service instance
+CaaS needs two things: a **CaaS collector instance** (created with its pipeline config) and an **app deployment** that authenticates to it over mTLS — automatically via ZTI (default), or with a manually provided certificate.
 
-Create a `config-policy` service instance to obtain the certificate identity (subject/issuer) before deployment:
+##### Create the CaaS instance
 
-```bash
-cf create-service zero-trust-identity config-policy my-app-config-policy
-```
-
-Wait for the service to be created:
-```bash
-cf service my-app-config-policy
-# Wait until status shows: create succeeded
-```
-
-##### Step 2: Create service key and extract certificate identity
+The collector's `otelConfig` (receivers, exporters, pipelines) is fixed at creation — a binding can't change it later — so create and configure the instance up front, via the BTP cockpit or the CF CLI:
 
 ```bash
-cf create-service-key my-app-config-policy config-key -c '{
-  "app-identifier": "my-app",
-  "type": "subject_dn"
+cf create-service caas <plan> my-app-caas -c '{
+  "otelConfig": {
+    "receivers": { "otlp": { "protocols": { "grpc": {}, "http": {} } } },
+    "exporters": { "otlp/sink": { /* your downstream sink */ } },
+    "service": { "pipelines": {
+      "traces":  { "receivers": ["otlp"], "exporters": ["otlp/sink"] },
+      "metrics": { "receivers": ["otlp"], "exporters": ["otlp/sink"] }
+    } }
+  }
 }'
 ```
 
-Extract subject and issuer:
-```bash
-cf service-key my-app-config-policy config-key
-```
+The `receivers` block is required. See the CaaS onboarding docs for the full `otelConfig` / `secrets` / PII-redaction options.
 
-The output contains `subject` and `issuer` values needed for the CaaS binding configuration.
+##### Automatic certificates via ZTI (default)
 
-##### Step 3: Delete the config-policy service
-
-The config-policy service is only needed to extract the certificate identity. Delete it before deployment to free the ZTI quota for the standard plan:
-
-```bash
-cf delete-service-key my-app-config-policy config-key -f
-cf delete-service my-app-config-policy -f
-```
-
-##### Step 4: Configure mta.yaml
-
-Add the ZTI sidecar buildpack and configure the service bindings with the extracted subject/issuer:
+`cds add mta` generates the base `mta.yaml`. Add the ZTI sidecar buildpack to your service module, bind the CaaS instance (as an `existing-service`, since it's pre-created) and a `zero-trust-identity` service, then `cds up`:
 
 ```yaml
-# mta.yaml
-_schema-version: 3.3.0
-parameters:
-  ztis-cert-subject: "<subject-from-step-2>"
-  ztis-cert-issuer: "<issuer-from-step-2>"
-
 modules:
   - name: my-app-srv
+    type: nodejs
+    path: gen/srv
     parameters:
       buildpacks:
         - zero_trust_sidecar_buildpack
         - nodejs_buildpack
     requires:
-      # CaaS service with certificate identity
       - name: my-app-caas
         parameters:
           config:
-            subject: ${ztis-cert-subject}
-            issuer: ${ztis-cert-issuer}
-      # ZTI service for automatic certificate management
+            subject: <subject>
+            issuer: <issuer>
       - name: my-app-zti
         parameters:
           config:
             app-identifier: my-app
             svid-store:
               file:
-                name: caas-svid
-
+                name: my-app-svid
 resources:
-  - name: my-app-caas
+  - name: my-app-caas # the instance created above
     type: org.cloudfoundry.existing-service
-    parameters:
-      service-name: my-app-caas
   - name: my-app-zti
     type: org.cloudfoundry.managed-service
     parameters:
@@ -389,50 +363,37 @@ resources:
       service-plan: standard
 ```
 
-##### Step 5: Deploy
+###### Certificate identity (current workaround)
+
+`subject`/`issuer` identify the client certificate. Until MTA tooling supports service-key placeholders, extract them before deployment from a throwaway `config-policy` key:
 
 ```bash
-cds up
+cf create-service zero-trust-identity config-policy tmp-cp
+cf create-service-key tmp-cp k -c '{ "app-identifier": "my-app", "type": "subject_dn" }'
+cf service-key tmp-cp k          # copy subject/issuer into the CaaS binding above
+cf delete-service-key tmp-cp k -f && cf delete-service tmp-cp -f
 ```
 
-The app will start with working CaaS telemetry export immediately.
+##### Manual mTLS certificates (alternative)
 
-> **Note**: In the future, MTA tooling may support service-key placeholders, which would eliminate the manual Steps 1-3 entirely.
+For environments without ZTI, provide an SAP-signed certificate yourself instead of the `zero-trust-identity` binding:
 
-**How it works**: The SPIRE sidecar provisions SVID certificate files in parallel with app startup. Since these files may not exist immediately, `@cap-js/telemetry` buffers telemetry data until the credentials become available. Once the SVID files are ready, buffered data is flushed and subsequent telemetry is exported normally. Certificate rotation is handled automatically.
-
-> **Note**: Log export requires `NODE_ENV=production` to enable `cds.log()`'s JSON formatter. Traces and metrics work in both development and production modes. In production, batch processing uses periodic export intervals (5s for traces/logs, 60s for metrics). In development, traces and metrics use simpler processors that export immediately.
-
-#### Fallback: Manual Certificate Configuration
-
-For environments without ZTI, you can provide mTLS credentials manually:
-
-1. **Bind the CaaS service** to your app with subject/issuer configuration:
 ```yaml
-# mta.yaml
-requires:
-  - name: my-caas-instance
-    parameters:
-      config:
-        subject: "CN=my-app,..."
-        issuer: "CN=SAP PKI Certificate Service Client CA,..."
+modules:
+  - name: my-app-srv
+    requires:
+      - name: my-app-caas
+        parameters:
+          config:
+            subject: <subject>
+            issuer: <issuer>
+    properties:
+      CDS_REQUIRES_TELEMETRY_X509_CERT: <base64-cert-chain-or-PEM>
+      CDS_REQUIRES_TELEMETRY_X509_KEY: <base64-key-or-PEM>
 ```
 
-2. **Provide mTLS credentials** via environment variables (base64 encoded or PEM):
-```yaml
-# mta.yaml
-properties:
-  CDS_REQUIRES_TELEMETRY_X509_CERT: '<base64-encoded-certificate-chain>'
-  CDS_REQUIRES_TELEMETRY_X509_KEY: '<base64-encoded-private-key>'
-```
+Extract `subject`/`issuer` with `openssl x509 -in cert.pem -noout -subject -issuer -nameopt RFC2253` (use the direct issuer, not the root CA).
 
-Or via Cloud Foundry CLI:
-```bash
-cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_CERT "<base64-cert>"
-cf set-env my-app CDS_REQUIRES_TELEMETRY_X509_KEY "<base64-key>"
-```
-
-The mTLS certificate must be SAP-signed through the BTP Certificate Service.
 
 ### `telemetry-to-jaeger`
 
