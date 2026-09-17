@@ -74,7 +74,6 @@ function createZTITestContext() {
     setupEnv() {
       process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
       process.env.TELEMETRY_ZTI_DIR = svidDir
-      delete process.env.TELEMETRY_USE_ZTI
       cds.env.requires = { telemetry: {} }
     },
     clearModuleCache() {
@@ -84,7 +83,6 @@ function createZTITestContext() {
       fs.rmSync(tmpDir, { recursive: true, force: true })
       delete process.env.VCAP_SERVICES
       delete process.env.TELEMETRY_ZTI_DIR
-      delete process.env.TELEMETRY_USE_ZTI
       vi.resetModules()
     }
   }
@@ -115,7 +113,7 @@ describe('augmentCaaSCreds', () => {
 
   test('sets baseUrl from otlp.http', async () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-    const { augmentCaaSCreds } = await import('../lib/utils.js')
+    const { augmentCaaSCreds } = await import('../lib/utils/credentials.js')
 
     const credentials = {
       otlp: {
@@ -131,7 +129,7 @@ describe('augmentCaaSCreds', () => {
 
   test('sets httpAgentOptions when mTLS credentials found', async () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-    const { augmentCaaSCreds } = await import('../lib/utils.js')
+    const { augmentCaaSCreds } = await import('../lib/utils/credentials.js')
 
     const credentials = {
       otlp: { http: 'https://caas.example.com/otlp' }
@@ -145,14 +143,14 @@ describe('augmentCaaSCreds', () => {
 
   test('throws when no OTLP endpoints', async () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-    const { augmentCaaSCreds } = await import('../lib/utils.js')
+    const { augmentCaaSCreds } = await import('../lib/utils/credentials.js')
 
     expect(() => augmentCaaSCreds({})).toThrow('No OTLP HTTP endpoint in CaaS credentials')
   })
 
   test('does not augment twice', async () => {
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-    const { augmentCaaSCreds } = await import('../lib/utils.js')
+    const { augmentCaaSCreds } = await import('../lib/utils/credentials.js')
 
     const credentials = {
       otlp: { http: 'https://caas.example.com/otlp' }
@@ -170,7 +168,7 @@ describe('augmentCaaSCreds', () => {
   test('httpAgentOptions always set (agent works once certs available)', async () => {
     cds.env.requires.telemetry = {} // No x509 credentials
     process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-    const { augmentCaaSCreds } = await import('../lib/utils.js')
+    const { augmentCaaSCreds } = await import('../lib/utils/credentials.js')
 
     const credentials = {
       otlp: { http: 'https://caas.example.com/otlp' }
@@ -220,7 +218,7 @@ describe('ZTI', () => {
       // No certs in cds.env
       cds.env.requires.telemetry = {}
 
-      const { getRotatingCertAgentClass, reset } = await import('../lib/zti.js')
+      const { getRotatingCertAgentClass, reset } = await import('../lib/utils/mtls.js')
 
       // Should not throw
       const RotatingCertAgent = getRotatingCertAgentClass()
@@ -236,7 +234,8 @@ describe('ZTI', () => {
     test('uses certs when available at construction', async () => {
       ctx.writeSVIDFiles()
 
-      const { getRotatingCertAgentClass, initializeZTI, loadInitialCerts, reset } = await import('../lib/zti.js')
+      const { getRotatingCertAgentClass, reset } = await import('../lib/utils/mtls.js')
+      const { initializeZTI, loadInitialCerts } = await import('../lib/zti.js')
 
       initializeZTI()
       loadInitialCerts()
@@ -254,27 +253,28 @@ describe('ZTI', () => {
   describe('certsAvailable', () => {
     test('returns false when no certs and no SVID files', async () => {
       cds.env.requires.telemetry = {}
-      const { certsAvailable } = await import('../lib/zti.js')
+      const { certsAvailable } = await import('../lib/utils/mtls.js')
       expect(certsAvailable()).toBe(false)
     })
 
-    test('returns true when SVID files exist (ZTI enabled)', async () => {
+    test('returns true once SVID certs are loaded into cds.env (ZTI bound)', async () => {
       ctx.writeSVIDFiles()
       vi.resetModules()
-      const { certsAvailable, initializeZTI } = await import('../lib/zti.js')
+      const { certsAvailable } = await import('../lib/utils/mtls.js')
+      const { initializeZTI, loadInitialCerts } = await import('../lib/zti.js')
       initializeZTI()
+      loadInitialCerts()
       expect(certsAvailable()).toBe(true)
     })
 
-    test('returns true when certs in cds.env and ZTI disabled', async () => {
-      process.env.TELEMETRY_USE_ZTI = 'false'
+    test('returns true when static x509 certs are in cds.env', async () => {
       cds.env.requires = {
         telemetry: {
           x509: { cert: CERT_V1, key: KEY_V1 }
         }
       }
       vi.resetModules()
-      const { certsAvailable } = await import('../lib/zti.js')
+      const { certsAvailable } = await import('../lib/utils/mtls.js')
       expect(certsAvailable()).toBe(true)
     })
   })
@@ -288,7 +288,8 @@ describe('ZTI', () => {
     test('agent rotates certificate when svid event is emitted', async () => {
       ctx.writeSVIDFiles()
 
-      const { getRotatingAgentFactory, initializeZTI, loadInitialCerts, reset } = await import('../lib/zti.js')
+      const { getRotatingAgentFactory, reset } = await import('../lib/utils/mtls.js')
+      const { initializeZTI, loadInitialCerts } = await import('../lib/zti.js')
 
       initializeZTI()
       loadInitialCerts()
@@ -313,7 +314,8 @@ describe('ZTI', () => {
     test('agent rotates by re-reading cds.env when svid event has no payload', async () => {
       ctx.writeSVIDFiles()
 
-      const { getRotatingAgentFactory, initializeZTI, loadInitialCerts, reset } = await import('../lib/zti.js')
+      const { getRotatingAgentFactory, reset } = await import('../lib/utils/mtls.js')
+      const { initializeZTI, loadInitialCerts } = await import('../lib/zti.js')
 
       initializeZTI()
       loadInitialCerts()
@@ -335,7 +337,8 @@ describe('ZTI', () => {
     test('agent keeps cached cert when rotation event has invalid payload', async () => {
       ctx.writeSVIDFiles()
 
-      const { getRotatingAgentFactory, initializeZTI, loadInitialCerts, reset } = await import('../lib/zti.js')
+      const { getRotatingAgentFactory, reset } = await import('../lib/utils/mtls.js')
+      const { initializeZTI, loadInitialCerts } = await import('../lib/zti.js')
 
       initializeZTI()
       loadInitialCerts()
@@ -356,61 +359,63 @@ describe('ZTI', () => {
   })
 
   describe('x509 fallback', () => {
-    test('augmentCaaSCreds uses ZTI when available', async () => {
+    test('setup activates ZTI when SVID files are available', async () => {
       ctx.writeSVIDFiles()
 
-      const { augmentCaaSCreds } = await import('../lib/utils.js')
-      const { reset } = await import('../lib/zti.js')
+      const { setup } = await import('../lib/zti.js')
+      const { certsAvailable, reset } = await import('../lib/utils/mtls.js')
+      const { augmentCaaSCreds } = await import('../lib/utils/credentials.js')
+
+      expect(setup()).toBe(true)
+      expect(certsAvailable()).toBe(true)
 
       const credentials = { otlp: { http: 'https://caas.example.com/otlp' } }
       augmentCaaSCreds(credentials)
-
-      expect(credentials.httpAgentOptions).toBeDefined()
       expect(typeof credentials.httpAgentOptions).toBe('function')
-      expect(credentials.useZTI).toBe(true)
 
       reset()
     })
 
-    test('augmentCaaSCreds uses x509 when ZTI disabled', async () => {
-      process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-      process.env.TELEMETRY_USE_ZTI = 'false'
-      cds.env.requires.telemetry.x509 = {
-        cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
-        key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
-      }
+    test('setup arms a bootstrap watcher when the SVID dir does not exist yet, loading certs once it appears', async () => {
+      // Boot race: ZTI is bound but SPIRE has not created the SVID directory yet. setup() must
+      // still activate and arm a watcher, so certs are picked up when they land — rather than
+      // reporting async certs with no watcher, which would buffer exports forever.
+      fs.rmSync(ctx.svidDir, { recursive: true, force: true })
 
-      ctx.clearModuleCache()
-      const { augmentCaaSCreds } = await import('../lib/utils.js')
+      const { setup, reset } = await import('../lib/zti.js')
+      const { certsAvailable } = await import('../lib/utils/mtls.js')
 
-      const credentials = { otlp: { http: 'https://caas.example.com/otlp' } }
-      augmentCaaSCreds(credentials)
+      expect(setup()).toBe(true)
+      expect(certsAvailable()).toBe(false) // nothing to load yet
 
-      expect(credentials.httpAgentOptions).toBeDefined()
-      expect(typeof credentials.httpAgentOptions).toBe('function')
-      expect(credentials.useZTI).toBe(false)
+      // SPIRE creates the directory and writes the SVID shortly after startup; the bootstrap
+      // watcher (on the parent dir) then hands off to the real watcher and loads the certs.
+      fs.mkdirSync(ctx.svidDir)
+      ctx.writeSVIDFiles()
+
+      await vi.waitFor(() => expect(certsAvailable()).toBe(true), { timeout: 4000, interval: 100 })
+
+      reset()
     })
 
-    test('augmentCaaSCreds uses x509 when ZTI enabled-by-default but not bound', async () => {
-      // Manual-cert path as documented in the README: static x509 credentials, no
-      // zero-trust-identity binding, and TELEMETRY_USE_ZTI left at its default (enabled).
-      // certsAvailable() must still recognize the static certs so createCaaSExporter does
-      // not reject the setup as "missing mTLS".
+    test('setup falls back to static x509 when ZTI is not bound', async () => {
+      // Manual-cert path as documented in the README: static x509 credentials and no
+      // zero-trust-identity binding. setup() reports ZTI inactive, and certsAvailable() must
+      // still recognize the static certs so createCaaSExporter does not reject the setup as
+      // "missing mTLS".
       process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-      delete process.env.TELEMETRY_USE_ZTI
       cds.env.requires.telemetry.x509 = {
         cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
         key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
       }
 
       ctx.clearModuleCache()
-      const { augmentCaaSCreds } = await import('../lib/utils.js')
-      const { certsAvailable } = await import('../lib/zti.js')
+      const { setup } = await import('../lib/zti.js')
+      const { setupStaticCerts } = await import('../lib/utils/mtls.js')
+      const { certsAvailable } = await import('../lib/utils/mtls.js')
 
-      const credentials = { otlp: { http: 'https://caas.example.com/otlp' } }
-      augmentCaaSCreds(credentials)
-
-      expect(credentials.useZTI).toBe(false)
+      expect(setup()).toBe(false)
+      expect(setupStaticCerts()).toBe(true)
       expect(certsAvailable()).toBe(true)
     })
   })
@@ -485,8 +490,12 @@ describe('CaaS integration', () => {
     }
 
     const { AggregationTemporality, InstrumentType } = await import('@opentelemetry/sdk-metrics')
-    const { getResource } = await import('../lib/utils.js')
+    const { getResource } = await import('../lib/utils/resource.js')
+    const { setup } = await import('../lib/zti.js')
     const metricsSetup = await import('../lib/metrics/index.js')
+
+    // Provision ZTI certs as lib/index.js does at startup (this test drives metrics() directly)
+    setup()
 
     // Setup metrics with resource
     const resource = getResource()
