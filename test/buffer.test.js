@@ -1,24 +1,15 @@
 /**
  * Tests for wrapExporterWithBuffer - isolated in separate file for clean process isolation.
  * These tests manipulate the cds.env singleton which persists across vi.resetModules() calls.
- * Tests use static x509 certs (ZTI disabled) to test buffering behavior.
+ * They drive buffering via cds.env x509 directly (certsAvailable), no cert source involved.
  */
 const cds = require('@sap/cds')
 
 describe('wrapExporterWithBuffer', () => {
   beforeEach(() => {
     vi.resetModules()
-    // Clear env vars that affect ZTI detection
-    delete process.env.VCAP_SERVICES
-    delete process.env.TELEMETRY_ZTI_DIR
-    // Disable ZTI to test static x509 cert path
-    process.env.TELEMETRY_USE_ZTI = 'false'
     // Clear cds.env singleton - especially x509 certs from prior tests
     cds.env.requires = { telemetry: {} }
-  })
-
-  afterEach(() => {
-    delete process.env.TELEMETRY_USE_ZTI
   })
 
   test('buffers items until certs are available', async () => {

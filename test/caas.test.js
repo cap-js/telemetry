@@ -74,7 +74,6 @@ function createZTITestContext() {
     setupEnv() {
       process.env.VCAP_SERVICES = JSON.stringify(MOCK_ZTI_VCAP)
       process.env.TELEMETRY_ZTI_DIR = svidDir
-      delete process.env.TELEMETRY_USE_ZTI
       cds.env.requires = { telemetry: {} }
     },
     clearModuleCache() {
@@ -84,7 +83,6 @@ function createZTITestContext() {
       fs.rmSync(tmpDir, { recursive: true, force: true })
       delete process.env.VCAP_SERVICES
       delete process.env.TELEMETRY_ZTI_DIR
-      delete process.env.TELEMETRY_USE_ZTI
       vi.resetModules()
     }
   }
@@ -259,7 +257,7 @@ describe('ZTI', () => {
       expect(certsAvailable()).toBe(false)
     })
 
-    test('returns true once SVID certs are loaded into cds.env (ZTI enabled)', async () => {
+    test('returns true once SVID certs are loaded into cds.env (ZTI bound)', async () => {
       ctx.writeSVIDFiles()
       vi.resetModules()
       const { certsAvailable } = await import('../lib/utils/mtls.js')
@@ -269,8 +267,7 @@ describe('ZTI', () => {
       expect(certsAvailable()).toBe(true)
     })
 
-    test('returns true when certs in cds.env and ZTI disabled', async () => {
-      process.env.TELEMETRY_USE_ZTI = 'false'
+    test('returns true when static x509 certs are in cds.env', async () => {
       cds.env.requires = {
         telemetry: {
           x509: { cert: CERT_V1, key: KEY_V1 }
@@ -379,31 +376,12 @@ describe('ZTI', () => {
       reset()
     })
 
-    test('setup falls back to static x509 when ZTI disabled', async () => {
+    test('setup falls back to static x509 when ZTI is not bound', async () => {
+      // Manual-cert path as documented in the README: static x509 credentials and no
+      // zero-trust-identity binding. setup() reports ZTI inactive, and certsAvailable() must
+      // still recognize the static certs so createCaaSExporter does not reject the setup as
+      // "missing mTLS".
       process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-      process.env.TELEMETRY_USE_ZTI = 'false'
-      cds.env.requires.telemetry.x509 = {
-        cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
-        key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
-      }
-
-      ctx.clearModuleCache()
-      const { setup } = await import('../lib/zti.js')
-      const { setupStaticCerts } = await import('../lib/utils/mtls.js')
-      const { certsAvailable } = await import('../lib/utils/mtls.js')
-
-      expect(setup()).toBe(false)
-      expect(setupStaticCerts()).toBe(true)
-      expect(certsAvailable()).toBe(true)
-    })
-
-    test('setup falls back to static x509 when ZTI enabled-by-default but not bound', async () => {
-      // Manual-cert path as documented in the README: static x509 credentials, no
-      // zero-trust-identity binding, and TELEMETRY_USE_ZTI left at its default (enabled).
-      // certsAvailable() must still recognize the static certs so createCaaSExporter does
-      // not reject the setup as "missing mTLS".
-      process.env.VCAP_SERVICES = JSON.stringify(MOCK_CAAS_VCAP)
-      delete process.env.TELEMETRY_USE_ZTI
       cds.env.requires.telemetry.x509 = {
         cert: Buffer.from('-----BEGIN CERTIFICATE-----\nenvvar-cert\n-----END CERTIFICATE-----').toString('base64'),
         key: Buffer.from('-----BEGIN PRIVATE KEY-----\nenvvar-key\n-----END PRIVATE KEY-----').toString('base64')
