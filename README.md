@@ -96,8 +96,7 @@ Example trace in Dynatrace:
 
 An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
 
-In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no OpenTelemetry exporter is needed to transport the traces to Dynatrace.
-`@cap-js/telemetry` recognizes this and ignores any exporter config if the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) is used.
+To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) with the OTLP trace exporter — see [Dynatrace OneAgent](#dynatrace-oneagent) for why this is required even when OneAgent is present.
 
 
 ### Metrics
@@ -221,7 +220,7 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@opentelemetry/exporter-trace-otlp-proto` (optional, see [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent))
+- `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
@@ -250,16 +249,12 @@ In Dynatrace itself, you need to ensure that the following two features are enab
     - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
     - Turn on Send W3C Trace Context HTTP headers.
 
-#### Leveraging Dynatrace OneAgent
+#### Dynatrace OneAgent
 
-If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
-(Your app still needs to be bound to a Dynatrace instance, of course. However, `@dynatrace/oneagent-sdk` is not required.)
-Hence, additional dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
+If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, do **not** rely on it to transport the spans created by `@cap-js/telemetry`.
+**Until further notice, traces must be exported to Dynatrace via the OTLP exporter**: `@opentelemetry/exporter-trace-otlp-proto` must be a dependency (as listed under [Required additional dependencies](#telemetry-to-dynatrace) above) and the `openTelemetryTrace.ingest` scope must be granted.
 
-Please note, however, that Dynatrace only exports traces triggered by incoming HTTP requests.
-That is, traces for background tasks started by `cds.spawn`, for example, would not be exported.
-
-If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
+If OneAgent is active but the OTLP trace exporter is *not* installed, `@cap-js/telemetry` exports no traces and logs a warning at startup — only OneAgent's own instrumentation is captured, not the CDS spans.
 
 
 ### `telemetry-to-cloud-logging`
