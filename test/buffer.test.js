@@ -22,7 +22,7 @@ describe('wrapExporterWithBuffer', () => {
   })
 
   test('buffers items until certs are available', async () => {
-    const { wrapExporterWithBuffer } = await import('../lib/utils.js')
+    const { wrapExporterWithBuffer } = await import('../lib/utils/caas.js')
 
     const exportedItems = []
     const mockExporter = {
@@ -52,7 +52,7 @@ describe('wrapExporterWithBuffer', () => {
   })
 
   test('drops oldest when buffer full', async () => {
-    const { wrapExporterWithBuffer } = await import('../lib/utils.js')
+    const { wrapExporterWithBuffer } = await import('../lib/utils/caas.js')
 
     const exportedItems = []
     const mockExporter = {
@@ -94,7 +94,7 @@ describe('wrapExporterWithBuffer', () => {
       }
     }
 
-    const { wrapExporterWithBuffer } = await import('../lib/utils.js')
+    const { wrapExporterWithBuffer } = await import('../lib/utils/caas.js')
 
     const exportedItems = []
     const mockExporter = {
@@ -115,7 +115,7 @@ describe('wrapExporterWithBuffer', () => {
   })
 
   test('after certs available, exports go directly to original (no buffer)', async () => {
-    const { wrapExporterWithBuffer } = await import('../lib/utils.js')
+    const { wrapExporterWithBuffer } = await import('../lib/utils/caas.js')
 
     const exportCalls = []
     const mockExporter = {
