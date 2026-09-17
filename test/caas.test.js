@@ -376,6 +376,28 @@ describe('ZTI', () => {
       reset()
     })
 
+    test('setup arms a bootstrap watcher when the SVID dir does not exist yet, loading certs once it appears', async () => {
+      // Boot race: ZTI is bound but SPIRE has not created the SVID directory yet. setup() must
+      // still activate and arm a watcher, so certs are picked up when they land — rather than
+      // reporting async certs with no watcher, which would buffer exports forever.
+      fs.rmSync(ctx.svidDir, { recursive: true, force: true })
+
+      const { setup, reset } = await import('../lib/zti.js')
+      const { certsAvailable } = await import('../lib/utils/mtls.js')
+
+      expect(setup()).toBe(true)
+      expect(certsAvailable()).toBe(false) // nothing to load yet
+
+      // SPIRE creates the directory and writes the SVID shortly after startup; the bootstrap
+      // watcher (on the parent dir) then hands off to the real watcher and loads the certs.
+      fs.mkdirSync(ctx.svidDir)
+      ctx.writeSVIDFiles()
+
+      await vi.waitFor(() => expect(certsAvailable()).toBe(true), { timeout: 4000, interval: 100 })
+
+      reset()
+    })
+
     test('setup falls back to static x509 when ZTI is not bound', async () => {
       // Manual-cert path as documented in the README: static x509 credentials and no
       // zero-trust-identity binding. setup() reports ZTI inactive, and certsAvailable() must
