@@ -80,10 +80,11 @@ describe('tracing setup with Dynatrace OneAgent', () => {
       expect(() => span.end()).not.toThrow()
     })
 
-    test('CALM: leaves the xotel-agent-ext-js-owned provider alone (returns nothing)', () => {
-      // A falsy resource is the CALM path: @sap/xotel-agent-ext-js owns the provider, so the
-      // factory must not register a competing one.
-      expect(setupTracing(undefined)).toBeUndefined()
+    test('CALM + OneAgent: rejected as an unsupported combination', () => {
+      // A falsy resource is the CALM path (@sap/xotel-agent-ext-js owns the provider). Combined with
+      // OneAgent, two agents would own tracing at once — a contradictory, unverified setup — so the
+      // factory rejects it rather than silently doing nothing.
+      expect(() => setupTracing(undefined)).toThrow(/OneAgent with @sap\/xotel-agent-ext-js .* not supported/)
     })
   })
 })
