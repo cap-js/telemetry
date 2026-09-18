@@ -96,7 +96,7 @@ Example trace in Dynatrace:
 
 An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
 
-To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) with the OTLP trace exporter — see [Dynatrace OneAgent](#dynatrace-oneagent) for why this is required even when OneAgent is present.
+To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
 
 
 ### Metrics
@@ -251,10 +251,9 @@ In Dynatrace itself, you need to ensure that the following two features are enab
 
 #### Dynatrace OneAgent
 
-If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, do **not** rely on it to transport the spans created by `@cap-js/telemetry`.
-**Until further notice, traces must be exported to Dynatrace via the OTLP exporter**: `@opentelemetry/exporter-trace-otlp-proto` must be a dependency (as listed under [Required additional dependencies](#telemetry-to-dynatrace) above) and the `openTelemetryTrace.ingest` scope must be granted.
+If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, and the OTLP trace exporter is *not* installed, `@cap-js/telemetry` does not export traces itself. Instead it registers a recording tracer provider without an exporter and relies on OneAgent's in-process OpenTelemetry capture to pick up the CDS spans — no OTLP export, no duplicate spans.
 
-If OneAgent is active but the OTLP trace exporter is *not* installed, `@cap-js/telemetry` exports no traces and logs a warning at startup — only OneAgent's own instrumentation is captured, not the CDS spans.
+Installing the OTLP trace exporter (`@opentelemetry/exporter-trace-otlp-proto`, see [Required additional dependencies](#telemetry-to-dynatrace) above) takes precedence: `@cap-js/telemetry` then exports the spans itself instead of relying on in-process capture, and the `openTelemetryTrace.ingest` scope must be granted.
 
 
 ### `telemetry-to-cloud-logging`

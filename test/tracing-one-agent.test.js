@@ -1,24 +1,23 @@
-// Regression test: when Dynatrace OneAgent is active (`via_one_agent`), the tracing factory must
-// NOT build a tracer provider with an undefined span processor.
+// When Dynatrace OneAgent is active (`via_one_agent`), OneAgent captures OpenTelemetry spans
+// in-process — so instead of exporting traces ourselves (which would duplicate them), the tracing
+// factory registers a real, recording tracer provider with an EMPTY span-processor list. That
+// provider records spans (so the global tracer used by lib/tracing/trace.js is no longer a no-op)
+// but adds no export path of our own; OneAgent's preload hooks observe the recorded spans.
 //
-// 2.x constructs the provider via the OTel 2.0 constructor `new NodeTracerProvider({ spanProcessors })`.
-// On the OneAgent path no exporter/processor is created, so `processor` stayed `undefined` and
-// `[undefined]` was handed to the provider — MultiSpanProcessor.onStart then dereferenced undefined
-// on the FIRST span and the app crashed on startup (CF exit 137, crash loop).
-//
-// The fix: on the OneAgent path the factory sets up nothing and returns — no exporter, no processor,
-// no provider, nothing to crash on. It deliberately does not export traces here (export to Dynatrace
-// goes via the OTLP exporter instead) and must not register or clobber a global tracer provider.
+// Two properties must hold and are asserted here without a live Dynatrace tenant:
+//   1. crash-safety — an EMPTY processor list `[]` must not crash on the first span, unlike the
+//      `[undefined]` a naive "no exporter -> no processor" path would have produced (which crashed
+//      in MultiSpanProcessor.onStart);
+//   2. the provider is real and RECORDING — a provider that doesn't record would leave CDS spans
+//      non-existent, which is the regression this path must avoid.
 //
 // We drive the factory directly rather than through a full boot: exercising `via_one_agent` needs
-// kind `*-to-dynatrace` (whose metrics/tracing exporters would otherwise demand real Dynatrace
-// credentials at boot). Booting once with the in-memory tracing profile populates `cds.env` and
-// caches lib/tracing; the tests then flip `cds.env.requires.telemetry.kind` + the env flag and call
-// the factory in isolation.
+// kind `*-to-dynatrace` (whose exporters would otherwise demand real Dynatrace credentials at boot).
+// Booting once with the in-memory tracing profile populates `cds.env` and caches lib/tracing; the
+// tests then flip `cds.env.requires.telemetry.kind` + the env flag and call the factory in isolation.
 const cds = require('@sap/cds')
 const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 
-const otel = require('@opentelemetry/api')
 const { resourceFromAttributes } = require('@opentelemetry/resources')
 const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node')
 
@@ -28,9 +27,10 @@ const setupTracing = require('../lib/tracing')
 describe('tracing setup with Dynatrace OneAgent', () => {
   const OTLP_PROTO = '@opentelemetry/exporter-trace-otlp-proto'
 
+  // Guard on the illustrative failure mode: a provider whose only span processor is `undefined`
+  // builds fine but crashes on the first span in onStart. It is the reason the OneAgent path passes
+  // an empty list `[]` rather than `[processor]` with a missing processor.
   test('a provider with an undefined span processor crashes on the first span', () => {
-    // This is the failure mode the OneAgent path must avoid: a provider whose only span processor
-    // is `undefined`. It builds fine, but the first span crashes in onStart.
     const provider = new NodeTracerProvider({
       resource: resourceFromAttributes({}),
       spanProcessors: [undefined]
@@ -38,39 +38,53 @@ describe('tracing setup with Dynatrace OneAgent', () => {
     expect(() => provider.getTracer('probe').startSpan('boom')).toThrow(/onStart/)
   })
 
-  test('OneAgent path: sets up nothing, returns, and never touches an undefined processor', () => {
-    // Precondition for `via_one_agent`: the otlp-proto exporter must NOT be a (production) dependency
-    // — it is only a devDependency here, and hasDependency() checks `dependencies` only.
+  // Precondition for `via_one_agent`: the otlp-proto exporter must NOT be a (production) dependency
+  // — it is only a devDependency here, and hasDependency() checks `dependencies` only. With it
+  // present, `via_one_agent` would be false and the normal OTLP export path taken instead.
+  test('otlp-proto exporter is not a production dependency (so via_one_agent can be true)', () => {
     expect(hasDependency(OTLP_PROTO)).toBe(false)
+  })
 
-    const proxy = otel.trace.getTracerProvider() // the process-global ProxyTracerProvider
-    const originalDelegate = proxy.getDelegate()
+  describe('OneAgent path', () => {
+    let savedKind, savedEnv
 
-    const savedKind = cds.env.requires.telemetry.kind
-    const savedEnv = process.env.DT_NODE_PRELOAD_OPTIONS
-    process.env.DT_NODE_PRELOAD_OPTIONS = '{}'
-    cds.env.requires.telemetry.kind = 'telemetry-to-dynatrace'
+    beforeEach(() => {
+      savedKind = cds.env.requires.telemetry.kind
+      savedEnv = process.env.DT_NODE_PRELOAD_OPTIONS
+      process.env.DT_NODE_PRELOAD_OPTIONS = '{}'
+      cds.env.requires.telemetry.kind = 'telemetry-to-dynatrace'
+    })
 
-    try {
-      // Must not throw. We pass a resource so it is the standalone path (a falsy resource is the
-      // CALM path).
-      let returned
-      expect(() => {
-        returned = setupTracing(resourceFromAttributes({}))
-      }).not.toThrow()
-
-      // The factory returns nothing and registers no provider of its own — the global delegate is
-      // left exactly as it was.
-      expect(returned).toBeUndefined()
-      expect(proxy.getDelegate()).toBe(originalDelegate)
-
-      // And a span created via the global API (as lib/tracing/trace.js does for every CDS span)
-      // does not crash — with no real provider registered it is simply a non-recording span.
-      expect(() => otel.trace.getTracer('@cap-js/telemetry').startSpan('cds-span').end()).not.toThrow()
-    } finally {
+    afterEach(() => {
       cds.env.requires.telemetry.kind = savedKind
       if (savedEnv === undefined) delete process.env.DT_NODE_PRELOAD_OPTIONS
       else process.env.DT_NODE_PRELOAD_OPTIONS = savedEnv
-    }
+    })
+
+    test('standalone: registers a real, recording provider with no export path, and does not crash', () => {
+      // A truthy resource is the standalone path (a falsy resource is the CALM path).
+      let provider
+      expect(() => {
+        provider = setupTracing(resourceFromAttributes({}))
+      }).not.toThrow()
+
+      // A real provider is returned (not undefined as on the pre-fix regression) ...
+      expect(provider).toBeInstanceOf(NodeTracerProvider)
+
+      // ... and it records: a span created the way lib/tracing/trace.js creates them is a real,
+      // recording span — not a NonRecordingSpan — so CDS spans actually come into existence for
+      // OneAgent to capture. The empty processor list means creating and ending it never crashes.
+      const span = provider.getTracer('@cap-js/telemetry').startSpan('cds-span')
+      expect(span.constructor.name).not.toBe('NonRecordingSpan')
+      expect(span.isRecording()).toBe(true)
+      expect(() => span.end()).not.toThrow()
+    })
+
+    test('CALM + OneAgent: rejected as an unsupported combination', () => {
+      // A falsy resource is the CALM path (@sap/xotel-agent-ext-js owns the provider). Combined with
+      // OneAgent, two agents would own tracing at once — a contradictory, unverified setup — so the
+      // factory rejects it rather than silently doing nothing.
+      expect(() => setupTracing(undefined)).toThrow(/OneAgent with @sap\/xotel-agent-ext-js .* not supported/)
+    })
   })
 })
