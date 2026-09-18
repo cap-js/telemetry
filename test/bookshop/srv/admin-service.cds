@@ -7,6 +7,9 @@ service AdminService @(requires: 'admin') {
 
   action test_spawn();
   action test_emit();
+  action test_outboxed_send();
+  action test_outboxed_send_batch();
+  action test_scheduled();
 
   event foo {
     bar : String;

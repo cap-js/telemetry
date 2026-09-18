@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 2.1.0 - tbd
+
+### Added
+
+- Support for `telemetry-to-caas` kind for CaaS (Collector as a Service). By default, mTLS certificates are provisioned and rotated automatically via the Zero Trust Identity (ZTI) sidecar; alternatively, mTLS certificates can be provided manually via `x509` credentials.
+- Queue worker transactions are traced as coherent `<service> - tx` spans under the `cds.spawn - run task` root, instead of orphaned per-call spans
+- The span processor is now configurable via `cds.requires.telemetry.tracing.processor = { kind, config? }` (`BatchSpanProcessor` or `SimpleSpanProcessor`); defaults to `BatchSpanProcessor`, and to `SimpleSpanProcessor` in the `[development]` profile
+- Exported log records now carry the tenant as attribute `sap.tenancy.tenant_id` (when available from `cds.context`), aligning log metadata with traces and metrics
+
+### Changed
+
+### Fixed
+
+- No longer crashes on startup when Dynatrace OneAgent is active (`DT_NODE_PRELOAD_OPTIONS` set, kind `*-to-dynatrace`, no `@opentelemetry/exporter-trace-otlp-proto` dependency): the tracing factory no longer builds a tracer provider with an undefined span processor (which crashed on the first span in `MultiSpanProcessor.onStart`). On this path it now registers a recording tracer provider without an exporter, so the CDS spans exist for OneAgent's in-process OpenTelemetry capture to pick up (no export by us, no duplicates)
+- Logging no longer recurses through `@opentelemetry/sdk-logs` 0.221's export path: the log-processor construction now adapts to the installed sdk-logs version (0.221+ takes an `{ exporter }` options object, earlier versions the positional exporter), and a re-entrancy guard was added to the `cds.log.format` interception
+- Cloud SDK outbound requests are traced again (patch getter-only `@sap-cloud-sdk/http-client` exports via `Object.defineProperty`)
+- Raw SQL no longer leaks into HANA INSERT `prepare` span names (now uses operation + table, matching SELECT)
+- Queue `*_storage_time_in_seconds` metrics are now correct on HANA (timezone-naive `min`/`max` timestamp aggregates were parsed as local time, skewing the values by the machine's UTC offset)
+
 ## Version 2.0.1 - 2026-07-03
 
 ### Fixed

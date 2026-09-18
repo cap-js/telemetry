@@ -25,6 +25,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-console`](#telemetry-to-console)
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
+  - [`telemetry-to-caas`](#telemetry-to-caas)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
 - [Detailed Configuration Options](#detailed-configuration-options)
@@ -33,6 +34,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
+  - [Span Processor](#span-processor)
   - [Exporters](#exporters)
   - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
   - [Environment Variables](#environment-variables)
@@ -94,8 +96,7 @@ Example trace in Dynatrace:
 
 An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
 
-In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no OpenTelemetry exporter is needed to transport the traces to Dynatrace.
-`@cap-js/telemetry` recognizes this and ignores any exporter config if the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) is used.
+To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
 
 
 ### Metrics
@@ -200,7 +201,7 @@ Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`
 
 ## Predefined Kinds
 
-There are five predefined kinds as follows:
+There are six predefined kinds as follows:
 
 
 ### `telemetry-to-console`
@@ -219,7 +220,7 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@opentelemetry/exporter-trace-otlp-proto` (optional, see [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent))
+- `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
@@ -248,16 +249,11 @@ In Dynatrace itself, you need to ensure that the following two features are enab
     - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
     - Turn on Send W3C Trace Context HTTP headers.
 
-#### Leveraging Dynatrace OneAgent
+#### Dynatrace OneAgent
 
-If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
-(Your app still needs to be bound to a Dynatrace instance, of course. However, `@dynatrace/oneagent-sdk` is not required.)
-Hence, additional dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
+If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, and the OTLP trace exporter is *not* installed, `@cap-js/telemetry` does not export traces itself. Instead it registers a recording tracer provider without an exporter and relies on OneAgent's in-process OpenTelemetry capture to pick up the CDS spans — no OTLP export, no duplicate spans.
 
-Please note, however, that Dynatrace only exports traces triggered by incoming HTTP requests.
-That is, traces for background tasks started by `cds.spawn`, for example, would not be exported.
-
-If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
+Installing the OTLP trace exporter (`@opentelemetry/exporter-trace-otlp-proto`, see [Required additional dependencies](#telemetry-to-dynatrace) above) takes precedence: `@cap-js/telemetry` then exports the spans itself instead of relying on in-process capture, and the `openTelemetryTrace.ingest` scope must be granted.
 
 
 ### `telemetry-to-cloud-logging`
@@ -283,11 +279,112 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 
 If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has the tag `Cloud Logging`.
 
-> Tip: To add the required tag to an existing user-provided service, you can use: 
+> Tip: To add the required tag to an existing user-provided service, you can use:
 > ```
 > cf update-user-provided-service {service-name} -t "Cloud Logging"
 > ```
 > For detailed information about binding resolution in CAP, consult [`cds.connect()` → Service Bindings](https://cap.cloud.sap/docs/node.js/cds-connect#service-bindings).
+
+
+### `telemetry-to-caas`
+
+Exports traces and metrics to CaaS (Collector as a Service).
+CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
+
+Use via `cds.requires.telemetry.kind = 'to-caas'`.
+
+Required additional dependencies:
+- `@opentelemetry/exporter-trace-otlp-proto`
+- `@opentelemetry/exporter-metrics-otlp-proto`
+
+CaaS needs two things: a **CaaS collector instance** (created with its pipeline config) and an **app deployment** that authenticates to it over mTLS — automatically via ZTI (default), or with a manually provided certificate.
+
+#### Create the CaaS instance
+
+The collector's `otelConfig` (receivers, exporters, pipelines) is fixed at creation — a binding can't change it later — so create and configure the instance up front, via the BTP cockpit or the CF CLI:
+
+```bash
+cf create-service caas <plan> my-app-caas -c '{
+  "otelConfig": {
+    "receivers": { "otlp": { "protocols": { "grpc": {}, "http": {} } } },
+    "exporters": { "otlp/sink": { "endpoint": "<your-downstream-otlp-endpoint>" } },
+    "service": { "pipelines": {
+      "traces":  { "receivers": ["otlp"], "exporters": ["otlp/sink"] },
+      "metrics": { "receivers": ["otlp"], "exporters": ["otlp/sink"] }
+    } }
+  }
+}'
+```
+
+The `receivers` block is required. See the CaaS onboarding docs for the full `otelConfig` / `secrets` / PII-redaction options.
+
+#### Automatic certificates via ZTI (default)
+
+`cds add mta` generates the base `mta.yaml`. Add the ZTI sidecar buildpack to your service module, bind the CaaS instance (as an `existing-service`, since it's pre-created) and a `zero-trust-identity` service:
+
+```yaml
+modules:
+  - name: my-app-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      buildpacks:
+        - zero_trust_sidecar_buildpack
+        - nodejs_buildpack
+    requires:
+      - name: my-app-caas
+        parameters:
+          config:
+            subject: <subject>
+            issuer: <issuer>
+      - name: my-app-zti
+        parameters:
+          config:
+            app-identifier: my-app
+            svid-store:
+              file:
+                name: my-app-svid
+resources:
+  - name: my-app-caas # the instance created above
+    type: org.cloudfoundry.existing-service
+  - name: my-app-zti
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: zero-trust-identity
+      service-plan: standard
+```
+
+##### Certificate identity (current workaround)
+
+`subject`/`issuer` identify the client certificate. Until MTA tooling supports service-key placeholders, extract them before deployment from a throwaway `config-policy` key:
+
+```bash
+cf create-service zero-trust-identity config-policy tmp-cp
+cf create-service-key tmp-cp k -c '{ "app-identifier": "my-app", "type": "subject_dn" }'
+cf service-key tmp-cp k          # copy subject/issuer into the CaaS binding above
+cf delete-service-key tmp-cp k -f && cf delete-service tmp-cp -f
+```
+
+#### Manual mTLS certificates (alternative)
+
+For environments without ZTI, provide an SAP-signed certificate yourself instead of the `zero-trust-identity` binding:
+
+```yaml
+modules:
+  - name: my-app-srv
+    requires:
+      - name: my-app-caas
+        parameters:
+          config:
+            subject: <subject>
+            issuer: <issuer>
+    properties:
+      CDS_REQUIRES_TELEMETRY_X509_CERT: <base64-cert-chain-or-PEM>
+      CDS_REQUIRES_TELEMETRY_X509_KEY: <base64-key-or-PEM>
+```
+
+Extract `subject`/`issuer` with `openssl x509 -in cert.pem -noout -subject -issuer -nameopt RFC2253` (use the direct issuer, not the root CA).
+
 
 ### `telemetry-to-jaeger`
 
@@ -426,6 +523,21 @@ Default:
 ```json
 ["W3CTraceContextPropagator", "W3CBaggagePropagator"]
 ```
+
+
+### Span Processor
+
+Configure via `cds.requires.telemetry.tracing.processor = { kind, config? }`, where `kind` is one of `BatchSpanProcessor` or `SimpleSpanProcessor` and `config` is passed through to the processor's constructor.
+
+Default: `BatchSpanProcessor`, except in the `[development]` profile, which uses `SimpleSpanProcessor` so spans are exported immediately.
+```json
+{
+  "kind": "BatchSpanProcessor"
+}
+```
+
+> [!NOTE]
+> The `ConsoleSpanExporter` (the default `telemetry-to-console` exporter) has only been tested with the `SimpleSpanProcessor`. Combining it with the `BatchSpanProcessor` is not recommended.
 
 
 ### Exporters
