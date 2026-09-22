@@ -341,7 +341,7 @@ Please note that `@cap-js/telemetry` does not validate the configuration via env
 
 When your application already runs the SAP Cloud ALM agent extension (`@sap/xotel-agent-ext-js`), that agent owns the OpenTelemetry SDK. `@cap-js/telemetry` detects it and, instead of setting up its own tracer provider, contributes its CDS spans to the agent's tracing pipeline (as a delegate on the agent's span processor). Both run on a single, shared OpenTelemetry SDK instance, so the CDS spans appear alongside the data the agent already collects — no second SDK, no duplicate setup.
 
-For enabling and onboarding the SAP Cloud ALM agent itself, refer to the [SAP Cloud ALM documentation](https://support.sap.com/en/alm/sap-cloud-alm/operations/expert-portal/data-collection-infrastructure.html).
+This requires `@sap/xotel-agent-ext-js` 2.0.4 or later. For enabling and onboarding the SAP Cloud ALM agent itself, refer to the [SAP Cloud ALM documentation](https://support.sap.com/en/alm/sap-cloud-alm/operations/expert-portal/data-collection-infrastructure.html).
 
 > Note: this coexistence is currently in beta. Running the SAP Cloud ALM agent together with Dynatrace OneAgent is not supported.
 
