@@ -25,9 +25,9 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-console`](#telemetry-to-console)
   - [`telemetry-to-dynatrace`](#telemetry-to-dynatrace)
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
-  - [`telemetry-to-caas`](#telemetry-to-caas)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
+- [Running with SAP Cloud ALM (beta)](#running-with-sap-cloud-alm-beta)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
   - [Resource Attributes](#resource-attributes)
@@ -286,106 +286,6 @@ If you are binding your app to SAP Cloud Logging via a [user-provided service in
 > For detailed information about binding resolution in CAP, consult [`cds.connect()` → Service Bindings](https://cap.cloud.sap/docs/node.js/cds-connect#service-bindings).
 
 
-### `telemetry-to-caas`
-
-Exports traces and metrics to CaaS (Collector as a Service).
-CaaS acts as a managed OpenTelemetry Collector that can route telemetry data to downstream backends like SAP Cloud Logging.
-
-Use via `cds.requires.telemetry.kind = 'to-caas'`.
-
-Required additional dependencies:
-- `@opentelemetry/exporter-trace-otlp-proto`
-- `@opentelemetry/exporter-metrics-otlp-proto`
-
-CaaS needs two things: a **CaaS collector instance** (created with its pipeline config) and an **app deployment** that authenticates to it over mTLS — automatically via ZTI (default), or with a manually provided certificate.
-
-#### Create the CaaS instance
-
-The collector's `otelConfig` (receivers, exporters, pipelines) is fixed at creation — a binding can't change it later — so create and configure the instance up front, via the BTP cockpit or the CF CLI:
-
-```bash
-cf create-service caas <plan> my-app-caas -c '{
-  "otelConfig": {
-    "receivers": { "otlp": { "protocols": { "grpc": {}, "http": {} } } },
-    "exporters": { "otlp/sink": { "endpoint": "<your-downstream-otlp-endpoint>" } },
-    "service": { "pipelines": {
-      "traces":  { "receivers": ["otlp"], "exporters": ["otlp/sink"] },
-      "metrics": { "receivers": ["otlp"], "exporters": ["otlp/sink"] }
-    } }
-  }
-}'
-```
-
-The `receivers` block is required. See the CaaS onboarding docs for the full `otelConfig` / `secrets` / PII-redaction options.
-
-#### Automatic certificates via ZTI (default)
-
-`cds add mta` generates the base `mta.yaml`. Add the ZTI sidecar buildpack to your service module, bind the CaaS instance (as an `existing-service`, since it's pre-created) and a `zero-trust-identity` service:
-
-```yaml
-modules:
-  - name: my-app-srv
-    type: nodejs
-    path: gen/srv
-    parameters:
-      buildpacks:
-        - zero_trust_sidecar_buildpack
-        - nodejs_buildpack
-    requires:
-      - name: my-app-caas
-        parameters:
-          config:
-            subject: <subject>
-            issuer: <issuer>
-      - name: my-app-zti
-        parameters:
-          config:
-            app-identifier: my-app
-            svid-store:
-              file:
-                name: my-app-svid
-resources:
-  - name: my-app-caas # the instance created above
-    type: org.cloudfoundry.existing-service
-  - name: my-app-zti
-    type: org.cloudfoundry.managed-service
-    parameters:
-      service: zero-trust-identity
-      service-plan: standard
-```
-
-##### Certificate identity (current workaround)
-
-`subject`/`issuer` identify the client certificate. Until MTA tooling supports service-key placeholders, extract them before deployment from a throwaway `config-policy` key:
-
-```bash
-cf create-service zero-trust-identity config-policy tmp-cp
-cf create-service-key tmp-cp k -c '{ "app-identifier": "my-app", "type": "subject_dn" }'
-cf service-key tmp-cp k          # copy subject/issuer into the CaaS binding above
-cf delete-service-key tmp-cp k -f && cf delete-service tmp-cp -f
-```
-
-#### Manual mTLS certificates (alternative)
-
-For environments without ZTI, provide an SAP-signed certificate yourself instead of the `zero-trust-identity` binding:
-
-```yaml
-modules:
-  - name: my-app-srv
-    requires:
-      - name: my-app-caas
-        parameters:
-          config:
-            subject: <subject>
-            issuer: <issuer>
-    properties:
-      CDS_REQUIRES_TELEMETRY_X509_CERT: <base64-cert-chain-or-PEM>
-      CDS_REQUIRES_TELEMETRY_X509_KEY: <base64-key-or-PEM>
-```
-
-Extract `subject`/`issuer` with `openssl x509 -in cert.pem -noout -subject -issuer -nameopt RFC2253` (use the direct issuer, not the root CA).
-
-
 ### `telemetry-to-jaeger`
 
 Exports traces to Jaeger.
@@ -434,6 +334,16 @@ Required additional dependencies (`* = grpc|proto|http`):
 - `@opentelemetry/exporter-metrics-otlp-*`
 
 Please note that `@cap-js/telemetry` does not validate the configuration via environment variables!
+
+
+
+## Running with SAP Cloud ALM (beta)
+
+When your application already runs the SAP Cloud ALM agent extension (`@sap/xotel-agent-ext-js`), that agent owns the OpenTelemetry SDK. `@cap-js/telemetry` detects it and, instead of setting up its own tracer provider, contributes its CDS spans to the agent's tracing pipeline (as a delegate on the agent's span processor). Both run on a single, shared OpenTelemetry SDK instance, so the CDS spans appear alongside the data the agent already collects — no second SDK, no duplicate setup.
+
+This requires `@sap/xotel-agent-ext-js` 2.0.4 or later. For enabling and onboarding the SAP Cloud ALM agent itself, refer to the [SAP Cloud ALM documentation](https://support.sap.com/en/alm/sap-cloud-alm/operations/expert-portal/data-collection-infrastructure.html).
+
+> Note: this coexistence is currently in beta. Running the SAP Cloud ALM agent together with Dynatrace OneAgent is not supported.
 
 
 
