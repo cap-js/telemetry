@@ -14,10 +14,10 @@
     "lib"
   ],
   "scripts": {
-    "lint": "npx eslint . --max-warnings=0",
+    "lint": "eslint . --max-warnings=0",
     "test": "vitest run --silent",
-    "format": "npx oxfmt",
-    "format:check": "npx oxfmt --check"
+    "format": "oxfmt",
+    "format:check": "oxfmt --check"
   },
   "dependencies": {
     "@opentelemetry/api": "^1.9",
