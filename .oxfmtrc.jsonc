@@ -17,5 +17,5 @@
   "useTabs": false,
   "vueIndentScriptAndStyle": false,
   "sortPackageJson": false,
-  "ignorePatterns": ["*.md", "node_modules/**", "package-lock.json", "CHANGELOG.md", "jest.config.js"]
+  "ignorePatterns": ["*.md", "node_modules/**", "package-lock.json"]
 }

@@ -201,7 +201,7 @@ Please note that in order for logs to be exported via OpenTelemetry, `cds.log()`
 
 ## Predefined Kinds
 
-There are six predefined kinds as follows:
+There are five predefined kinds as follows:
 
 
 ### `telemetry-to-console`
