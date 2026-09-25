@@ -1,4 +1,3 @@
-// REVISIT: jest breaks otel's patching of incoming request handling -> we can't ignore via ignoreIncomingRequestHook
 // The sampler's ignoreIncomingPaths (/odata/v4/admin/Authors) is configured via the
 // `sampler-ignore-authors` profile in test/bookshop/.cdsrc.json, composed with `tracing-in-memory`.
 const cds = require('@sap/cds')
