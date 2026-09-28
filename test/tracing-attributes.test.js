@@ -17,6 +17,11 @@ beforeEach(async () => {
   captured.length = 0
 })
 
+// The DELETE case below wipes all Books. On HANA every file shares ONE HDI container
+// (unlike sqlite's per-file in-memory DB), so leaving the seed data deleted breaks later
+// files that read it (e.g. tracing.test.js GETs Books(252)). Restore it once we're done.
+afterAll(() => data.reset())
+
 // Returns all finished spans, optionally filtered by a predicate.
 const spans = filter => (filter ? captured.filter(filter) : captured.slice())
 
