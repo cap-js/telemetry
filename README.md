@@ -27,12 +27,14 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
+- [Running with SAP Cloud ALM (beta)](#running-with-sap-cloud-alm-beta)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
   - [Resource Attributes](#resource-attributes)
   - [Instrumentations](#instrumentations)
   - [Sampler](#sampler)
   - [Propagators](#propagators)
+  - [Span Processor](#span-processor)
   - [Exporters](#exporters)
   - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
   - [Environment Variables](#environment-variables)
@@ -94,8 +96,7 @@ Example trace in Dynatrace:
 
 An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
 
-In environments where Dynatrace OneAgent is installed (e.g., SAP BTP CF), no OpenTelemetry exporter is needed to transport the traces to Dynatrace.
-`@cap-js/telemetry` recognizes this and ignores any exporter config if the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace) is used.
+To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
 
 
 ### Metrics
@@ -219,7 +220,7 @@ Hence, a Dynatrace instance is required and the app must be bound to that Dynatr
 Use via `cds.requires.telemetry.kind = 'to-dynatrace'`.
 
 Required additional dependencies:
-- `@opentelemetry/exporter-trace-otlp-proto` (optional, see [Leveraging Dynatrace OneAgent](#leveraging-dynatrace-oneagent))
+- `@opentelemetry/exporter-trace-otlp-proto`
 - `@opentelemetry/exporter-metrics-otlp-proto`
 
 The necessary scopes for exporting traces (`openTelemetryTrace.ingest`) and metrics (`metrics.ingest`) are not part of the standard `apitoken` and must be requested.
@@ -248,16 +249,11 @@ In Dynatrace itself, you need to ensure that the following two features are enab
     - From the Dynatrace menu, go to Settings > Server-side service monitoring > Deep monitoring > Distributed tracing.
     - Turn on Send W3C Trace Context HTTP headers.
 
-#### Leveraging Dynatrace OneAgent
+#### Dynatrace OneAgent
 
-If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, it will collect and transport the traces created by `@cap-js/telemetry` automatically.
-(Your app still needs to be bound to a Dynatrace instance, of course. However, `@dynatrace/oneagent-sdk` is not required.)
-Hence, additional dependency `@opentelemetry/exporter-trace-otlp-proto` and scope `openTelemetryTrace.ingest` are not required.
+If [Dynatrace OneAgent](https://www.dynatrace.com/platform/oneagent) is present, for example on SAP BTP CF, and the OTLP trace exporter is *not* installed, `@cap-js/telemetry` does not export traces itself. Instead it registers a recording tracer provider without an exporter and relies on OneAgent's in-process OpenTelemetry capture to pick up the CDS spans — no OTLP export, no duplicate spans.
 
-Please note, however, that Dynatrace only exports traces triggered by incoming HTTP requests.
-That is, traces for background tasks started by `cds.spawn`, for example, would not be exported.
-
-If dependency `@opentelemetry/exporter-trace-otlp-proto` is present anyway, `@cap-js/telemetry` will export the traces via OpenTelemetry as well.
+Installing the OTLP trace exporter (`@opentelemetry/exporter-trace-otlp-proto`, see [Required additional dependencies](#telemetry-to-dynatrace) above) takes precedence: `@cap-js/telemetry` then exports the spans itself instead of relying on in-process capture, and the `openTelemetryTrace.ingest` scope must be granted.
 
 
 ### `telemetry-to-cloud-logging`
@@ -283,11 +279,12 @@ In order to receive OpenTelemetry credentials in the binding to the SAP Cloud Lo
 
 If you are binding your app to SAP Cloud Logging via a [user-provided service instance](https://docs.cloudfoundry.org/devguide/services/user-provided.html), make sure that it has the tag `Cloud Logging`.
 
-> Tip: To add the required tag to an existing user-provided service, you can use: 
+> Tip: To add the required tag to an existing user-provided service, you can use:
 > ```
 > cf update-user-provided-service {service-name} -t "Cloud Logging"
 > ```
 > For detailed information about binding resolution in CAP, consult [`cds.connect()` → Service Bindings](https://cap.cloud.sap/docs/node.js/cds-connect#service-bindings).
+
 
 ### `telemetry-to-jaeger`
 
@@ -337,6 +334,16 @@ Required additional dependencies (`* = grpc|proto|http`):
 - `@opentelemetry/exporter-metrics-otlp-*`
 
 Please note that `@cap-js/telemetry` does not validate the configuration via environment variables!
+
+
+
+## Running with SAP Cloud ALM (beta)
+
+When your application already runs the SAP Cloud ALM agent extension (`@sap/xotel-agent-ext-js`), that agent owns the OpenTelemetry SDK. `@cap-js/telemetry` detects it and, instead of setting up its own tracer provider, contributes its CDS spans to the agent's tracing pipeline (as a delegate on the agent's span processor). Both run on a single, shared OpenTelemetry SDK instance, so the CDS spans appear alongside the data the agent already collects — no second SDK, no duplicate setup.
+
+This requires `@sap/xotel-agent-ext-js` 2.0.4 or later. For enabling and onboarding the SAP Cloud ALM agent itself, refer to the [SAP Cloud ALM documentation](https://support.sap.com/en/alm/sap-cloud-alm/operations/expert-portal/data-collection-infrastructure.html).
+
+> Note: this coexistence is currently in beta. Running the SAP Cloud ALM agent together with Dynatrace OneAgent is not supported.
 
 
 
@@ -426,6 +433,21 @@ Default:
 ```json
 ["W3CTraceContextPropagator", "W3CBaggagePropagator"]
 ```
+
+
+### Span Processor
+
+Configure via `cds.requires.telemetry.tracing.processor = { kind, config? }`, where `kind` is one of `BatchSpanProcessor` or `SimpleSpanProcessor` and `config` is passed through to the processor's constructor.
+
+Default: `BatchSpanProcessor`, except in the `[development]` profile, which uses `SimpleSpanProcessor` so spans are exported immediately.
+```json
+{
+  "kind": "BatchSpanProcessor"
+}
+```
+
+> [!NOTE]
+> The `ConsoleSpanExporter` (the default `telemetry-to-console` exporter) has only been tested with the `SimpleSpanProcessor`. Combining it with the `BatchSpanProcessor` is not recommended.
 
 
 ### Exporters

@@ -39,11 +39,6 @@
           }
         }
       },
-      "messaging": {
-        "kind": "local-messaging",
-        "_kind": "file-based-messaging",
-        "file": "../msg-box"
-      },
       "queue": {
         "legacyLocking": false
       },
@@ -75,11 +70,6 @@
           }
         }
       }
-    },
-    "log": {
-      "cls_custom_fields": [
-        "tenant_id"
-      ]
     },
     "fiori": {
       "draft_deletion_timeout": false

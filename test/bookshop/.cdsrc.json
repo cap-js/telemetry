@@ -1,8 +1,19 @@
 {
+  "requires": {
+    "messaging": {
+      "kind": "local-messaging",
+      "_kind": "file-based-messaging",
+      "file": "../msg-box"
+    }
+  },
+  "log": {
+    "cls_custom_fields": ["tenant_id"]
+  },
   "[logging]": {
     "requires": {
       "telemetry": {
         "tracing": {
+          "exporter": false,
           "sampler": {
             "ignoreIncomingPaths": ["/odata/v4/admin/Genres"]
           }
@@ -30,6 +41,10 @@
         "metrics": {
           "config": {
             "exportIntervalMillis": 100
+          },
+          "exporter": {
+            "module": "./lib/MyInMemoryMetricReader.js",
+            "class": "MyInMemoryMetricReader"
           }
         }
       }
@@ -41,13 +56,13 @@
       "telemetry": {
         "metrics": {
           "config": {
-            "exportIntervalMillis": 100
+            "exportIntervalMillis": 1000
           },
           "_db_pool": false,
           "_queue": true,
           "exporter": {
-            "module": "@opentelemetry/sdk-metrics",
-            "class": "ConsoleMetricExporter"
+            "module": "./lib/MyInMemoryMetricReader.js",
+            "class": "MyInMemoryMetricReader"
           }
         }
       }
@@ -64,22 +79,44 @@
           "_db_pool": false,
           "_queue": false,
           "exporter": {
-            "module": "@opentelemetry/sdk-metrics",
-            "class": "ConsoleMetricExporter"
+            "module": "./lib/MyInMemoryMetricReader.js",
+            "class": "MyInMemoryMetricReader"
           }
         }
       }
     }
   },
-  "[tracing-attributes]": {
+  "[tracing-in-memory]": {
     "requires": {
       "telemetry": {
         "tracing": {
           "exporter": {
-            "module": "@opentelemetry/sdk-trace-node"
+            "module": "./lib/MyInMemorySpanExporter.js",
+            "class": "MyInMemorySpanExporter"
           }
         }
       }
+    }
+  },
+  "[sampler-ignore-authors]": {
+    "requires": {
+      "telemetry": {
+        "tracing": {
+          "sampler": {
+            "ignoreIncomingPaths": ["/odata/v4/admin/Authors"]
+          }
+        }
+      }
+    }
+  },
+  "[native-fetch]": {
+    "remote": {
+      "native_fetch": true
+    }
+  },
+  "[no-scheduling]": {
+    "requires": {
+      "scheduling": false
     }
   },
   "[persistent-outbox]": {
@@ -90,12 +127,32 @@
       }
     }
   },
+  "[inboxed]": {
+    "requires": {
+      "messaging": {
+        "kind": "file-based-messaging",
+        "file": "../inboxed",
+        "inboxed": true
+      }
+    }
+  },
   "[without-outbox]": {
     "requires": {
       "messaging": {
         "kind": "file-based-messaging",
         "file": "../without-outbox",
         "outboxed": false
+      }
+    }
+  },
+  "[tracing-batch-processor]": {
+    "requires": {
+      "telemetry": {
+        "tracing": {
+          "processor": {
+            "kind": "BatchSpanProcessor"
+          }
+        }
       }
     }
   }
