@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## Version 2.1.0 - tbd
+## Version 2.1.0 - 2026-09-28
 
 ### Added
 
@@ -12,8 +12,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Queue worker transactions are traced as coherent `<service> - tx` spans under the `cds.spawn - run task` root, instead of orphaned per-call spans
 - The span processor is now configurable via `cds.requires.telemetry.tracing.processor = { kind, config? }` (`BatchSpanProcessor` or `SimpleSpanProcessor`); defaults to `BatchSpanProcessor`, and to `SimpleSpanProcessor` in the `[development]` profile
 - Exported log records now carry the tenant as attribute `sap.tenancy.tenant_id` (when available from `cds.context`), aligning log metadata with traces and metrics
-
-### Changed
 
 ### Fixed
 
