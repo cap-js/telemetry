@@ -46,6 +46,51 @@ All of this is a **no-op on sqlite** (fresh in-memory DB per file), gated on the
 - It also sets **`process.env.TELEMETRY_TEST_HANA = '1'`** in the config module. Test files that must branch at **collection time** (before `cds.test()` applies its `--profile`) read this env var rather than `cds.env`: reading `cds.env` that early would freeze the env singleton before the profile is applied, so the tracer provider would be built with the wrong exporter and no spans would be captured.
 - HANA runs from its **own workflow**, [`.github/workflows/hana.yml`](.github/workflows/hana.yml) — `workflow_dispatch` only, against a protected `hana` environment with a pre-provisioned HDI container. It is **not** part of the PR CI.
 
+## Running the HANA suite locally
+
+The HANA workflow only runs on demand in CI, so reproducing a HANA-only failure means running the suite against a real HDI container yourself. The steps below mirror what `hana.yml` does.
+
+**1. Get a HANA HDI container and its credentials.** Provision it however you like — a bound BTP Service Manager instance, an existing HDI, etc. Provisioning is out of scope here; all you need at the end is the container's `hana` service binding as a `VCAP_SERVICES` JSON.
+
+**2. Install the HANA drivers without saving them.** They must **never** land in `package.json` / `package-lock.json` (see the internal-registry trap under [Known caveats](#known-caveats--gotchas)):
+
+```sh
+npm i --no-save @cap-js/hana hdb @sap/hana-client
+```
+
+Install against the **public** npm registry (a repo-local `.npmrc` pointing at `https://registry.npmjs.org/`, removed afterwards). Verify the lockfile stayed clean before committing anything:
+
+```sh
+git diff --stat package.json package-lock.json   # must show no HANA driver entries
+```
+
+**3. Provide the credentials via a git-ignored `test/bookshop/default-env.json`** — **not** `.env`:
+
+```json
+{ "VCAP_SERVICES": { "hana": [ { "label": "hana", "tags": ["hana"], "credentials": { "…": "…" } } ] } }
+```
+
+Use `default-env.json`, **not** `.env`: `@sap/cds` only auto-loads `.env` under the `development` profile ([`@sap/cds/lib/env/cds-env.js`](node_modules/@sap/cds/lib/env/cds-env.js) — the `.env` read is gated on `development`), whereas `default-env.json` is loaded unconditionally from the project home. Running under `CI=1` (below) is not the `development` profile, so a `.env` would be silently ignored.
+
+**4. Deploy the model to the container:**
+
+```sh
+cd test/bookshop && cds deploy -2 hana
+```
+
+`cds deploy` re-imports the CSV seed data by content hash, so an unchanged CSV is skipped on a redeploy — it does **not** re-seed a container whose rows were mutated by a prior run. If a later file needs a clean baseline, re-run the seeding path (e.g. `tracing-attributes.test.js`, whose `beforeEach`/`afterAll` reset the seed data).
+
+**5. Run one matrix cell** from the repo root, with `VCAP_SERVICES` in the process env (loaded from `default-env.json`, or exported directly). `HANA_DRIVER` and `HANA_PROM` select the cell; `CI=1` + `HANA_DRIVER` is the gate `vitest.config.mjs` keys on (see [above](#how-the-hana-path-is-signalled)):
+
+```sh
+CI=1 HANA_DRIVER=hdb         HANA_PROM=false npx vitest run
+CI=1 HANA_DRIVER=hdb         HANA_PROM=true  npx vitest run
+CI=1 HANA_DRIVER=hana-client HANA_PROM=false npx vitest run
+CI=1 HANA_DRIVER=hana-client HANA_PROM=true  npx vitest run
+```
+
+The four cells are the CI matrix (`hana-driver ∈ {hdb, hana-client} × hana-prom ∈ {true, false}`). Pass specific files as trailing args (`… npx vitest run test/tracing-attributes.test.js`) to iterate on one suite; but because HANA shares one container across files, a full-suite run is the only faithful reproduction of CI's ordering and cross-file state.
+
 ## Configuration via profiles (not env)
 
 Test configuration lives in **[`test/bookshop/.cdsrc.json`](test/bookshop/.cdsrc.json)** as cds config profiles, selected per test file:
@@ -115,7 +160,7 @@ Because the test HTTP client runs in-process, its outgoing requests would themse
 Only **two** skips are allowed (per #477). Any *new* skip must be justified against this bar; everything else that is skipped is tracked debt.
 
 1. **SAP Passport** — [`test/passport.test.js`](test/passport.test.js) skips on **sqlite** (`db.kind === 'sqlite'`). SAP Passport is a HANA session-context feature with no sqlite equivalent; it runs on HANA.
-2. **Multitenancy on HANA** — `tracing-mt.test.js` and `metrics-outbox-multitenant.test.js` are **excluded from the HANA job** (in `vitest.config.mjs`). MTX tenant subscription needs a bound BTP Service Manager to provision per-tenant HDI containers, which the single pre-provisioned HDI container in CI lacks. They run fully on sqlite (in-memory tenants).
+2. **Multitenancy on HANA** — `tracing-mt.test.js`, `metrics-outbox-multitenant.test.js`, and `logging-mt.test.js` are **excluded from the HANA job** (in `vitest.config.mjs`). MTX tenant subscription needs a bound BTP Service Manager to provision per-tenant HDI containers, which the single pre-provisioned HDI container in CI lacks. They run fully on sqlite (in-memory tenants).
 
 This is the inverse pairing: passport is sqlite-skip / HANA-run; multitenancy is HANA-skip / sqlite-run.
 

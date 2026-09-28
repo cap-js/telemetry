@@ -16,9 +16,14 @@ if (HANA) {
 
   // Multitenancy needs a bound BTP Service Manager (MTX) to provision per-tenant HDI
   // containers. The HANA CI runs against a single pre-provisioned HDI container with no
-  // Service Manager, so these two suites can't run there — exclude them from the HANA job
+  // Service Manager, so these suites can't run there — exclude them from the HANA job
   // entirely (they still run on sqlite with in-memory tenants).
-  exclude = [...configDefaults.exclude, '**/tracing-mt.test.js', '**/metrics-outbox-multitenant.test.js']
+  exclude = [
+    ...configDefaults.exclude,
+    '**/tracing-mt.test.js',
+    '**/metrics-outbox-multitenant.test.js',
+    '**/logging-mt.test.js'
+  ]
 
   // Signal "running on HANA" to test files that must branch at COLLECTION time (before
   // cds.test() applies its --profile), e.g. the queue/outbox files that skip the sqlite-only
