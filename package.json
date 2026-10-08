@@ -49,7 +49,7 @@
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
-    "oxfmt": "0.63.0",
+    "oxfmt": "0.70.0",
     "vitest": "^4"
   },
   "cds": {
