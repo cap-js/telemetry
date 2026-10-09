@@ -5,6 +5,7 @@ const cds = require('@sap/cds')
 // re-prepares on every execution, so a repeated query is a cache MISS — a `@cap-js/hana - prepare`
 // span is produced on the re-run and the SQL text rides it as before. The paired test (cache on)
 // covers the cache-HIT path where no prepare runs; together they lock in both.
+// NOTE: currently skipped on HANA — the opt-out is broken upstream (cap-js/cds-dbs#1761). See #528.
 const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory,hana-no-stmt-cache')
 
 const { captured, reset } = require('./bookshop/lib/MyInMemorySpanExporter')
@@ -21,7 +22,11 @@ describe('db.query.text with the HANA statement cache disabled', () => {
 
   const capSpans = () => captured.filter(s => s.instrumentationScope?.name === '@cap-js/telemetry')
 
-  test('re-run re-prepares and still carries db.query.text', async () => {
+  // Skipped on HANA: the cache-OFF path depends on @cap-js/hana's `hana_statements_cache: false`
+  // opt-out, which is broken upstream — every query throws "stmt.release is not a function"
+  // (fix: cap-js/cds-dbs#1761). The test body below is correct and ready to run once a fixed
+  // @cap-js/hana is released; unskip is tracked by #528. Flip `test.skip` back to `test` then.
+  test.skip('re-run re-prepares and still carries db.query.text', async () => {
     // Runtime read of cds.db.kind is safe (unlike cds.env at collection time) and guards against a
     // misconfigured run silently passing on sqlite.
     expect(cds.db.kind, 'this test is only meaningful on HANA').to.equal('hana')
