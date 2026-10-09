@@ -82,6 +82,11 @@ web_modules/
 .env.production.local
 .env.local
 
+# cds credential files for local HANA runs — hold live HDI creds (see TESTING.md)
+default-env.json
+.cdsrc-private.json
+vcap.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
