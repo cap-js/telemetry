@@ -157,10 +157,11 @@ Because the test HTTP client runs in-process, its outgoing requests would themse
 
 ## Sanctioned skips
 
-Only **two** skips are allowed (per #477). Any *new* skip must be justified against this bar; everything else that is skipped is tracked debt.
+Only **three** skips are allowed (per #477). Any *new* skip must be justified against this bar; everything else that is skipped is tracked debt.
 
 1. **SAP Passport** — [`test/passport.test.js`](test/passport.test.js) skips on **sqlite** (`db.kind === 'sqlite'`). SAP Passport is a HANA session-context feature with no sqlite equivalent; it runs on HANA.
 2. **Multitenancy on HANA** — `tracing-mt.test.js`, `metrics-outbox-multitenant.test.js`, and `logging-mt.test.js` are **excluded from the HANA job** (in `vitest.config.mjs`). MTX tenant subscription needs a bound BTP Service Manager to provision per-tenant HDI containers, which the single pre-provisioned HDI container in CI lacks. They run fully on sqlite (in-memory tenants).
+3. **HANA prepared-statement cache** — `tracing-hana-statement-cache.test.js` and `tracing-hana-statement-cache-off.test.js` skip on **sqlite** (gated on `TELEMETRY_TEST_HANA`). The per-connection prepared-statement cache is a HANA feature (`@cap-js/hana` >= 3.1); sqlite re-prepares every execution, so there is nothing to reproduce. Same inverse pairing as passport: sqlite-skip / HANA-run.
 
 This is the inverse pairing: passport is sqlite-skip / HANA-run; multitenancy is HANA-skip / sqlite-run.
 
