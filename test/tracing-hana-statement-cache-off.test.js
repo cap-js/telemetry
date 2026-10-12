@@ -21,9 +21,8 @@ describe('db.query.text with the HANA statement cache disabled', () => {
 
   const capSpans = () => captured.filter(s => s.instrumentationScope?.name === '@cap-js/telemetry')
 
-  // The cache-OFF path needs @cap-js/hana's `hana_statements_cache: false` opt-out, which only
-  // releases the prepared statement correctly from 3.1.2 on (cap-js/cds-dbs#1761); earlier versions
-  // throw "stmt.release is not a function" on every query. Skip (don't crash) on an older driver.
+  // The `hana_statements_cache: false` opt-out releases the statement correctly only from
+  // @cap-js/hana 3.1.2 on (cds-dbs#1761); earlier versions throw "stmt.release is not a function".
   const [maj, min, pat] = require('@cap-js/hana/package.json').version.split('.').map(Number)
   const killSwitchFixed = maj > 3 || (maj === 3 && (min > 1 || (min === 1 && pat >= 2)))
   if (!killSwitchFixed) {

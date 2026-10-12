@@ -39,13 +39,10 @@ describe('db.query.text survives a cached HANA prepared statement', () => {
       await tx.run(q()) // cache hit: no prepare span
     })
 
-    // Self-validation: the re-run must actually be a cache HIT. If it isn't (pool/caching behavior
-    // changes so the re-run re-prepares), the SQL rides the reappearing prepare span and every
-    // assertion below passes even with the fix reverted — a false green on the very bug we guard.
-    // Absence of a prepare span for the re-run is the only observable that the hit path was taken.
+    // No prepare span on the re-run proves a genuine cache hit; a reappearing one would carry the
+    // SQL and mask the bug.
     const prepareSpan = capSpans().find(s => /@cap-js\/hana - prepare/.test(s.name))
-    expect(prepareSpan, 're-run must be a cache hit (no prepare span) or the test is not exercising the bug').to.not
-      .exist
+    expect(prepareSpan, 're-run must be a cache hit (no prepare span)').to.not.exist
 
     // The CAP-level `db - READ` span is emitted regardless of the _hana_prom setting, and is
     // the span that went empty on a cache hit. With the fix in place it carries the SQL again.
@@ -53,9 +50,7 @@ describe('db.query.text survives a cached HANA prepared statement', () => {
     expect(readSpan, 'db - READ span should exist for the re-run').to.exist
     expect(readSpan.attributes['db.query.text'], 'cached re-run must still carry SQL').to.match(/SELECT/)
 
-    // The native `@cap-js/hana - exec` span is where the SQL loss originated, but it's only wrapped
-    // on the _hana_prom path (the HANA_PROM=false matrix leg produces no such span). On the prom leg
-    // it MUST exist and carry SQL — assert that rather than letting a missing span pass silently.
+    // The native exec span — where the SQL was lost — is only wrapped on the _hana_prom leg.
     const execSpan = capSpans().find(s => /@cap-js\/hana - exec/.test(s.name))
     if (cds.env.requires.telemetry.tracing._hana_prom) {
       expect(execSpan, 'exec span must exist on the _hana_prom path').to.exist
