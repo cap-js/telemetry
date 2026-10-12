@@ -44,7 +44,8 @@ describe('db.query.text survives a cached HANA prepared statement', () => {
     // assertion below passes even with the fix reverted — a false green on the very bug we guard.
     // Absence of a prepare span for the re-run is the only observable that the hit path was taken.
     const prepareSpan = capSpans().find(s => /@cap-js\/hana - prepare/.test(s.name))
-    expect(prepareSpan, 're-run must be a cache hit (no prepare span) or the test is not exercising the bug').to.not.exist
+    expect(prepareSpan, 're-run must be a cache hit (no prepare span) or the test is not exercising the bug').to.not
+      .exist
 
     // The CAP-level `db - READ` span is emitted regardless of the _hana_prom setting, and is
     // the span that went empty on a cache hit. With the fix in place it carries the SQL again.
