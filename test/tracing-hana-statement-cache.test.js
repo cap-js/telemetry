@@ -39,20 +39,27 @@ describe('db.query.text survives a cached HANA prepared statement', () => {
       await tx.run(q()) // cache hit: no prepare span
     })
 
-    // No prepare span on the re-run proves a genuine cache hit; a reappearing one would carry the
-    // SQL and mask the bug.
+    // A `prepare` span proves the cache hit only on the prom leg: _hana_prom=true wraps the native
+    // prom('prepare') (runs on a cache miss only), so its ABSENCE proves the hit; _hana_prom=false
+    // wraps SQLService#prepare (runs per execution), so a prepare span always reappears with the SQL.
+    const { _hana_prom } = cds.env.requires.telemetry.tracing
     const prepareSpan = capSpans().find(s => /@cap-js\/hana - prepare/.test(s.name))
-    expect(prepareSpan, 're-run must be a cache hit (no prepare span)').to.not.exist
+    if (_hana_prom) {
+      expect(prepareSpan, 're-run must be a native cache hit (no prepare span)').to.not.exist
+    } else {
+      expect(prepareSpan, 'SQLService#prepare is wrapped per execution on the non-prom leg').to.exist
+      expect(prepareSpan.attributes['db.query.text'], 'prepare span must carry SQL').to.match(/SELECT/)
+    }
 
-    // The CAP-level `db - READ` span is emitted regardless of the _hana_prom setting, and is
-    // the span that went empty on a cache hit. With the fix in place it carries the SQL again.
+    // The CAP-level `db - READ` span is emitted on BOTH legs and is the span that went empty on a
+    // cache hit — the cross-cutting guarantee. With the fix in place it carries the SQL again.
     const readSpan = capSpans().find(s => s.name === 'db - READ sap.capire.bookshop.Books')
     expect(readSpan, 'db - READ span should exist for the re-run').to.exist
     expect(readSpan.attributes['db.query.text'], 'cached re-run must still carry SQL').to.match(/SELECT/)
 
     // The native exec span — where the SQL was lost — is only wrapped on the _hana_prom leg.
     const execSpan = capSpans().find(s => /@cap-js\/hana - exec/.test(s.name))
-    if (cds.env.requires.telemetry.tracing._hana_prom) {
+    if (_hana_prom) {
       expect(execSpan, 'exec span must exist on the _hana_prom path').to.exist
       expect(execSpan.attributes['db.query.text'], 'cached exec span must still carry SQL').to.match(/SELECT/)
     }
