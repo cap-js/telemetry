@@ -33,19 +33,31 @@ describe('instrumentation ordering: outbound https is traced by instrumentation-
     certDir = fs.mkdtempSync(path.join(os.tmpdir(), 'telemetry-https-'))
     const key = path.join(certDir, 'key.pem')
     const cert = path.join(certDir, 'cert.pem')
-    execFileSync('openssl', [
-      'req', '-x509', '-newkey', 'rsa:2048', '-keyout', key, '-out', cert,
-      '-days', '1', '-nodes', '-subj', '/CN=localhost'
-    ], { stdio: 'ignore' })
+    execFileSync(
+      'openssl',
+      [
+        'req',
+        '-x509',
+        '-newkey',
+        'rsa:2048',
+        '-keyout',
+        key,
+        '-out',
+        cert,
+        '-days',
+        '1',
+        '-nodes',
+        '-subj',
+        '/CN=localhost'
+      ],
+      { stdio: 'ignore' }
+    )
 
     return new Promise(resolve => {
-      server = https.createServer(
-        { key: fs.readFileSync(key), cert: fs.readFileSync(cert) },
-        (req, res) => {
-          res.writeHead(200, { 'Content-Type': 'application/json' })
-          res.end(JSON.stringify({ value: [] }))
-        }
-      )
+      server = https.createServer({ key: fs.readFileSync(key), cert: fs.readFileSync(cert) }, (req, res) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(JSON.stringify({ value: [] }))
+      })
       server.listen(0, () => {
         port = server.address().port
         resolve()
