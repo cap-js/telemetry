@@ -1,18 +1,10 @@
-// Regression guard for the instrumentation-vs-tracing setup ordering (lib/index.js
-// setup_standalone). The instrumentations must be CONSTRUCTED before tracing() runs.
-//
-// Why it matters: tracing() loads the SAP Cloud SDK (-> axios -> follow-redirects), which is
-// what CAP uses for outbound remote calls by default. axios/follow-redirects reach Node's
-// `https` through @opentelemetry/instrumentation-http's patched functions only if that
-// instrumentation is already in place when the Cloud SDK is first required. On the broken
-// ordering the Cloud SDK is loaded first, so its outbound `https` requests bypass
-// instrumentation-http entirely and the actual network call goes untraced (only our own
-// cloud_sdk wrapper span survives). `http` is unaffected in practice because the running
-// server re-requires it after the hook exists; `https` is the one that slips through.
-//
-// So we boot the plugin on the Cloud SDK path (tracing-in-memory profile, cloud sdk installed),
-// make a real outbound HTTPS call through a destination, and assert that it produced a CLIENT
-// span from @opentelemetry/instrumentation-http. On the broken ordering that span is absent.
+// Regression guard for lib/index.js setup_standalone: the instrumentations must be CONSTRUCTED
+// before tracing() runs. tracing() loads the SAP Cloud SDK (-> axios -> follow-redirects); unless
+// @opentelemetry/instrumentation-http's require hook is already in place, the SDK's outbound `https`
+// bypasses it and the call goes untraced (only our own cloud_sdk wrapper span survives). `http` is
+// unaffected (the server re-requires it after the hook exists); `https` is the one that slips through.
+// So: boot the plugin on the Cloud SDK path and assert a real outbound HTTPS call produces a CLIENT
+// span from @opentelemetry/instrumentation-http — absent on the broken ordering.
 const cds = require('@sap/cds')
 const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 const https = require('https')
@@ -106,8 +98,7 @@ describe('instrumentation ordering: outbound https is traced by instrumentation-
     const remote = await cds.connect.to('TestRemote')
     await remote.send({ method: 'GET', path: '/test' })
 
-    // The actual outbound https call must be traced by instrumentation-http. On the broken
-    // ordering https is never routed through the patched functions, so no such span exists.
+    // The outbound https call itself must be traced; on the broken ordering no such span exists.
     const httpClientSpan = captured.find(
       s => s.instrumentationScope?.name === '@opentelemetry/instrumentation-http' && s.kind === SpanKind.CLIENT
     )
