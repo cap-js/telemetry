@@ -24,12 +24,28 @@ const { SpanKind } = require('@opentelemetry/api')
 
 const { captured, reset } = require('./bookshop/lib/MyInMemorySpanExporter')
 
+// We mint a throwaway self-signed cert via the openssl binary (below). Probe for it once so an
+// environment without openssl on PATH skips cleanly instead of erroring the whole file in beforeAll.
+const hasOpenssl = (() => {
+  try {
+    execFileSync('openssl', ['version'], { stdio: 'ignore' })
+    return true
+  } catch {
+    return false
+  }
+})()
+
 describe('instrumentation ordering: outbound https is traced by instrumentation-http', () => {
+  if (!hasOpenssl) {
+    test.skip('needs the openssl binary to generate a throwaway TLS cert', () => {})
+    return
+  }
+
   let server, port, certDir
 
   beforeAll(() => {
     // Throwaway self-signed localhost cert, generated into a temp dir (never committed - a
-    // private key must not live in the repo). openssl is available on the CI runners and locally.
+    // private key must not live in the repo).
     certDir = fs.mkdtempSync(path.join(os.tmpdir(), 'telemetry-https-'))
     const key = path.join(certDir, 'key.pem')
     const cert = path.join(certDir, 'cert.pem')
