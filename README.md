@@ -98,6 +98,24 @@ An example trace printed to the console can be found in [`telemetry-to-console`]
 
 To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
 
+#### SAP Performance Statistics
+
+Outgoing HTTP client spans include SAP statistics response headers when the request asks for them (for example, with `sap-statistics: true`). By default, comma-separated fields are parsed into numeric attributes, such as `sap.statistics.total`. The supported headers include `sap-statistics`, `sap-statistics-scc`, and `sap-statistics-hciodp`.
+
+Set `cds.requires.telemetry.tracing.sap_statistics` to `false` to disable these attributes. The default mode is `fields`; choose `raw` to keep each header as a string attribute, or `both` to emit raw and parsed attributes.
+
+```json
+{
+  "requires": {
+    "telemetry": {
+      "tracing": {
+        "sap_statistics": { "mode": "both" }
+      }
+    }
+  }
+}
+```
+
 
 ### Metrics
 
