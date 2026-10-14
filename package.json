@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "lint": "eslint . --max-warnings=0",
-    "test": "vitest run --silent",
+    "test": "vitest run --silent=true",
     "format": "oxfmt",
     "format:check": "oxfmt --check"
   },
