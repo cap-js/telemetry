@@ -39,7 +39,7 @@ describe('db.query.text with the HANA statement cache disabled', () => {
       'the [hana-no-stmt-cache] profile must disable the statement cache'
     ).to.equal(false)
 
-    const q = () => SELECT.from('sap.capire.bookshop.Books').where('title !=', 'DUMMY')
+    const q = () => SELECT.from('sap.capire.bookshop.Books')
 
     await cds.db.tx(async tx => {
       await tx.run(q()) // first run
