@@ -30,7 +30,7 @@ describe('db.query.text survives a cached HANA prepared statement', () => {
     // Runtime read of cds.db.kind is safe — unlike reading cds.env at collection time.
     expect(cds.db.kind, 'this test is only meaningful on HANA').to.equal('hana')
 
-    const q = () => SELECT.from('sap.capire.bookshop.Books').where('title !=', 'DUMMY')
+    const q = () => SELECT.from('sap.capire.bookshop.Books')
 
     // Both runs share ONE pooled connection (single tx), so the 2nd run is a cache hit.
     await cds.db.tx(async tx => {
