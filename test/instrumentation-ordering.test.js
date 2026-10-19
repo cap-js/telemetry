@@ -42,7 +42,13 @@ describe('instrumentation ordering: outbound https is traced by instrumentation-
     const httpClientSpan = captured.find(
       s => s.instrumentationScope?.name === '@opentelemetry/instrumentation-http' && s.kind === SpanKind.CLIENT
     )
-    expect(httpClientSpan, 'no CLIENT span from @opentelemetry/instrumentation-http for the outbound https call').to
+    expect(httpClientSpan, 'no CLIENT span from @opentelemetry/instrumentation-http for an outbound https call').to
       .exist
+
+    // Correlate that span to our probe, so an unrelated traced request can't satisfy the check:
+    // it must target the configured destination. url.full is the stable attribute; http.url is
+    // the pre-stabilization fallback.
+    const target = httpClientSpan.attributes['url.full'] ?? httpClientSpan.attributes['http.url']
+    expect(target, 'the instrumentation-http CLIENT span must be the TestRemote probe').to.include('localhost:1')
   })
 })
