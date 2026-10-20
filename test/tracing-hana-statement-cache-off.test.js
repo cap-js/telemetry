@@ -39,7 +39,10 @@ describe('db.query.text with the HANA statement cache disabled', () => {
       'the [hana-no-stmt-cache] profile must disable the statement cache'
     ).to.equal(false)
 
-    const q = () => SELECT.from('sap.capire.bookshop.Books')
+    // The where() predicate is never asserted, but it must stay: it makes the statement
+    // parameterized, which is what drives @cap-js/hana onto the prepare path this test checks.
+    // A paramless query skips prepare and emits no `@cap-js/hana - prepare` span.
+    const q = () => SELECT.from('sap.capire.bookshop.Books').where('title !=', 'DUMMY')
 
     await cds.db.tx(async tx => {
       await tx.run(q()) // first run
