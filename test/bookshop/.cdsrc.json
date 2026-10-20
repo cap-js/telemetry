@@ -98,6 +98,23 @@
       }
     }
   },
+  "[instrumentation-ordering]": {
+    "requires": {
+      "TestRemote": {
+        "kind": "odata",
+        "credentials": {
+          "destination": { "name": "my-destination", "url": "https://localhost:1" }
+        }
+      }
+    }
+  },
+  "[hana-no-stmt-cache]": {
+    "requires": {
+      "db": {
+        "hana_statements_cache": false
+      }
+    }
+  },
   "[sampler-ignore-authors]": {
     "requires": {
       "telemetry": {
