@@ -30,7 +30,10 @@ describe('db.query.text survives a cached HANA prepared statement', () => {
     // Runtime read of cds.db.kind is safe — unlike reading cds.env at collection time.
     expect(cds.db.kind, 'this test is only meaningful on HANA').to.equal('hana')
 
-    const q = () => SELECT.from('sap.capire.bookshop.Books')
+    // The where() predicate is never asserted, but it must stay: it makes the statement
+    // parameterized, which is what drives @cap-js/hana onto the prepare path this test checks.
+    // A paramless query skips prepare and emits no `@cap-js/hana - prepare` span.
+    const q = () => SELECT.from('sap.capire.bookshop.Books').where('title !=', 'DUMMY')
 
     // Both runs share ONE pooled connection (single tx), so the 2nd run is a cache hit.
     await cds.db.tx(async tx => {
