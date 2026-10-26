@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 2.2.0 - tbd
+
+### Added
+
+- Service bindings are now also read from the file referenced by `VCAP_SERVICES_FILE_PATH` when set, taking precedence over `VCAP_SERVICES` (Cloud Foundry file-based service bindings) (#538)
+
+### Changed
+
+### Fixed
+
 ## Version 2.1.0 - 2026-09-28
 
 ### Added
