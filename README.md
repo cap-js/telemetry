@@ -98,6 +98,29 @@ An example trace printed to the console can be found in [`telemetry-to-console`]
 
 To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
 
+#### SAP Performance Statistics
+
+Opt-in: when enabled, outgoing HTTP client spans are enriched with SAP performance statistics taken from the response headers `sap-statistics` (SAP Gateway/ICM/Web Dispatcher), `sap-statistics-scc` (Cloud Connector) and `sap-statistics-hciodp` (OData provisioning on BTP). These are returned when the request asks for them, e.g. with request header `sap-statistics: true`. Captured on `http`/`https` client calls (such as those made via the SAP Cloud SDK) and on `fetch`/`undici` calls.
+
+Enable it via `cds.requires.telemetry.tracing.sap_statistics`:
+
+- `true` – enable with the default mode (`fields`)
+- `{ "mode": "fields" }` – one numeric attribute per field, e.g. `sap.statistics.total = 42` (default)
+- `{ "mode": "raw" }` – one string attribute per header, e.g. `sap.statistics = "total=42,gwtotal=40,..."`
+- `{ "mode": "both" }` – both raw and parsed attributes
+
+```json
+{
+  "requires": {
+    "telemetry": {
+      "tracing": {
+        "sap_statistics": true
+      }
+    }
+  }
+}
+```
+
 
 ### Metrics
 
