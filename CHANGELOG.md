@@ -14,6 +14,13 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+## Version 2.1.1 - 2026-10-20
+
+### Fixed
+
+- Instrumentations are now constructed before tracing setup so `https` is reliably patched by `@opentelemetry/instrumentation-http` (outbound sub-requests made via the SAP Cloud SDK are traced again) (#524)
+- `db.query.text` is kept on HANA `@cap-js/hana - exec` and `db - READ` spans when a prepared statement is served from the statement cache (`@cap-js/hana` >= 3.1 skips the `prepare` step on a cache hit, where the SQL text used to ride — so it was dropped)
+
 ## Version 2.1.0 - 2026-09-28
 
 ### Added
