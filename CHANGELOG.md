@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Service bindings are now also read from the file referenced by `VCAP_SERVICES_FILE_PATH` when set, taking precedence over `VCAP_SERVICES` (Cloud Foundry file-based service bindings)
+
 ### Changed
 
 ### Fixed
