@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Service bindings are now also read from the file referenced by `VCAP_SERVICES_FILE_PATH` when set, taking precedence over `VCAP_SERVICES` (Cloud Foundry file-based service bindings)
+
 ### Changed
 
 ### Fixed
@@ -18,7 +20,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- Instrumentations are now constructed before tracing setup so `https` is reliably patched by `@opentelemetry/instrumentation-http` (outbound sub-requests made via the SAP Cloud SDK are traced again) (#524)
+- Instrumentations are now constructed before tracing setup so `https` is reliably patched by `@opentelemetry/instrumentation-http` (outbound sub-requests made via the SAP Cloud SDK are traced again)
 - `db.query.text` is kept on HANA `@cap-js/hana - exec` and `db - READ` spans when a prepared statement is served from the statement cache (`@cap-js/hana` >= 3.1 skips the `prepare` step on a cache hit, where the SQL text used to ride — so it was dropped)
 
 ## Version 2.1.0 - 2026-09-28

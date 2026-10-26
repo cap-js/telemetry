@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "lint": "eslint . --max-warnings=0",
-    "test": "vitest run --silent",
+    "test": "vitest run --silent=true",
     "format": "oxfmt",
     "format:check": "oxfmt --check"
   },
@@ -49,8 +49,8 @@
     "@sap/cds-mtxs": "^4",
     "axios": "^1.6.7",
     "eslint": "^10",
-    "oxfmt": "0.72.0",
-    "vitest": "^4"
+    "oxfmt": "^0.74",
+    "vitest": "^5"
   },
   "cds": {
     "requires": {
