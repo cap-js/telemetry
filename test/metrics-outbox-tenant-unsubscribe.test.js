@@ -13,7 +13,12 @@ const { setTimeout: wait } = require('node:timers/promises')
 // the job stops firing afterwards. With the bug present the job keeps running, so it FAILS; a fix
 // that clears the interval on `DeploymentService.after('unsubscribe')` makes it pass.
 
-const { expect, GET, axios } = cds.test(__dirname + '/bookshop', '--with-mocks', '--profile', 'metrics-outbox, multitenancy')
+const { expect, GET, axios } = cds.test(
+  __dirname + '/bookshop',
+  '--with-mocks',
+  '--profile',
+  'metrics-outbox, multitenancy'
+)
 axios.defaults.validateStatus = () => true
 
 // Multitenancy runs on sqlite only; excluded from the HANA job (needs a bound Service Manager).
