@@ -99,6 +99,7 @@ An example trace printed to the console can be found in [`telemetry-to-console`]
 
 To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
 
+
 ### Metrics
 
 Metrics are "measurements captured at runtime", which help you understand your app's health and performance.
