@@ -63,6 +63,18 @@ describe('setSapStatisticsAttributes', () => {
     expect(span.attributes).toEqual({})
   })
 
+  it('ignores headers outside the exact allowlist, even with the sap-statistics prefix', () => {
+    // exact allowlist, not a prefix match: an untrusted server must not be able to inject
+    // arbitrary attributes by sending e.g. `sap-statisticsfoo` or `sap-statistics-custom`
+    const span = fakeSpan()
+    setSapStatisticsAttributes(
+      span,
+      { 'sap-statisticsfoo': 'total=1', 'sap-statistics-custom': 'total=2', 'sap-statistics': 'total=3' },
+      { mode: 'both' }
+    )
+    expect(span.attributes).toEqual({ 'sap.statistics': 'total=3', 'sap.statistics.total': 3 })
+  })
+
   it('tolerates repeated headers joined by node, spaces, upper case and non-numeric parts', () => {
     const span = fakeSpan()
     setSapStatisticsAttributes(

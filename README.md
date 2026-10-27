@@ -121,6 +121,8 @@ Enable it via `cds.requires.telemetry.tracing.sap_statistics`:
 }
 ```
 
+> Note: this relies on `@cap-js/telemetry` installing the HTTP instrumentations itself, so it is not available [when running with the SAP Cloud ALM agent](#running-with-sap-cloud-alm-beta), which owns the OpenTelemetry SDK and its instrumentations.
+
 
 ### Metrics
 
