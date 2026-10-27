@@ -111,4 +111,10 @@ describe('headersFromUndici', () => {
     expect(headersFromUndici(raw)).toEqual({ 'sap-statistics': 'total=1,fw=2' })
     expect(headersFromUndici(undefined)).toEqual({})
   })
+
+  it('drops a trailing unpaired element in an odd-length buffer list', () => {
+    // a malformed/truncated header list must not read past the last complete [name, value] pair
+    const raw = ['sap-statistics', 'total=1', 'dangling'].map(s => Buffer.from(s))
+    expect(headersFromUndici(raw)).toEqual({ 'sap-statistics': 'total=1' })
+  })
 })
