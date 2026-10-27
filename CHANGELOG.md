@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 ### Added
 
 - Service bindings are now also read from the file referenced by `VCAP_SERVICES_FILE_PATH` when set, taking precedence over `VCAP_SERVICES` (Cloud Foundry file-based service bindings)
+- Opt-in enrichment of outgoing HTTP client spans with SAP performance statistics from the `sap-statistics`, `sap-statistics-scc` and `sap-statistics-hciodp` response headers (beta). Enable via `cds.requires.telemetry.tracing.sap_statistics` (`true`, or `{ mode: 'fields' | 'raw' | 'both' }`); captured on both the `http`/`https` and `undici` instrumentations
 
 ### Changed
 
