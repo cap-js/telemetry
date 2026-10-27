@@ -37,6 +37,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [Span Processor](#span-processor)
   - [Exporters](#exporters)
   - [High Resolution Timestamps (beta)](#high-resolution-timestamps-beta)
+  - [SAP Performance Statistics (beta)](#sap-performance-statistics-beta)
   - [Environment Variables](#environment-variables)
 - [Custom Spans (beta)](#custom-spans-beta)
 - [Support, Feedback, Contributing](#support-feedback-contributing)
@@ -97,32 +98,6 @@ Example trace in Dynatrace:
 An example trace printed to the console can be found in [`telemetry-to-console`](#telemetry-to-console).
 
 To export traces to Dynatrace, use the predefined kind [`telemetry-to-dynatrace`](#telemetry-to-dynatrace). If [Dynatrace OneAgent](#dynatrace-oneagent) is present, the CDS spans can alternatively be captured in-process by OneAgent, without the OTLP trace exporter.
-
-#### SAP Performance Statistics
-
-Opt-in: when enabled, outgoing HTTP client spans are enriched with SAP performance statistics taken from the response headers `sap-statistics` (SAP Gateway/ICM/Web Dispatcher), `sap-statistics-scc` (Cloud Connector) and `sap-statistics-hciodp` (OData provisioning on BTP). These are returned when the request asks for them, e.g. with request header `sap-statistics: true`. Captured on `http`/`https` client calls (such as those made via the SAP Cloud SDK) and on `fetch`/`undici` calls.
-
-Enable it via `cds.requires.telemetry.tracing.sap_statistics`:
-
-- `true` – enable with the default mode (`fields`)
-- `{ "mode": "fields" }` – one numeric attribute per field, e.g. `sap.statistics.total = 42` (default)
-- `{ "mode": "raw" }` – one string attribute per header, e.g. `sap.statistics = "total=42,gwtotal=40,..."`
-- `{ "mode": "both" }` – both raw and parsed attributes
-
-```json
-{
-  "requires": {
-    "telemetry": {
-      "tracing": {
-        "sap_statistics": true
-      }
-    }
-  }
-}
-```
-
-> Note: this relies on `@cap-js/telemetry` installing the HTTP instrumentations itself, so it is not available [when running with the SAP Cloud ALM agent](#running-with-sap-cloud-alm-beta), which owns the OpenTelemetry SDK and its instrumentations.
-
 
 ### Metrics
 
@@ -581,6 +556,32 @@ By default, the start time of a span is taken from `Date.now()` and, hence, has 
 Via `cds.requires.telemetry.tracing.hrtime = true`, you can instruct the plugin to specify the start and end times of spans, which it does with nanosecond resolution.
 This may result in minor drifts, especially for spans created by other instrumentations such as `@opentelemetry/instrumentation-http`.
 Hence, the `hrtime` mode is on by default in development but not in production.
+
+
+### SAP Performance Statistics (beta)
+
+When enabled, outgoing HTTP client spans are enriched with SAP performance statistics taken from the response headers `sap-statistics` (SAP Gateway/ICM/Web Dispatcher), `sap-statistics-scc` (Cloud Connector) and `sap-statistics-hciodp` (OData provisioning on BTP). These headers are only returned when the request asks for them, e.g. via request header `sap-statistics: true`. Statistics are captured on `http`/`https` client calls (such as those made via the SAP Cloud SDK) and on `fetch`/`undici` calls.
+
+It is opt-in via `cds.requires.telemetry.tracing.sap_statistics`:
+
+- `true` – enable with the default mode (`fields`)
+- `{ "mode": "fields" }` – one numeric attribute per field, e.g. `sap.statistics.total = 42` (default)
+- `{ "mode": "raw" }` – one string attribute per header, e.g. `sap.statistics = "total=42,gwtotal=40,..."`
+- `{ "mode": "both" }` – both raw and parsed attributes
+
+```json
+{
+  "requires": {
+    "telemetry": {
+      "tracing": {
+        "sap_statistics": true
+      }
+    }
+  }
+}
+```
+
+> Note: this relies on `@cap-js/telemetry` installing the HTTP instrumentations itself, so it is not available [when running with the SAP Cloud ALM agent](#running-with-sap-cloud-alm-beta), which owns the OpenTelemetry SDK and its instrumentations.
 
 
 ### Environment Variables
