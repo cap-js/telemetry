@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
+- Queue metrics no longer leak per-tenant stats pollers
+
 ## Version 2.1.1 - 2026-10-20
 
 ### Fixed
