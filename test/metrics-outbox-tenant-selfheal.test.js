@@ -1,20 +1,9 @@
 const cds = require('@sap/cds')
 const { setTimeout: wait } = require('node:timers/promises')
 
-// Regression for #545: the per-tenant queue-stats poller must not keep polling a tenant whose
-// database is gone.
-//
-// queue.js spawns a RECURRING cds.spawn job (privileged_context.every = exportIntervalMillis / 2)
-// the first time a message is enqueued for a (tenant, service). There is no unsubscribe signal in
-// the main application under a separate MTX sidecar, so the poller is self-healing: when a poll
-// fails with a 404 (the tenant's database has been deprovisioned) it stops itself and drops the
-// tenant's metrics; any other (transient) error is ignored, because cds.spawn keeps the interval
-// running and the poll recovers on its own.
-//
-// cds.spawn surfaces each run's outcome as 'succeeded'/'failed'/'done' events on the returned
-// EventEmitter, with the original error forwarded intact. This test drives those events directly:
-// sqlite never 404s, so a real deprovisioning can't be reproduced here — instead a synthetic
-// 'failed' is emitted on the captured poller to exercise queue.js's own error handling.
+// Regression for #545: the per-tenant queue-stats poller must stop itself when a tenant's database
+// is gone, yet keep running through a transient error. sqlite can't produce a real 404, so the test
+// captures the spawned poller and drives its 'failed' outcomes directly.
 
 const { expect, GET, axios } = cds.test(
   __dirname + '/bookshop',
@@ -25,17 +14,12 @@ const { expect, GET, axios } = cds.test(
 axios.defaults.validateStatus = () => true
 
 // Multitenancy runs on sqlite only; excluded from the HANA job (needs a bound Service Manager).
-// See TESTING.md → Sanctioned skips and vitest.config.mjs.
 describe('queue metrics poller self-heals when a tenant is gone', () => {
-  // tenant_1 is one of the mocked users' tenants (test/bookshop/package.json → auth.users); using a
-  // configured tenant means the GET below runs in its context and deploys/uses its own outbox table.
-  const T = 'tenant_1'
+  const T = 'tenant_1' // a configured mock tenant (bookshop auth.users); the GET runs in its context
   const user = { auth: { username: `user_${T}` } }
 
-  // Recurring jobs (those spawned with `every`) captured from cds.spawn, keyed by tenant. `runs`
-  // counts completed iterations via the 'done' event, which cds.spawn emits in a `.finally` after
-  // every run — successful OR failed. `job` is the emitter itself, so the test can inject a
-  // synthetic poll outcome via `job.emit('failed', err)`.
+  // `runs` counts completed iterations ('done' fires after every run); `job` is the emitter, so the
+  // test can inject a poll outcome via `job.emit('failed', err)`.
   const recurringJobs = []
   let originalSpawn
 
@@ -59,9 +43,7 @@ describe('queue metrics poller self-heals when a tenant is gone', () => {
   })
 
   test('stops on a 404 (tenant deprovisioned) but keeps running through a transient error', async () => {
-    // Spy on cds.spawn to capture the recurring per-tenant poller. Installed here (not in beforeAll)
-    // so it stays clear of the tenant subscribe/deploy above — only the poller, spawned on enqueue
-    // below, is of interest. A recurring job is one spawned with `every`.
+    // Spy after setup so only the enqueue-spawned poller is captured (a recurring job has `every`).
     originalSpawn = cds.spawn
     cds.spawn = function (...args) {
       const job = originalSpawn.apply(this, args)
@@ -74,13 +56,13 @@ describe('queue metrics poller self-heals when a tenant is gone', () => {
       return job
     }
 
-    // Enqueue a message in T's outbox — this is what spawns the recurring per-tenant stats poller.
+    // Enqueuing a message is what spawns the recurring per-tenant poller.
     const { status } = await GET('/odata/v4/proxy/proxyCallToExternalServiceOne', user)
     expect(status).to.equal(200)
 
     const pollMs = cds.env.requires.telemetry.metrics.config.exportIntervalMillis / 2
 
-    // Wait until the poller exists and has fired at least once, so we know it is genuinely live.
+    // Wait until the poller has fired at least once, so a frozen `runs` can't be a false pass.
     const jobFor = () => recurringJobs.find(j => j.tenant === T)
     const deadline = Date.now() + 5000
     while (!(jobFor()?.runs >= 1) && Date.now() < deadline) await wait(Math.min(pollMs, 50))
@@ -88,8 +70,7 @@ describe('queue metrics poller self-heals when a tenant is gone', () => {
     expect(rec, 'enqueuing a message should spawn a recurring per-tenant queue-stats poller').to.exist
     expect(rec.runs, 'the poller should be firing before the injected errors').to.be.gte(1)
 
-    // A transient error (a plain Error, no `status`) must NOT stop the poller: cds.spawn keeps the
-    // interval alive, so the next tick recovers. Assert it keeps firing afterwards.
+    // Transient error (no `status`): the poller must keep firing.
     const runsBeforeTransient = rec.runs
     rec.job.emit('failed', new Error(`Pool exceeded for '${T}' within 1000ms`))
     await wait(pollMs * 2)
@@ -98,13 +79,10 @@ describe('queue metrics poller self-heals when a tenant is gone', () => {
       'a transient poll error must not stop the poller (it recovers on the next tick)'
     ).to.be.greaterThan(runsBeforeTransient)
 
-    // A 404 means the tenant's database is deprovisioned — the poller must stop itself and the
-    // tenant's metrics must be dropped. (In production this error originates from the Service
-    // Manager via the DB pool; sqlite can't produce it, so it is injected here.)
+    // 404: tenant deprovisioned — the poller must stop. Injected, since sqlite can't produce it.
     rec.job.emit('failed', Object.assign(new Error(`Tenant '${T}' does not exist`), { status: 404 }))
 
-    // Clearing the interval can't cancel a real tick already in flight; let it settle, then assert
-    // the run count is stable over several intervals — i.e. no further polls happen.
+    // Let an in-flight tick settle, then assert `runs` stays stable — no further polls.
     await wait(pollMs)
     const runsAfterStop = rec.runs
     await wait(pollMs * 3)
