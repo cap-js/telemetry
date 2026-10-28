@@ -22,6 +22,7 @@ if (HANA) {
     ...configDefaults.exclude,
     '**/tracing-mt.test.js',
     '**/metrics-outbox-multitenant.test.js',
+    '**/metrics-outbox-tenant-selfheal.test.js',
     '**/logging-mt.test.js'
   ]
 
