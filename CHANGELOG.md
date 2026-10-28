@@ -15,8 +15,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- Queue metrics no longer leak per-tenant stats pollers: the recurring `cds.spawn` job that collects queue statistics for a tenant is now stopped (and its collected metrics dropped) when the tenant is unsubscribed, instead of continuing to query the deprovisioned tenant's database
-
 ## Version 2.1.1 - 2026-10-20
 
 ### Fixed
