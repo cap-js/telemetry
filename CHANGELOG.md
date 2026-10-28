@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Fixed
 
-- Queue metrics no longer leak per-tenant stats pollers: the recurring `cds.spawn` job that collects queue statistics for a tenant now stops itself (and drops its collected metrics) once the tenant's database is gone, instead of polling a deprovisioned tenant forever. The poller is self-healing — it stops when a poll fails because the tenant no longer exists, and tolerates transient database errors by continuing to poll and recovering on its own. This works regardless of multitenancy topology, including a separate MTX sidecar where the main application receives no unsubscribe event
+- Queue metrics no longer leak per-tenant stats pollers
 
 ## Version 2.1.1 - 2026-10-20
 
