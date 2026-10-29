@@ -5,10 +5,10 @@ permissions:
 
 on:
   workflow_dispatch:
-  # push:
-  #  branches: [main]
-  # pull_request:
-  #  branches: [main]
+  # HANA needs real Service Manager credentials, so it must not run on untrusted PR
+  # events. merge_group runs post-approval in the base-repo context with secrets
+  # available, gating the merge without exposing secrets during PR iteration.
+  merge_group:
 
 jobs:
   hana:
