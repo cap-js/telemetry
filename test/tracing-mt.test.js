@@ -1,8 +1,9 @@
 const cds = require('@sap/cds')
 // prettier-ignore
-const { expect, GET } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'multitenancy,tracing-in-memory')
+const { expect, GET, POST } = cds.test('serve', '--in-memory', '--project', __dirname + '/bookshop', '--profile', 'multitenancy,tracing-in-memory')
 
 const { reset, captured } = require('./bookshop/lib/MyInMemorySpanExporter')
+const { eventually } = require('./utils')
 
 // Multitenancy runs on sqlite only; excluded from the HANA job (needs a bound Service Manager).
 // See TESTING.md → Sanctioned skips.
@@ -39,15 +40,19 @@ describe('tracing with multitenancy', () => {
     expect(spans[0].attributes['sap.tenancy.tenant_id']).to.equal(TENANT2)
   })
 
-  // --- TODO ---
-
-  test.skip('$batch is traced', async () => {})
-
-  test.skip('individual handlers are traced', async () => {})
-
-  test.skip('srv.emit is traced', async () => {})
-
-  test.skip('cds.spawn is traced', async () => {})
-
-  test.skip('remote is traced', async () => {})
+  // cds.spawn starts a new root span detached from the request; work inside it must still carry the
+  // spawning tenant (unlike the request-scoped READs above, whose tenant is ambient). test_spawn
+  // reads Books inside the spawn, so that db span is produced only by the spawned task here.
+  test('cds.spawn work carries the tenant', async () => {
+    await POST('/odata/v4/admin/test_spawn', {}, user1)
+    await eventually(() => {
+      expect(
+        captured.some(s => s.name === 'cds.spawn - run task'),
+        'spawned run-task root span'
+      ).to.be.true
+      const spawned = captured.find(s => s.name === 'db - READ sap.capire.bookshop.Books')
+      expect(spawned, 'db read inside the spawned task').to.exist
+      expect(spawned.attributes['sap.tenancy.tenant_id']).to.equal(TENANT1)
+    })
+  })
 })
