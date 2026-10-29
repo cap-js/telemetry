@@ -4,11 +4,22 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 2.2.0 - 2026-10-29
+
+### Added
+
+- Service bindings are now also read from the file referenced by `VCAP_SERVICES_FILE_PATH` when set, taking precedence over `VCAP_SERVICES` (Cloud Foundry file-based service bindings)
+- Opt-in enrichment of outgoing HTTP client spans with SAP performance statistics from the `sap-statistics`, `sap-statistics-scc` and `sap-statistics-hciodp` response headers (beta). Enable via `cds.requires.telemetry.tracing.sap_statistics` (`true`, or `{ mode: 'fields' | 'raw' | 'both' }`); captured on both the `http`/`https` and `undici` instrumentations
+
+### Fixed
+
+- Queue metrics no longer leak per-tenant stats pollers
+
 ## Version 2.1.1 - 2026-10-20
 
 ### Fixed
 
-- Instrumentations are now constructed before tracing setup so `https` is reliably patched by `@opentelemetry/instrumentation-http` (outbound sub-requests made via the SAP Cloud SDK are traced again) (#524)
+- Instrumentations are now constructed before tracing setup so `https` is reliably patched by `@opentelemetry/instrumentation-http` (outbound sub-requests made via the SAP Cloud SDK are traced again)
 - `db.query.text` is kept on HANA `@cap-js/hana - exec` and `db - READ` spans when a prepared statement is served from the statement cache (`@cap-js/hana` >= 3.1 skips the `prepare` step on a cache hit, where the SQL text used to ride — so it was dropped)
 
 ## Version 2.1.0 - 2026-09-28
