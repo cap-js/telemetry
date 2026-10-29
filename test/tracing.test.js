@@ -162,10 +162,4 @@ describe('tracing', () => {
     await GET('/odata/v4/catalog/ListOfBooks', {}, admin)
     await eventually(() => expect(captured.filter(s => s.name === 'my custom span')).to.have.lengthOf(1))
   })
-
-  // --- TODO ---
-
-  test.skip('individual handlers are traced', async () => {})
-
-  test.skip('remote is traced', async () => {})
 })
