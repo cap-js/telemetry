@@ -76,6 +76,43 @@ The plugin can be disabled by setting environment variable `NO_TELEMETRY` to som
 
 Database tracing is limited to [@cap-js/cds-dbs](https://github.com/cap-js/cds-dbs)-based databases, such as [@cap-js/sqlite](https://www.npmjs.com/package/@cap-js/sqlite) and [@cap-js/hana](https://www.npmjs.com/package/@cap-js/hana).
 
+### OpenTelemetry Versions
+
+The same plugin supports OpenTelemetry SDK **2.9+** or **3.x**, with one coherent SDK generation per application. OpenTelemetry packages are peer dependencies: your application owns their versions. A fresh install defaults to SDK 3.x, which requires Node.js **22.15.0 or newer**. Applications on Node.js 20 or using SAP Cloud ALM/xotel must select SDK 2.x explicitly.
+
+To select SDK 2.x, install the complete peer dependency family together (an API-1.9 constraint alone is insufficient for npm to select matching SDK packages):
+
+```sh
+npm add @cap-js/telemetry @opentelemetry/api@~1.9.0 \
+  @opentelemetry/context-async-hooks@^2.8 @opentelemetry/core@^2.8 \
+  @opentelemetry/resources@^2.8 @opentelemetry/sdk-metrics@^2.8 \
+  @opentelemetry/sdk-trace@^2.9 @opentelemetry/semantic-conventions@^1.41 \
+  @opentelemetry/instrumentation@^0.223 @opentelemetry/instrumentation-http@^0.223 \
+  @opentelemetry/instrumentation-undici@^0.33
+```
+
+To select SDK 3.x explicitly:
+
+```sh
+npm add @cap-js/telemetry @opentelemetry/api@~1.10.0 \
+  @opentelemetry/context-async-hooks@^3 @opentelemetry/core@^3 \
+  @opentelemetry/resources@^3 @opentelemetry/sdk-metrics@^3 \
+  @opentelemetry/sdk-trace@^3 @opentelemetry/semantic-conventions@^1.41 \
+  @opentelemetry/instrumentation@^0.300 @opentelemetry/instrumentation-http@^0.300 \
+  @opentelemetry/instrumentation-undici@^0.34
+```
+
+Optional exporters and instrumentations must match the selected generation:
+
+| Package family | SDK 2.x | SDK 3.x |
+| --- | --- | --- |
+| OTLP exporters | `0.223.x` | `0.300.x` |
+| `@opentelemetry/sdk-logs` | `0.223.x` | `3.x` |
+| `@opentelemetry/instrumentation-host-metrics` | `0.6.x` | `0.7.x` |
+| `@opentelemetry/instrumentation-runtime-node` | `0.36.x` | `0.37.x` |
+
+Do not combine SDK generations or API versions in one application. SDK 2.x uses API `<1.10`; SDK 3.x uses API `>=1.10`. The legacy `sdk-trace-base` and `sdk-trace-node` packages are optional SDK-2 peers; the plugin itself uses `sdk-trace` on both generations. Resource attributes must be simple values (strings, numbers, booleans, or homogeneous arrays), as required by SDK 3.x.
+
 
 
 ## Telemetry Signals
@@ -438,7 +475,7 @@ Default:
 
 ### Span Processor
 
-Configure via `cds.requires.telemetry.tracing.processor = { kind, config? }`, where `kind` is one of `BatchSpanProcessor` or `SimpleSpanProcessor` and `config` is passed through to the processor's constructor.
+Configure via `cds.requires.telemetry.tracing.processor = { kind, config? }`, where `kind` is one of `BatchSpanProcessor` or `SimpleSpanProcessor` and `config` supplies processor options. The exporter is selected separately by `tracing.exporter`. Explicit batch options take precedence over `OTEL_BSP_*` environment defaults on both SDK generations.
 
 Default: `BatchSpanProcessor`, except in the `[development]` profile, which uses `SimpleSpanProcessor` so spans are exported immediately.
 ```json
@@ -520,7 +557,7 @@ Default:
     {
       "tracing": {
         "exporter": {
-          "module": "@opentelemetry/sdk-trace-base",
+          "module": "@opentelemetry/sdk-trace",
           "class": "ConsoleSpanExporter"
         }
       },

@@ -19,12 +19,16 @@ jobs:
       matrix:
         hana-driver: [hdb, hana-client]
         hana-prom: [true, false]
+        otel-version: [2, 3]
     env:
+      TELEMETRY_TEST_OTEL_VERSION: ${{ matrix.otel-version }}
       HANA_DRIVER: ${{ matrix.hana-driver }}
       HANA_PROM: ${{ matrix.hana-prom }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
       - uses: cap-js/.github/.github/actions/hana-hdi-container@2c44e9c222ecccde07efa5fb607855c527c08e61 # main
         with:
           instance-prefix: telemetry
@@ -37,6 +41,7 @@ jobs:
       - run: npm i -g @sap/cds-dk
       - run: npm add @cap-js/hana hdb @sap/hana-client
       - run: npm i
+      - run: node scripts/install-otel.js ${{ matrix.otel-version }}
       - run: cds v
       - run: cd test/bookshop && cds deploy -2 hana --vcap-file vcap.json
       - run: npm run test

@@ -8,7 +8,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ### Added
 
+- Support for OpenTelemetry SDK 2.9+ and 3.x in the same plugin, with a coherent SDK generation selected by the application
+
 ### Changed
+
+- OpenTelemetry packages are peer dependencies owned by the application. SDK-2 applications (including SAP Cloud ALM/xotel and Node.js 20 applications) must explicitly select the complete SDK-2 dependency family; fresh installations default to SDK 3.x and require Node.js >=22.15.0
 
 ### Fixed
 

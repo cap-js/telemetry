@@ -14,13 +14,20 @@ updates:
     cooldown:
       default-days: 3
     groups:
+      opentelemetry:
+        patterns:
+          - '@opentelemetry/*'
       prod-dependencies:
         dependency-type: 'production'
+        exclude-patterns:
+          - '@opentelemetry/*'
         update-types:
           - 'minor'
           - 'patch'
       dev-dependencies:
         dependency-type: 'development'
+        exclude-patterns:
+          - '@opentelemetry/*'
         update-types:
           - 'minor'
           - 'patch'

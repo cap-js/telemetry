@@ -19,7 +19,7 @@ const cds = require('@sap/cds')
 const { expect } = cds.test(__dirname + '/bookshop', '--profile', 'tracing-in-memory')
 
 const { resourceFromAttributes } = require('@opentelemetry/resources')
-const { NodeTracerProvider } = require('@opentelemetry/sdk-trace-node')
+const { TracerProvider } = require('@opentelemetry/sdk-trace')
 
 const { hasDependency } = require('../lib/utils/common')
 const setupTracing = require('../lib/tracing')
@@ -31,7 +31,7 @@ describe('tracing setup with Dynatrace OneAgent', () => {
   // builds fine but crashes on the first span in onStart. It is the reason the OneAgent path passes
   // an empty list `[]` rather than `[processor]` with a missing processor.
   test('a provider with an undefined span processor crashes on the first span', () => {
-    const provider = new NodeTracerProvider({
+    const provider = new TracerProvider({
       resource: resourceFromAttributes({}),
       spanProcessors: [undefined]
     })
@@ -69,7 +69,7 @@ describe('tracing setup with Dynatrace OneAgent', () => {
       }).not.toThrow()
 
       // A real provider is returned (not undefined as on the pre-fix regression) ...
-      expect(provider).toBeInstanceOf(NodeTracerProvider)
+      expect(provider).toBeInstanceOf(TracerProvider)
 
       // ... and it records: a span created the way lib/tracing/trace.js creates them is a real,
       // recording span — not a NonRecordingSpan — so CDS spans actually come into existence for
