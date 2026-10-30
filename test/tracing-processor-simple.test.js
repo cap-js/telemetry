@@ -12,8 +12,8 @@ const otel = require('@opentelemetry/api')
 // Reach the active span processor installed by the tracing factory.
 //
 // The global OTel provider is a ProxyTracerProvider (returned by trace.getTracerProvider());
-// getDelegate() unwraps it to the real NodeTracerProvider built by lib/tracing/index.js.
-// NodeTracerProvider wraps all registered processors in a private MultiSpanProcessor
+// getDelegate() unwraps it to the real TracerProvider built by lib/tracing/index.js.
+// TracerProvider wraps all registered processors in a private MultiSpanProcessor
 // accessible as _activeSpanProcessor. We drill one level deeper to _spanProcessors[0]
 // (the single processor the factory installed) to read its constructor name.
 // _spanProcessors is a private `_`-prefixed field, but it is the only stable path to the

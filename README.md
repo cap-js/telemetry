@@ -27,7 +27,7 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
   - [`telemetry-to-cloud-logging`](#telemetry-to-cloud-logging)
   - [`telemetry-to-jaeger`](#telemetry-to-jaeger)
   - [`telemetry-to-otlp`](#telemetry-to-otlp)
-- [Running with SAP Cloud ALM (beta)](#running-with-sap-cloud-alm-beta)
+- [SAP Cloud ALM Compatibility](#sap-cloud-alm-compatibility)
 - [Detailed Configuration Options](#detailed-configuration-options)
   - [Configuration Pass Through](#configuration-pass-through)
   - [Resource Attributes](#resource-attributes)
@@ -47,6 +47,8 @@ Documentation can be found at [cap.cloud.sap](https://cap.cloud.sap/docs) and [o
 
 
 ## Requirements
+
+Node.js >=22.15.0 is required. This release uses OpenTelemetry SDK 3.x and API 1.10; applications using SDK 2.x or SAP Cloud ALM/xotel must remain on `@cap-js/telemetry` 2.x.
 
 See [Getting Started](https://cap.cloud.sap/docs/get-started) on how to jumpstart your development and grow as you go with SAP Cloud Application Programming Model.
 
@@ -71,6 +73,8 @@ Simply add `@cap-js/telemetry` to your dependencies via `npm add @cap-js/telemet
 ```
 
 See [Predefined Kinds](#predefined-kinds) for additional dependencies you need to bring yourself as well as some additional setup steps you need to perform when exporting to Dynatrace, SAP Cloud Logging, Jaeger, etc.
+
+OpenTelemetry runtime dependencies are installed with the plugin. Align application-owned OTel packages with SDK 3: OTLP exporters `0.300.x`, logging SDK `3.x`, host-metrics instrumentation `0.7.x`, and runtime-node instrumentation `0.37.x`. Custom span and log processors accept an `{ exporter }` options object. Mixing SDK generations in one application is not supported.
 
 The plugin can be disabled by setting environment variable `NO_TELEMETRY` to something truthy.
 
@@ -184,6 +188,7 @@ module.exports = cds.server
 ### Logs
 
 Exporting logs via OpenTelemetry is supported as an experimental opt-in feature.
+For gRPC, install `@opentelemetry/sdk-logs@^3` and `@opentelemetry/exporter-logs-otlp-grpc@^0.300`.
 Enable it by adding section `logging` to `cds.requires.telemetry` as follows (using `grpc` as an example):
 ```json
 "logging": {
@@ -338,13 +343,9 @@ Please note that `@cap-js/telemetry` does not validate the configuration via env
 
 
 
-## Running with SAP Cloud ALM (beta)
+## SAP Cloud ALM Compatibility
 
-When your application already runs the SAP Cloud ALM agent extension (`@sap/xotel-agent-ext-js`), that agent owns the OpenTelemetry SDK. `@cap-js/telemetry` detects it and, instead of setting up its own tracer provider, contributes its CDS spans to the agent's tracing pipeline (as a delegate on the agent's span processor). Both run on a single, shared OpenTelemetry SDK instance, so the CDS spans appear alongside the data the agent already collects — no second SDK, no duplicate setup.
-
-This requires `@sap/xotel-agent-ext-js` 2.0.4 or later. For enabling and onboarding the SAP Cloud ALM agent itself, refer to the [SAP Cloud ALM documentation](https://support.sap.com/en/alm/sap-cloud-alm/operations/expert-portal/data-collection-infrastructure.html).
-
-> Note: this coexistence is currently in beta. Running the SAP Cloud ALM agent together with Dynatrace OneAgent is not supported.
+`@sap/xotel-agent-ext-js` requires OpenTelemetry SDK 2 and is not compatible with this SDK-3-only release. Use `@cap-js/telemetry` 2.x with the SAP Cloud ALM agent. Startup rejects xotel when declared in the application's dependencies, avoiding a second provider setup beside the agent.
 
 
 
@@ -381,6 +382,7 @@ See [Resources](https://opentelemetry.io/docs/concepts/resources) and [Resource 
 
 `@cap-js/telemetry` automatically derives resource attributes from the app's info (`package.json`) as well as the app's environment ().
 You can configure additional attributes or also overwrite the derived attributes via `cds.requires.telemetry.resource.attributes = { <key>: <value>, ... }`
+SDK 3 requires resource attribute values to be strings, numbers, booleans, or homogeneous arrays of these values.
 
 Example:
 ```json
@@ -520,7 +522,7 @@ Default:
     {
       "tracing": {
         "exporter": {
-          "module": "@opentelemetry/sdk-trace-base",
+          "module": "@opentelemetry/sdk-trace",
           "class": "ConsoleSpanExporter"
         }
       },
@@ -582,7 +584,6 @@ It is opt-in via `cds.requires.telemetry.tracing.sap_statistics`:
 }
 ```
 
-> Note: this relies on `@cap-js/telemetry` installing the HTTP instrumentations itself, so it is not available [when running with the SAP Cloud ALM agent](#running-with-sap-cloud-alm-beta), which owns the OpenTelemetry SDK and its instrumentations.
 
 
 ### Environment Variables
