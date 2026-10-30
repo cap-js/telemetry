@@ -35,7 +35,7 @@ async function clearOutbox(timeout = 5000) {
 
 // Force-flush the tracer provider's span processor so any spans buffered by background activity are
 // exported into `captured`. The global provider is a ProxyTracerProvider (no forceFlush) whose
-// delegate is the real NodeTracerProvider; guard for the no-op provider so a misconfigured profile
+// delegate is the real TracerProvider; guard for the no-op provider so a misconfigured profile
 // fails loudly, not silently.
 async function flushSpans() {
   const provider = otel.trace.getTracerProvider()

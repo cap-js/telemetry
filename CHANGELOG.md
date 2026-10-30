@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## Version 3.0.0 - tbd
+
+### Changed
+
+- Upgrade to OpenTelemetry SDK 3.x and API 1.10, requiring Node.js >=22.15.0. Application-owned exporters, instrumentations and processors must use SDK-3-compatible versions
+- Tracing uses `@opentelemetry/sdk-trace` instead of `sdk-trace-base` and `sdk-trace-node`; span and log processors accept an `{ exporter }` options object
+
+### Removed
+
+- OpenTelemetry SDK 2.x and SAP Cloud ALM/xotel integration. Applications using the SDK-2 agent must remain on `@cap-js/telemetry` 2.x
+
 ## Version 2.3.0 - tbd
 
 ### Added

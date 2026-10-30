@@ -448,7 +448,7 @@ describe('CaaS integration', () => {
         },
         tracing: {
           exporter: {
-            module: '@opentelemetry/sdk-trace-base',
+            module: '@opentelemetry/sdk-trace',
             class: 'InMemorySpanExporter'
           },
           sampler: { kind: 'AlwaysOnSampler' },
