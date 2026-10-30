@@ -28,7 +28,7 @@
         },
         "_tracing": {
           "exporter": {
-            "module": "@opentelemetry/sdk-trace-base",
+            "module": "@opentelemetry/sdk-trace",
             "class": "ConsoleSpanExporter"
           }
         },
